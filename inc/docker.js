@@ -1,6 +1,7 @@
 var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
+var async = require('async');
 var Docker = require('dockerode');
 var settings = require('../settings.json');
 var spawn = require('child_process').spawn;
@@ -118,6 +119,58 @@ module.exports.spawnDockerComposeProcess = function (arguments, callback) {
     process.on('close', function (code) {
         callback({
             code: code
+        });
+    });
+};
+
+module.exports.cleanEverything = function (callback) {
+    docker.listContainers({all: true}, function (err, containers) {
+        if (err) {
+            return callback({
+                code: 1,
+                error: err
+            })
+        }
+
+        async.each(containers, function (containerInfo, next) {
+            docker.getContainer(containerInfo.Id).stop(function (err) {
+                if (err && err.statusCode != 304) {
+                    return next(err);
+                }
+
+                docker.getContainer(containerInfo.Id).remove(next);
+            });
+        }, function (err) {
+            if (err) {
+                return callback({
+                    code: 1,
+                    error: err
+                })
+            }
+
+            docker.listImages(function (err, images) {
+                if (err) {
+                    return callback({
+                        code: 1,
+                        error: err
+                    })
+                }
+
+                async.each(images, function (imageInfo, next) {
+                    docker.getImage(imageInfo.Id).remove(next);
+                }, function (err) {
+                    if (err) {
+                        return callback({
+                            code: 1,
+                            error: err
+                        })
+                    }
+
+                    callback({
+                        code: 0
+                    })
+                });
+            });
         });
     });
 };
