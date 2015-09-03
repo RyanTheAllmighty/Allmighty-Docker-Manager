@@ -3,6 +3,7 @@ var settings = require('../settings.json');
 var _ = require('lodash');
 var fs = require('fs');
 var path = require('path');
+var merge = require('merge');
 var spawn = require('child_process').spawn;
 var sprintf = require("sprintf-js").sprintf;
 
@@ -28,8 +29,18 @@ function isBuildable(name, callback) {
     });
 }
 
-module.exports.build = function (name, callback) {
+module.exports.build = function (name, opts, callback) {
+    if (opts && !callback) {
+        callback = opts;
+        opts = {};
+    }
+
+    var options = merge({
+        noCache: false
+    }, opts);
+
     isBuildable(name, function (buildable) {
+        console.log(options);
         if (!buildable) {
             callback({
                 code: 1,
@@ -41,6 +52,11 @@ module.exports.build = function (name, callback) {
 
         arguments.push('build');
         arguments.push('--rm');
+
+        if (options.noCache) {
+            arguments.push('--no-cache=true');
+        }
+
         arguments.push(sprintf('--tag="%s"', 'a-repo/' + name));
         arguments.push(getBuildDirectory(name));
 
