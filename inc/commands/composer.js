@@ -17,6 +17,7 @@ module.exports.run = function (arguments, callback) {
     }
 
     var name = arguments._.shift();
+    var args = arguments;
 
     // Check if the containers we need to be up are actually up
     docker.isRunning(sprintf('%s_data', name), function (running, offline) {
@@ -27,7 +28,7 @@ module.exports.run = function (arguments, callback) {
             });
         }
 
-        composer(name, arguments, function (res) {
+        composer(name, args, function (res) {
             if (res.code != 0) {
                 console.log(res.error);
             }
@@ -54,5 +55,7 @@ function composer(name, opts, callback) {
     arguments.push('composer');
     arguments.push('--ansi');
 
-    docker.spawnDockerProcess(arguments.concat(opts._), callback);
+    arguments = arguments.concat(opts._raw.slice(opts._raw.indexOf(name) + 1));
+
+    docker.spawnDockerProcess(arguments, callback);
 }
