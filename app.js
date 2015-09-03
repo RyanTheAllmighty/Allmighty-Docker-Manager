@@ -23,7 +23,7 @@ if (!/^[a-zA-z]+$/.test(action)) {
 }
 
 // The file of the possible command
-var commandFile = './commands/' + action + '.js';
+var commandFile = './inc/commands/' + action + '.js';
 
 // Check the js file exists in the command directory
 if (!fs.existsSync(commandFile)) {
@@ -32,5 +32,6 @@ if (!fs.existsSync(commandFile)) {
 }
 
 // The command we want to run
-var result = require(commandFile).run(arguments);
-process.exit(result.code);
+var result = require(commandFile).run(arguments, function (res) {
+    process.exit(res.code);
+});
