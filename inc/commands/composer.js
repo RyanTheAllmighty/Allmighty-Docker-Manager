@@ -10,19 +10,30 @@ var sprintf = require("sprintf-js").sprintf;
 module.exports.run = function (arguments, callback) {
     // Check if we have the correct arguments or not
     if (!arguments._ || arguments._.length == 0) {
-        callback({
+        return callback({
             code: 1,
             error: 'No arguments were passed to this command!'
         });
     }
 
-    // Were good so lets run composer
-    composer(arguments._.shift(), arguments, function (res) {
-        if (res.code != 0) {
-            console.log(res.error);
+    var name = arguments._.shift();
+
+    // Check if the containers we need to be up are actually up
+    docker.isRunning(sprintf('%s_data', name), function (running, offline) {
+        if (!running) {
+            return callback({
+                code: 1,
+                error: 'Couldn\'t start the artisan container as the following container/s aren\'t online: ' + offline
+            });
         }
 
-        callback(res);
+        composer(name, arguments, function (res) {
+            if (res.code != 0) {
+                console.log(res.error);
+            }
+
+            callback(res);
+        });
     });
 };
 

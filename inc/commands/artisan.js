@@ -10,23 +10,35 @@ var sprintf = require("sprintf-js").sprintf;
 module.exports.run = function (arguments, callback) {
     // Check if we have the correct arguments or not
     if (!arguments._ || arguments._.length == 0) {
-        callback({
+        return callback({
             code: 1,
             error: 'No arguments were passed to this command!'
         });
     }
 
-    // Were good so lets run artisan
-    composer(arguments._.shift(), arguments, function (res) {
-        if (res.code != 0) {
-            console.log(res.error);
+    var name = arguments._.shift();
+
+    // Check if the containers we need to be up are actually up
+    docker.isRunning(sprintf('%s_data', name), function (running, offline) {
+        if (!running) {
+            return callback({
+                code: 1,
+                error: 'Couldn\'t start the artisan container as the following container/s aren\'t online: ' + offline
+            });
         }
 
-        callback(res);
+        artisan(name, arguments, function (res) {
+            if (res.code != 0) {
+                console.log(res.error);
+            }
+
+            callback(res);
+        });
     });
+
 };
 
-function composer(name, opts, callback) {
+function artisan(name, opts, callback) {
     var options = merge({}, opts);
 
     var arguments = [];
@@ -35,7 +47,7 @@ function composer(name, opts, callback) {
     arguments.push('--volumes-from');
     arguments.push(sprintf('%s_data', name));
     arguments.push('--name');
-    arguments.push(sprintf('%s_composer', name));
+    arguments.push(sprintf('%s_artisan', name));
     arguments.push('--rm');
     arguments.push('-w="/mnt/site/"');
     arguments.push(sprintf('%s/php', docker.settings.repositoryURL));

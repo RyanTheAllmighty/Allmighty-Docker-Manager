@@ -33,5 +33,9 @@ if (!fs.existsSync(commandFile)) {
 
 // The command we want to run
 var result = require(commandFile).run(arguments, function (res) {
+    if (res.error) {
+        console.error(res.error);
+    }
+
     process.exit(res.code);
 });

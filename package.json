@@ -1,24 +1,25 @@
 {
-  "name": "docker-setup",
-  "version": "0.0.1",
-  "description": "A set of tools for creating and managing my own personal collection of Docker containers",
-  "main": "app.js",
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@gitlab.com/RyanTheAllmighty/Docker-Setup.git"
-  },
-  "author": "Ryan Dowling <ryan@ryandowling.me>",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://gitlab.com/RyanTheAllmighty/Docker-Setup/issues"
-  },
-  "homepage": "https://gitlab.com/RyanTheAllmighty/Docker-Setup#README",
-  "dependencies": {
-    "async": "^1.4.2",
-    "lodash": "^3.10.1",
-    "merge": "^1.2.0",
-    "minimist": "^1.2.0",
-    "sprintf-js": "^1.0.3"
-  }
+    "name": "docker-setup",
+    "version": "0.0.1",
+    "description": "A set of tools for creating and managing my own personal collection of Docker containers",
+    "main": "app.js",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@gitlab.com/RyanTheAllmighty/Docker-Setup.git"
+    },
+    "author": "Ryan Dowling <ryan@ryandowling.me>",
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://gitlab.com/RyanTheAllmighty/Docker-Setup/issues"
+    },
+    "homepage": "https://gitlab.com/RyanTheAllmighty/Docker-Setup#README",
+    "dependencies": {
+        "async": "^1.4.2",
+        "dockerode": "^2.2.2",
+        "lodash": "^3.10.1",
+        "merge": "^1.2.0",
+        "minimist": "^1.2.0",
+        "sprintf-js": "^1.0.3"
+    }
 }
