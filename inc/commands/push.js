@@ -5,13 +5,14 @@ var _ = require('lodash');
 var path = require('path');
 var async = require('async');
 var merge = require('merge');
+var spawn = require('child_process').spawn;
 var sprintf = require("sprintf-js").sprintf;
 
 module.exports.run = function (arguments, callback) {
     // Check if we have any more arguments
     if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets build this single component
-        docker.build(arguments._.shift(), arguments, function (res) {
+        // Yup, so lets push this single component
+        push(arguments._.shift(), arguments, function (res) {
             if (res.code != 0) {
                 console.log(res.error);
             }
@@ -22,7 +23,7 @@ module.exports.run = function (arguments, callback) {
         if (arguments.async) {
             delete arguments.async;
 
-            buildAll(arguments, function (res) {
+            pushAll(arguments, function (res) {
                 if (res.code != 0) {
                     console.log(res.error);
                 }
@@ -30,7 +31,7 @@ module.exports.run = function (arguments, callback) {
                 callback(res);
             });
         } else {
-            buildAllSync(arguments, function (res) {
+            pushAllSync(arguments, function (res) {
                 if (res.code != 0) {
                     console.log(res.error);
                 }
@@ -41,42 +42,32 @@ module.exports.run = function (arguments, callback) {
     }
 };
 
-function build(name, opts, callback) {
-    var options = merge({
-        noCache: false
-    }, opts);
+function push(name, opts, callback) {
+    var options = merge({}, opts);
 
     docker.isBuildable(name, function (buildable) {
         if (!buildable) {
             callback({
                 code: 1,
-                error: 'Cannot build ' + name + '!'
+                error: 'Cannot push ' + name + '!'
             });
         }
 
         var arguments = [];
-
-        arguments.push('build');
-        arguments.push('--rm');
-
-        if (options.noCache) {
-            arguments.push('--no-cache=true');
-        }
-
-        arguments.push(sprintf('--tag="%s/%s"', docker.settings.repositoryURL, name));
-        arguments.push(docker.getBuildDirectory(name));
+        arguments.push('push');
+        arguments.push(sprintf('%s/%s', docker.settings.repositoryURL, name));
 
         docker.spawnDockerProcess(arguments, callback);
     });
 }
 
-function buildAll(opts, callback) {
+function pushAll(opts, callback) {
     var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
         return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
     });
 
     async.each(builds, function (name, next) {
-        build(name, opts, function (res) {
+        push(name, opts, function (res) {
             // Check for failure
             if (res.code != 0) {
                 next(res);
@@ -95,13 +86,13 @@ function buildAll(opts, callback) {
     });
 }
 
-function buildAllSync(opts, callback) {
+function pushAllSync(opts, callback) {
     var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
         return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
     });
 
     async.eachSeries(builds, function (name, next) {
-        build(name, opts, function (res) {
+        push(name, opts, function (res) {
             // Check for failure
             if (res.code != 0) {
                 next(res);
