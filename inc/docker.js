@@ -39,6 +39,26 @@ module.exports.isBuildable = function (name, callback) {
     });
 };
 
+module.exports.getRunningContainers = function (callback) {
+    docker.listContainers({all: false}, function (err, containers) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, containers);
+    });
+};
+
+module.exports.getRunningContainerIds = function (callback) {
+    docker.listContainers({all: false}, function (err, containers) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, _.map(containers, 'Id'));
+    });
+};
+
 module.exports.getRunningContainerNames = function (callback) {
     docker.listContainers({all: false}, function (err, containers) {
         if (err) {
