@@ -57,6 +57,8 @@ function composer(name, opts, callback) {
     arguments.push(sprintf('%s_composer', name));
     arguments.push('--rm');
     arguments.push('-w="/mnt/site/"');
+    arguments.push('-v');
+    arguments.push('/docker/data/composer:/root/.composer/cache');
     arguments.push(sprintf('%s/php', docker.settings.repositoryURL));
 
     arguments.push('composer');
