@@ -14,6 +14,13 @@ module.exports.run = function (arguments, callback) {
             })
         }
 
+        if (containers.length == 0) {
+            return callback({
+                code: 1,
+                error: 'There are no running containers to get the stats of!'
+            });
+        }
+
         docker.spawnDockerProcess(['stats', '--no-stream'].concat(containers), callback);
     });
 };
