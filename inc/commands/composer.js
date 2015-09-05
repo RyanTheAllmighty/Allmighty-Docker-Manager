@@ -66,5 +66,26 @@ function composer(name, opts, callback) {
 
     arguments = arguments.concat(opts._raw.slice(opts._raw.indexOf(name) + 1));
 
-    docker.spawnDockerProcess(arguments, callback);
+    docker.spawnDockerProcess(arguments, function (data) {
+        if (data.code != 0) {
+            return callback(data);
+        }
+
+        // Kill the container just in case we ctrl c out, crappy solution to a problem
+        docker.spawnDockerProcess(['kill', sprintf('%s_composer', name)], function (data) {
+            if (data.code != 0) {
+                return callback(data);
+            }
+
+            docker.spawnDockerProcess(['rm', sprintf('%s_composer', name)], function (data) {
+                if (data.code != 0) {
+                    return callback(data);
+                }
+
+                callback({
+                    code: 0
+                });
+            });
+        });
+    });
 }
