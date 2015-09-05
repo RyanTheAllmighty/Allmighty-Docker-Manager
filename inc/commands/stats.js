@@ -11,7 +11,7 @@ module.exports.run = function (arguments, callback) {
             return callback({
                 code: 1,
                 error: err
-            })
+            });
         }
 
         if (containers.length == 0) {
