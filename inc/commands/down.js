@@ -8,21 +8,40 @@ var merge = require('merge');
 var sprintf = require("sprintf-js").sprintf;
 
 module.exports.run = function (arguments, callback) {
-    // Check if we have any more arguments
-    if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets bring down this single application
-        down(arguments._.shift(), arguments, function (res) {
-            if (res.code != 0) {
-                console.log(res.error);
+    var args = arguments;
+
+    docker.getRunningContainerNames(function (err, containers) {
+        if (err) {
+            return callback({
+                code: 1,
+                error: err
+            });
+        }
+
+        if (containers.length == 0) {
+            return callback({
+                code: 1,
+                error: 'There are no running containers!'
+            });
+        }
+
+        // Check if we have any more arguments
+        if (args._ && args._.length > 0) {
+            // Yup, so lets bring down this single application
+            var name = args._.shift();
+
+            var isUp = _.some(containers, function (container) {
+                return container == name || container.startsWith(name + "_");
+            });
+
+            if (!isUp) {
+                return callback({
+                    code: 1,
+                    error: 'There are no running containers for the application "' + name + '"!'
+                });
             }
 
-            callback(res);
-        });
-    } else {
-        if (arguments.async) {
-            delete arguments.async;
-
-            downAll(arguments, function (res) {
+            down(name, args, function (res) {
                 if (res.code != 0) {
                     console.log(res.error);
                 }
@@ -30,15 +49,27 @@ module.exports.run = function (arguments, callback) {
                 callback(res);
             });
         } else {
-            downAllSync(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
+            if (args.async) {
+                delete args.async;
 
-                callback(res);
-            });
+                downAll(args, function (res) {
+                    if (res.code != 0) {
+                        console.log(res.error);
+                    }
+
+                    callback(res);
+                });
+            } else {
+                downAllSync(args, function (res) {
+                    if (res.code != 0) {
+                        console.log(res.error);
+                    }
+
+                    callback(res);
+                });
+            }
         }
-    }
+    });
 };
 
 function down(name, opts, callback) {
