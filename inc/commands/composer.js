@@ -19,6 +19,13 @@ module.exports.run = function (arguments, callback) {
     var name = arguments._.shift();
     var args = arguments;
 
+    if (!docker.isApplicationSync(name)) {
+        return callback({
+            code: 1,
+            error: 'No application exists called "' + name + '"!'
+        });
+    }
+
     // Check if the containers we need to be up are actually up
     docker.isRunning(sprintf('%s_data', name), function (running, offline) {
         if (!running) {

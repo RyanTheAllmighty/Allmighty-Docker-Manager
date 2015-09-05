@@ -30,6 +30,13 @@ module.exports.run = function (arguments, callback) {
             // Yup, so lets bring down this single application
             var name = args._.shift();
 
+            if (!docker.isApplicationSync(name)) {
+                return callback({
+                    code: 1,
+                    error: 'No application exists called "' + name + '"!'
+                });
+            }
+
             var isUp = _.some(containers, function (container) {
                 return container == name || container.startsWith(name + "_");
             });

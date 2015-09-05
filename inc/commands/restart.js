@@ -8,21 +8,47 @@ var merge = require('merge');
 var sprintf = require("sprintf-js").sprintf;
 
 module.exports.run = function (arguments, callback) {
-    // Check if we have any more arguments
-    if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets restart this single application
-        restart(arguments._.shift(), arguments, function (res) {
-            if (res.code != 0) {
-                console.log(res.error);
+    var args = arguments;
+
+    docker.getRunningContainerNames(function (err, containers) {
+        if (err) {
+            return callback({
+                code: 1,
+                error: err
+            });
+        }
+
+        if (containers.length == 0) {
+            return callback({
+                code: 1,
+                error: 'There are no running containers!'
+            });
+        }
+
+        // Check if we have any more arguments
+        if (args._ && args._.length > 0) {
+            // Yup, so lets restart this single application
+            var name = args._.shift();
+
+            if (!docker.isApplicationSync(name)) {
+                return callback({
+                    code: 1,
+                    error: 'No application exists called "' + name + '"!'
+                });
             }
 
-            callback(res);
-        });
-    } else {
-        if (arguments.async) {
-            delete arguments.async;
+            var isUp = _.some(containers, function (container) {
+                return container == name || container.startsWith(name + "_");
+            });
 
-            restartAll(arguments, function (res) {
+            if (!isUp) {
+                return callback({
+                    code: 1,
+                    error: 'There are no running containers for the application "' + name + '"!'
+                });
+            }
+
+            restart(name, args, function (res) {
                 if (res.code != 0) {
                     console.log(res.error);
                 }
@@ -30,15 +56,27 @@ module.exports.run = function (arguments, callback) {
                 callback(res);
             });
         } else {
-            restartAllSync(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
+            if (args.async) {
+                delete args.async;
 
-                callback(res);
-            });
+                restartAll(args, function (res) {
+                    if (res.code != 0) {
+                        console.log(res.error);
+                    }
+
+                    callback(res);
+                });
+            } else {
+                restartAllSync(args, function (res) {
+                    if (res.code != 0) {
+                        console.log(res.error);
+                    }
+
+                    callback(res);
+                });
+            }
         }
-    }
+    });
 };
 
 function restart(name, opts, callback) {

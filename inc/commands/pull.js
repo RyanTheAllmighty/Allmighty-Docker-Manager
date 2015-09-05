@@ -12,7 +12,16 @@ module.exports.run = function (arguments, callback) {
     // Check if we have any more arguments
     if (arguments._ && arguments._.length > 0) {
         // Yup, so lets pull this single component
-        pull(arguments._.shift(), arguments, function (res) {
+        var name = arguments._.shift();
+
+        if (!docker.isComponentSync(name)) {
+            return callback({
+                code: 1,
+                error: 'No component exists called "' + name + '"!'
+            });
+        }
+
+        pull(name, arguments, function (res) {
             if (res.code != 0) {
                 console.log(res.error);
             }

@@ -29,6 +29,22 @@ module.exports.getDockerComposeYML = function (name) {
     return path.join(module.exports.getApplicationsDirectory(), name + '.yml');
 };
 
+module.exports.isApplication = function (name, callback) {
+    fs.exists(module.exports.getDockerComposeYML(name), callback);
+};
+
+module.exports.isApplicationSync = function (name) {
+    return fs.existsSync(module.exports.getDockerComposeYML(name));
+};
+
+module.exports.isComponent = function (name, callback) {
+    fs.exists(module.exports.getDockerBuildFile(name), callback);
+};
+
+module.exports.isComponentSync = function (name) {
+    return fs.existsSync(module.exports.getDockerBuildFile(name));
+};
+
 module.exports.isBuildable = function (name, callback) {
     fs.exists(module.exports.getBuildDirectory(name), function (exists) {
         if (!exists) {

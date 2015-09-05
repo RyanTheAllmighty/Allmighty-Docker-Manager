@@ -11,7 +11,16 @@ module.exports.run = function (arguments, callback) {
     // Check if we have any more arguments
     if (arguments._ && arguments._.length > 0) {
         // Yup, so lets bring up this single application
-        up(arguments._.shift(), arguments, function (res) {
+        var name = arguments._.shift();
+
+        if (!docker.isApplicationSync(name)) {
+            return callback({
+                code: 1,
+                error: 'No application exists called "' + name + '"!'
+            });
+        }
+
+        up(name, arguments, function (res) {
             if (res.code != 0) {
                 console.log(res.error);
             }
