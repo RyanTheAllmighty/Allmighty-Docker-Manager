@@ -3,6 +3,7 @@ var docker = require('../docker');
 var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
+var merge = require('merge');
 
 var directories = [
     '/docker/',
@@ -22,21 +23,37 @@ var directories = [
     '/docker/sites/
 ];
 
-module.exports.run = function (arguments, callback) {
+var args;
+
+// The options for this command, if any, and their defaults
+var options = {
+    quiet: false
+};
+
+module.exports.init = function (arguments, callback) {
+    args = arguments;
+    options = merge(options, args);
+
+    callback();
+};
+
+module.exports.run = function (callback) {
     setupDirectories();
 
-    callback({
-        code: 0
-    });
+    callback();
 };
 
 function setupDirectories() {
-    console.log('Setting up the directories needed!');
+    if (!options.quiet) {
+        console.log('Setting up the directories needed!');
+    }
 
     _.forEach(directories, function (directory) {
         if (!fs.existsSync(directory)) {
-            console.log('Creating directory ' + directory);
-            fs.mkdir(directory);
+            if (!options.quiet) {
+                console.log('Creating directory ' + directory);
+            }
+            fs.mkdirSync(directory);
         }
     });
 }

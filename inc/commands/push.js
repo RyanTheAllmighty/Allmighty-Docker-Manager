@@ -8,114 +8,75 @@ var merge = require('merge');
 var spawn = require('child_process').spawn;
 var sprintf = require("sprintf-js").sprintf;
 
-module.exports.run = function (arguments, callback) {
-    // Check if we have any more arguments
-    if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets push this single component
-        var name = arguments._.shift();
+var args;
+var componentName = null;
 
-        if (!docker.isComponentSync(name)) {
+// The options for this command, if any, and their defaults
+var options = {
+    quiet: false,
+    async: false
+};
+
+module.exports.init = function (arguments, callback) {
+    args = arguments;
+    options = merge(options, args);
+
+    if (args._ && args._.length > 0) {
+        componentName = arguments._.shift();
+
+        if (!docker.isComponentSync(componentName)) {
             return callback({
-                code: 1,
-                error: 'No component exists called "' + name + '"!'
+                error: 'No component exists called "' + componentName + '"!'
             });
         }
+    }
 
-        push(name, arguments, function (res) {
-            if (res.code != 0) {
-                console.log(res.error);
-            }
+    callback();
+};
 
-            callback(res);
-        });
+module.exports.run = function (callback) {
+    if (componentName != null) {
+        push(componentName, callback);
     } else {
-        if (arguments.async) {
-            delete arguments.async;
-
-            pushAll(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+        if (options.async) {
+            pushAll(callback);
         } else {
-            pushAllSync(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+            pushAllSync(callback);
         }
     }
 };
 
-function push(name, opts, callback) {
-    var options = merge({}, opts);
-
+function push(name, callback) {
     docker.isBuildable(name, function (buildable) {
         if (!buildable) {
-            callback({
-                code: 1,
-                error: 'Cannot push ' + name + '!'
+            return callback({
+                error: 'Cannot push component ' + name + '!'
             });
         }
 
         var arguments = [];
+
         arguments.push('push');
         arguments.push(sprintf('%s/%s', docker.settings.repositoryURL, name));
 
-        docker.spawnDockerProcess(arguments, callback);
+        docker.spawnDockerProcess(options, arguments, callback);
     });
 }
 
-function pushAll(opts, callback) {
-    var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
-        return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
-    });
-
-    async.each(builds, function (name, next) {
-        push(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
+function _asyncEachCallback(name, next) {
+    push(name, function (res) {
+        if (res && res.error) {
+            return next(res);
         }
 
-        callback({
-            code: 0
-        })
+        next()
     });
 }
 
-function pushAllSync(opts, callback) {
-    var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
-        return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
-    });
+function pushAll(callback) {
+    async.each(docker.getComponentNamesSync(), _asyncEachCallback, callback);
+}
 
-    async.eachSeries(builds, function (name, next) {
-        push(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
-        }
-
-        callback({
-            code: 0
-        })
-    });
+function pushAllSync(callback) {
+    async.eachSeries(docker.getComponentNamesSync(), _asyncEachCallback, callback);
 }

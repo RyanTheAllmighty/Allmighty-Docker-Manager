@@ -12,7 +12,8 @@ var applicationName = null;
 
 // The options for this command, if any, and their defaults
 var options = {
-    quiet: false
+    quiet: false,
+    async: false
 };
 
 module.exports.init = function (arguments, callback) {
@@ -63,7 +64,7 @@ module.exports.run = function (callback) {
     if (applicationName != null) {
         down(applicationName, callback);
     } else {
-        if (args.async) {
+        if (options.async) {
             downAll(callback);
         } else {
             downAllSync(callback);

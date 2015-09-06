@@ -13,7 +13,8 @@ var componentName = null;
 // The options for this command, if any, and their defaults
 var options = {
     quiet: false,
-    noCache: false
+    noCache: false,
+    async: false
 };
 
 module.exports.init = function (arguments, callback) {
@@ -37,7 +38,7 @@ module.exports.run = function (callback) {
     if (componentName != null) {
         build(componentName, callback);
     } else {
-        if (args.async) {
+        if (options.async) {
             buildAll(callback);
         } else {
             buildAllSync(callback);
