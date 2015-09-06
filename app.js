@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-// Pargse the arguments passed in
+// Parse the arguments passed in
 var arguments = require('minimist')(process.argv.slice(2));
 arguments._raw = process.argv.slice(2);
 
@@ -34,7 +34,7 @@ if (!fs.existsSync(commandFile)) {
 
 // The command we want to run
 var result = require(commandFile).run(arguments, function (res) {
-    if (res.error) {
+    if (res && res.error) {
         console.error(res.error);
     }
 
