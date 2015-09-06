@@ -8,26 +8,10 @@ describe('Application', function () {
         name: 'Test Application',
         description: 'This is a test application!',
         components: {
-            test: {
-                image: "test/test",
-                restart: true,
-                command: "test some arguments --help",
-                volumes: [
-                    {
-                        host: "/test/readwrite",
-                        container: "/mnt/readwrite",
-                        readOnly: false
-                    },
-                    {
-                        host: "/test/readonly",
-                        container: "/mnt/readonly",
-                        readOnly: true
-                    }
-                ]
-            }
+            test: {}
         }
     });
-    
+
     it('should create an Application', function () {
         expect(application instanceof Application).to.equal(true);
     });

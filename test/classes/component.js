@@ -1,7 +1,8 @@
 var expect = require('chai').expect;
 
-var Component = require('../../inc/classes/component');
 var Volume = require('../../inc/classes/volume');
+var Component = require('../../inc/classes/component');
+var Environment = require('../../inc/classes/environment');
 
 describe('Component', function () {
     var component = new Component({
@@ -9,16 +10,10 @@ describe('Component', function () {
         restart: true,
         command: "test some arguments --help",
         volumes: [
-            {
-                host: "/test/readwrite",
-                container: "/mnt/readwrite",
-                readOnly: false
-            },
-            {
-                host: "/test/readonly",
-                container: "/mnt/readonly",
-                readOnly: true
-            }
+            {}
+        ],
+        "environment": [
+            {}
         ]
     });
 
@@ -51,7 +46,13 @@ describe('Component', function () {
         it('should return the volumes of a component', function () {
             expect(component.getVolumes()).to.be.a('object');
             expect(component.getVolumes()[0] instanceof Volume).to.equal(true);
-            expect(component.getVolumes()[1] instanceof Volume).to.equal(true);
+        });
+    });
+
+    describe('#getEnvironment()', function () {
+        it('should return the environment of a component', function () {
+            expect(component.getEnvironment()).to.be.a('object');
+            expect(component.getEnvironment()[0] instanceof Environment).to.equal(true);
         });
     });
 });
