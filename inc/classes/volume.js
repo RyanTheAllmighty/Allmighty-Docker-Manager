@@ -10,6 +10,14 @@ function Volume(object) {
     }
 }
 
+methods.getHostMount = function () {
+    return this.host;
+};
+
+methods.getContainerMount = function () {
+    return this.container;
+};
+
 methods.isReadOnly = function () {
     return this.readOnly;
 };

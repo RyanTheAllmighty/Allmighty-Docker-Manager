@@ -22,6 +22,14 @@ methods.getImage = function () {
     return this.image;
 };
 
+methods.shouldRestart = function () {
+    return this.restart;
+};
+
+methods.getCommand = function () {
+    return this.command;
+};
+
 methods.getVolumes = function () {
     return this.volumes;
 };

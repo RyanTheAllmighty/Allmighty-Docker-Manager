@@ -33,6 +33,20 @@ describe('Component', function () {
         });
     });
 
+    describe('#shouldRestart()', function () {
+        it('should return if the component should restart or not', function () {
+            expect(component.shouldRestart()).to.equal(true);
+            expect(component.restart).to.equal(true);
+        });
+    });
+
+    describe('#getCommand()', function () {
+        it('should return the command of a component', function () {
+            expect(component.getCommand()).to.equal('test some arguments --help');
+            expect(component.command).to.equal('test some arguments --help');
+        });
+    });
+
     describe('#getVolumes()', function () {
         it('should return the volumes of a component', function () {
             expect(component.getVolumes()).to.be.a('object');

@@ -19,13 +19,15 @@
     },
     "dependencies": {
         "async": "^1.4.2",
-        "chai": "^3.2.0",
         "dockerode": "^2.2.2",
         "lodash": "^3.10.1",
         "merge": "^1.2.0",
         "minimist": "^1.2.0",
         "mkdirp": "^0.5.1",
-        "mocha": "^2.3.0",
         "sprintf-js": "^1.0.3"
+    },
+    "devDependencies": {
+        "chai": "^3.2.0",
+        "mocha": "^2.3.0"
     }
 }
