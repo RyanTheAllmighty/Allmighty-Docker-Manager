@@ -1,6 +1,8 @@
-var methods = Component.prototype;
-
 var _ = require('lodash');
+
+var Volume = require('./volume');
+
+var methods = Component.prototype;
 
 function Component(object) {
     for (var propName in object) {
@@ -8,10 +10,20 @@ function Component(object) {
             this[propName] = object[propName];
         }
     }
+
+    this.volumes = {};
+
+    _.forEach(object.volumes, function (volume, key) {
+        this.volumes[key] = new Volume(volume);
+    }, this);
 }
 
 methods.getImage = function () {
     return this.image;
+};
+
+methods.getVolumes = function () {
+    return this.volumes;
 };
 
 module.exports = Component;
