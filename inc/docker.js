@@ -103,6 +103,14 @@ module.exports.getComponentNamesSync = function () {
     }, this);
 };
 
+module.exports.getApplicationNamesSync = function () {
+    return _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
+        return file.substr(-4) == '.yml';
+    }), function (app) {
+        return app.substr(0, app.length - 4);
+    });
+};
+
 module.exports.isRunning = function (name, callback) {
     module.exports.getRunningContainerNames(function (err, containers) {
         if (err) {

@@ -79,7 +79,10 @@ module.exports.run = function (callback) {
     arguments.push('artisan');
     arguments.push('--ansi');
 
-    arguments = arguments.concat(args._raw.slice(args._raw.indexOf(applicationName) + 1));
+    // Add in the arguments for artisan minus the quiet flag if there
+    arguments = arguments.concat(_.remove(args._raw.slice(args._raw.indexOf(name) + 1), function (n) {
+        return n == '--quiet';
+    }));
 
     docker.spawnDockerProcess(options, arguments, callback);
 };
