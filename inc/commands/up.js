@@ -7,52 +7,72 @@ var async = require('async');
 var merge = require('merge');
 var sprintf = require("sprintf-js").sprintf;
 
-module.exports.run = function (arguments, callback) {
-    // Check if we have any more arguments
-    if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets bring up this single application
-        var name = arguments._.shift();
+var args;
+var applicationName = null;
 
-        if (!docker.isApplicationSync(name)) {
+// The options for this command, if any, and their defaults
+var options = {
+    quiet: false,
+    async: false
+};
+
+module.exports.init = function (arguments, callback) {
+    args = arguments;
+    options = merge(options, args);
+
+    if (args._ && args._.length > 0) {
+        applicationName = arguments._.shift();
+
+        if (!docker.isApplicationSync(applicationName)) {
             return callback({
-                code: 1,
-                error: 'No application exists called "' + name + '"!'
+                error: 'No application exists called "' + applicationName + '"!'
+            });
+        }
+    }
+
+
+    docker.getRunningContainerNames(function (err, containers) {
+        if (err) {
+            return callback({
+                error: err
             });
         }
 
-        up(name, arguments, function (res) {
-            if (res.code != 0) {
-                console.log(res.error);
+        if (containers.length == 0) {
+            return callback({
+                error: 'There are no containers currently running!'
+            });
+        }
+
+        if (applicationName != null) {
+            var isUp = _.some(containers, function (container) {
+                return container == applicationName || container.startsWith(applicationName + "_");
+            });
+
+            if (!isUp) {
+                return callback({
+                    error: 'There are no running containers for the application "' + name + '"!'
+                });
             }
+        }
 
-            callback(res);
-        });
+        callback();
+    });
+};
+
+module.exports.run = function (callback) {
+    if (applicationName != null) {
+        up(applicationName, callback);
     } else {
-        if (arguments.async) {
-            delete arguments.async;
-
-            upAll(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+        if (options.async) {
+            upAll(callback);
         } else {
-            upAllSync(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+            upAllSync(callback);
         }
     }
 };
 
-function up(name, opts, callback) {
-    var options = merge({}, opts);
-
+function up(name, callback) {
     var arguments = [];
 
     arguments.push('-f');
@@ -62,63 +82,23 @@ function up(name, opts, callback) {
     arguments.push('up');
     arguments.push('-d');
 
-    docker.spawnDockerComposeProcess(arguments, callback);
+    docker.spawnDockerComposeProcess(options, arguments, callback);
+}
+
+function _asyncEachCallback(name, next) {
+    up(name, function (res) {
+        if (res && res.error) {
+            return next(res);
+        }
+
+        next()
+    });
 }
 
 function upAll(opts, callback) {
-    var applications = fs.readdirSync(docker.getApplicationsDirectory()).filter(function (file) {
-        return file.substr(-4) == '.yml';
-    });
-
-    applications = _.map(applications, function (app) {
-        return app.substr(0, app.length - 4);
-    });
-
-    async.each(applications, function (name, next) {
-        up(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
-        }
-
-        callback({
-            code: 0
-        })
-    });
+    async.each(docker.getApplicationNamesSync(), _asyncEachCallback, callback);
 }
 
 function upAllSync(opts, callback) {
-    var applications = fs.readdirSync(docker.getApplicationsDirectory()).filter(function (file) {
-        return file.substr(-4) == '.yml';
-    });
-
-    applications = _.map(applications, function (app) {
-        return app.substr(0, app.length - 4);
-    });
-
-    async.eachSeries(applications, function (name, next) {
-        up(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
-        }
-
-        callback({
-            code: 0
-        })
-    });
+    async.eachSeries(docker.getApplicationNamesSync(), _asyncEachCallback, callback);
 }
