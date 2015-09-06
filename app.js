@@ -32,11 +32,23 @@ if (!fs.existsSync(commandFile)) {
     process.exit(1);
 }
 
-// The command we want to run
-var result = require(commandFile).run(arguments, function (res) {
+// This is the command we want to run
+var command = require(commandFile);
+
+// First we need to initialize it with the arguments passed in to do some sanity checks and processing
+command.init(arguments, function (res) {
     if (res && res.error) {
         console.error(res.error);
+        return process.exit(1);
     }
 
-    process.exit(res.code);
+    // Then we run it with a callback with the result
+    command.run(function (res) {
+        if (res && res.error) {
+            console.error(res.error);
+            return process.exit(1);
+        }
+
+        process.exit(0);
+    });
 });

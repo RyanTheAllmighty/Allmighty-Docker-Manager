@@ -7,59 +7,49 @@ var async = require('async');
 var merge = require('merge');
 var sprintf = require("sprintf-js").sprintf;
 
-module.exports.run = function (arguments, callback) {
-    // Check if we have any more arguments
-    if (arguments._ && arguments._.length > 0) {
-        // Yup, so lets build this single component
-        var name = arguments._.shift();
+var args;
+var componentName = null;
 
-        if (!docker.isComponentSync(name)) {
+// The options for this command, if any, and their defaults
+var options = {
+    quiet: false,
+    noCache: false
+};
+
+module.exports.init = function (arguments, callback) {
+    args = arguments;
+    options = merge(options, args);
+
+    if (args._ && args._.length > 0) {
+        componentName = arguments._.shift();
+
+        if (!docker.isComponentSync(componentName)) {
             return callback({
-                code: 1,
-                error: 'No component exists called "' + name + '"!'
+                error: 'No component exists called "' + componentName + '"!'
             });
         }
+    }
 
-        build(name, arguments, function (res) {
-            if (res.code != 0) {
-                console.log(res.error);
-            }
+    callback();
+};
 
-            callback(res);
-        });
+module.exports.run = function (callback) {
+    if (componentName != null) {
+        build(componentName, callback);
     } else {
-        if (arguments.async) {
-            delete arguments.async;
-
-            buildAll(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+        if (args.async) {
+            buildAll(callback);
         } else {
-            buildAllSync(arguments, function (res) {
-                if (res.code != 0) {
-                    console.log(res.error);
-                }
-
-                callback(res);
-            });
+            buildAllSync(callback);
         }
     }
 };
 
-function build(name, opts, callback) {
-    var options = merge({
-        noCache: false
-    }, opts);
-
+function build(name, callback) {
     docker.isBuildable(name, function (buildable) {
         if (!buildable) {
-            callback({
-                code: 1,
-                error: 'Cannot build ' + name + '!'
+            return callback({
+                error: 'Cannot build ' + name + ' as there is no Dockerfile!'
             });
         }
 
@@ -75,56 +65,24 @@ function build(name, opts, callback) {
         arguments.push(sprintf('--tag="%s/%s"', docker.settings.repositoryURL, name));
         arguments.push(docker.getBuildDirectory(name));
 
-        docker.spawnDockerProcess(arguments, callback);
+        docker.spawnDockerProcess(options, arguments, callback);
     });
 }
 
-function buildAll(opts, callback) {
-    var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
-        return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
-    });
-
-    async.each(builds, function (name, next) {
-        build(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
+function _asyncEachCallback(name, next) {
+    build(name, function (res) {
+        if (res && res.error) {
+            return next(res);
         }
 
-        callback({
-            code: 0
-        })
+        next()
     });
 }
 
-function buildAllSync(opts, callback) {
-    var builds = fs.readdirSync(docker.getBuildsDirectory()).filter(function (file) {
-        return fs.statSync(path.join(docker.getBuildsDirectory(), file)).isDirectory();
-    });
+function buildAll(callback) {
+    async.each(docker.getComponentNamesSync(), _asyncEachCallback, callback);
+}
 
-    async.eachSeries(builds, function (name, next) {
-        build(name, opts, function (res) {
-            // Check for failure
-            if (res.code != 0) {
-                next(res);
-            }
-
-            next()
-        });
-    }, function (err) {
-        if (err) {
-            callback(err);
-        }
-
-        callback({
-            code: 0
-        })
-    });
+function buildAllSync(callback) {
+    async.eachSeries(docker.getComponentNamesSync(), _asyncEachCallback, callback);
 }

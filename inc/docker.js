@@ -97,6 +97,12 @@ module.exports.getRunningContainerNames = function (callback) {
     });
 };
 
+module.exports.getComponentNamesSync = function () {
+    return fs.readdirSync(this.getBuildsDirectory()).filter(function (file) {
+        return fs.statSync(path.join(this.getBuildsDirectory(), file)).isDirectory();
+    }, this);
+};
+
 module.exports.isRunning = function (name, callback) {
     module.exports.getRunningContainerNames(function (err, containers) {
         if (err) {
@@ -123,21 +129,33 @@ module.exports.isRunning = function (name, callback) {
     })
 };
 
-module.exports.spawnDockerProcess = function (arguments, callback) {
-    var process = spawn(module.exports.settings.dockerLocation, arguments);
+module.exports.spawnDockerProcess = function (options, arguments, callback) {
+    if (!callback) {
+        callback = arguments;
+        arguments = options;
+        options = {};
+    }
 
-    process.stdout.on('data', function (data) {
-        console.log(data.toString());
-    });
+    var process = spawn(this.settings.dockerLocation, arguments);
 
-    process.stderr.on('data', function (data) {
-        console.error(data.toString());
-    });
+    if (!options || !options.quiet) {
+        process.stdout.on('data', function (data) {
+            console.log(data.toString());
+        });
+
+        process.stderr.on('data', function (data) {
+            console.error(data.toString());
+        });
+    }
 
     process.on('close', function (code) {
-        callback({
-            code: code
-        });
+        if (code != 0) {
+            return callback({
+                error: 'Code returned was ' + code + '!'
+            });
+        }
+
+        callback();
     });
 };
 
