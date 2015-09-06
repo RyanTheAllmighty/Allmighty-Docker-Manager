@@ -111,6 +111,14 @@ module.exports.getApplicationNamesSync = function () {
     });
 };
 
+module.exports.getApplicationsSync = function () {
+    return _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
+        return file.substr(-5) == '.json';
+    }), function (app) {
+        return require('../applications/' + app);
+    });
+};
+
 module.exports.isRunning = function (name, callback) {
     module.exports.getRunningContainerNames(function (err, containers) {
         if (err) {

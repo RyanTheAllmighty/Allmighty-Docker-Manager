@@ -4,24 +4,7 @@ var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
 var merge = require('merge');
-
-var directories = [
-    '/docker/',
-    '/docker/certs/',
-    '/docker/data/',
-    '/docker/logs/',
-    '/docker/nginx-conf/',
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-    '/docker/sites/
-];
+var mkdirp = require('mkdirp');
 
 var args;
 
@@ -48,12 +31,17 @@ function setupDirectories() {
         console.log('Setting up the directories needed!');
     }
 
-    _.forEach(directories, function (directory) {
-        if (!fs.existsSync(directory)) {
-            if (!options.quiet) {
-                console.log('Creating directory ' + directory);
+    _.forEach(docker.getApplicationsSync(), function (application) {
+        _.forEach(application.directories, function (directory) {
+            var thisPath = path.join('/docker', directory.path);
+
+            if (!fs.existsSync(thisPath)) {
+                if (!options.quiet) {
+                    console.log('Creating directory ' + thisPath);
+                }
+
+                mkdirp.sync(thisPath);
             }
-            fs.mkdirSync(directory);
-        }
+        });
     });
 }
