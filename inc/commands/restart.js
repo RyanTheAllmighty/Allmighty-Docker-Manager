@@ -30,7 +30,6 @@ module.exports.init = function (arguments, callback) {
         }
     }
 
-
     docker.getRunningContainerNames(function (err, containers) {
         if (err) {
             return callback({

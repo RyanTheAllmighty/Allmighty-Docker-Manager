@@ -4,7 +4,6 @@ var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
 var merge = require('merge');
-var mkdirp = require('mkdirp');
 
 var args;
 
@@ -32,16 +31,6 @@ function setupDirectories() {
     }
 
     _.forEach(docker.getApplicationsSync(), function (application) {
-        _.forEach(application.directories, function (directory) {
-            var thisPath = path.join('/docker', directory.path);
-
-            if (!fs.existsSync(thisPath)) {
-                if (!options.quiet) {
-                    console.log('Creating directory ' + thisPath);
-                }
-
-                mkdirp.sync(thisPath);
-            }
-        });
+        application.setupDirectories(options);
     });
 }

@@ -1,3 +1,5 @@
+var Application = require('./classes/application');
+
 var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
@@ -25,16 +27,20 @@ module.exports.getDockerBuildFile = function (name) {
     return path.join(module.exports.getBuildDirectory(name), 'Dockerfile');
 };
 
+module.exports.getApplicationJSON = function (name) {
+    return path.join(module.exports.getApplicationsDirectory(), name + '.json');
+};
+
 module.exports.getDockerComposeYML = function (name) {
     return path.join(module.exports.getApplicationsDirectory(), name + '.yml');
 };
 
 module.exports.isApplication = function (name, callback) {
-    fs.exists(module.exports.getDockerComposeYML(name), callback);
+    fs.exists(module.exports.getApplicationJSON(name), callback);
 };
 
 module.exports.isApplicationSync = function (name) {
-    return fs.existsSync(module.exports.getDockerComposeYML(name));
+    return fs.existsSync(module.exports.getApplicationJSON(name));
 };
 
 module.exports.isComponent = function (name, callback) {
@@ -111,11 +117,15 @@ module.exports.getApplicationNamesSync = function () {
     });
 };
 
+module.exports.getApplicationSync = function (name) {
+    return new Application(name);
+};
+
 module.exports.getApplicationsSync = function () {
     return _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
         return file.substr(-5) == '.json';
     }), function (app) {
-        return require('../applications/' + app);
+        return new Application(app.substr(0, app.length - 5));
     });
 };
 
