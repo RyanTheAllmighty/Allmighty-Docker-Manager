@@ -15,11 +15,7 @@ methods.getContainer = function () {
 };
 
 methods.getName = function () {
-    if (!this.name) {
-        return this.container;
-    }
-
-    return this.name;
+    return this.name || this.container;
 };
 
 module.exports = Link;

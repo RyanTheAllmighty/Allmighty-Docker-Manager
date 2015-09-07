@@ -39,6 +39,10 @@ methods.getImage = function () {
     return this.image;
 };
 
+methods.isDataOnly = function () {
+    return this.dataOnly;
+};
+
 methods.shouldRestart = function () {
     return this.restart;
 };
@@ -48,19 +52,19 @@ methods.getCommand = function () {
 };
 
 methods.getLinks = function () {
-    return this.links;
+    return this.links || [];
 };
 
 methods.getVolumes = function () {
-    return this.volumes;
+    return this.volumes || [];
 };
 
 methods.getVolumesFrom = function () {
-    return this.volumesFrom;
+    return this.volumesFrom || [];
 };
 
 methods.getEnvironment = function () {
-    return this.environment;
+    return this.environment || [];
 };
 
 module.exports = Component;

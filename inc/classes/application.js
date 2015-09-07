@@ -50,7 +50,7 @@ methods.getName = function () {
 };
 
 methods.getDirectories = function () {
-    return this.directories;
+    return this.directories || [];
 };
 
 methods.getDescription = function () {
@@ -62,7 +62,7 @@ methods.getComponent = function (name) {
 };
 
 methods.getComponents = function () {
-    return this.components;
+    return this.components || {};
 };
 
 module.exports = Application;
