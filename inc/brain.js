@@ -28,12 +28,20 @@ var docker = new Docker({socketPath: settings.dockerSocket});
 var components = {};
 var applications = {};
 
+// Setup some loading variables
+var isLoaded = false;
+var isLoading = false;
+
 module.exports = function () {
+    if (!isLoaded && !isLoading) {
+        isLoading = true;
+        applications = functions.loadComponents();
+        components = functions.loadApplications();
+        isLoaded = true;
+        isLoading = false;
+    }
+
     return {
-        load: function () {
-            applications = functions.loadComponents();
-            components = functions.loadApplications();
-        },
         getApplications: function () {
             return applications;
         },

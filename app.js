@@ -2,7 +2,6 @@ var fs = require('fs');
 
 // Load the brain in for the application
 var brain = require('./inc/brain')();
-brain.load();
 
 // Parse the arguments passed in
 var arguments = require('minimist')(process.argv.slice(2));
