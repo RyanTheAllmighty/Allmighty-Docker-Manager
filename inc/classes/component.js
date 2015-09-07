@@ -1,8 +1,9 @@
 var _ = require('lodash');
 
-var Volume = require('./volume');
-var Environment = require('./environment');
 var Link = require('./link');
+var Volume = require('./volume');
+var VolumeFrom = require('./volumeFrom');
+var Environment = require('./environment');
 
 var methods = Component.prototype;
 
@@ -23,6 +24,12 @@ function Component(object) {
 
     _.forEach(object.volumes, function (volume) {
         this.volumes.push(new Volume(volume));
+    }, this);
+
+    this.volumesFrom = [];
+
+    _.forEach(object.volumesFrom, function (volume) {
+        this.volumesFrom.push(new VolumeFrom(volume));
     }, this);
 
     this.environment = [];
