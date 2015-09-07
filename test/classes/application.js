@@ -1,13 +1,13 @@
 var expect = require('chai').expect;
 
 var Application = require('../../inc/classes/application');
-var Component = require('../../inc/classes/component');
+var Layer = require('../../inc/classes/layer');
 
 describe('Application', function () {
     var application = new Application({
         name: 'Test Application',
         description: 'This is a test application!',
-        components: {
+        layers: {
             test: {}
         }
     });
@@ -28,11 +28,15 @@ describe('Application', function () {
         });
     });
 
-    describe('#getComponents()', function () {
-        it('should return the components of the application', function () {
-            expect(application.getComponents()).to.be.a('object');
-            expect(application.getComponents().test instanceof Component).to.equal(true);
-            expect(application.getComponent('test') instanceof Component).to.equal(true);
+    describe('#getLayers()', function () {
+        it('should return all the layers of the application', function () {
+            expect(application.getLayers().test instanceof Layer).to.equal(true);
+        });
+    });
+
+    describe('#getLayer()', function () {
+        it('should return a single layer of the application', function () {
+            expect(application.getLayer('test') instanceof Layer).to.equal(true);
         });
     });
 });

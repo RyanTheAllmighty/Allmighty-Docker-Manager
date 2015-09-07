@@ -5,7 +5,7 @@ var _ = require('lodash');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-var Component = require('./component');
+var Layer = require('./layer');
 
 var methods = Application.prototype;
 
@@ -24,10 +24,10 @@ function Application(name) {
         }
     }
 
-    this.components = {};
-    if (object.components) {
-        _.forEach(object.components, function (component, key) {
-            this.components[key] = new Component(component);
+    this.layers = {};
+    if (object.layers) {
+        _.forEach(object.layers, function (layer, key) {
+            this.layers[key] = new Layer(layer);
         }, this);
     }
 }
@@ -58,12 +58,12 @@ methods.getDescription = function () {
     return this.description;
 };
 
-methods.getComponent = function (name) {
-    return this.components[name];
+methods.getLayer = function (name) {
+    return this.layers[name];
 };
 
-methods.getComponents = function () {
-    return this.components || {};
+methods.getLayers = function () {
+    return this.layers || {};
 };
 
 module.exports = Application;
