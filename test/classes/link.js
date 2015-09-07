@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 
 var Link = require('../../inc/classes/link');
 
-describe('Environment', function () {
+describe('Link', function () {
     var linkWithName = new Link({
         "container": "testWithName",
         "name": "test"
@@ -29,9 +29,7 @@ describe('Environment', function () {
         it('should return the name of a link with a name', function () {
             expect(linkWithName.getName()).to.equal('test');
         });
-    });
 
-    describe('#getName()', function () {
         it('should return the name of a link without a name', function () {
             expect(linkWithoutName.getName()).to.equal('testWithoutName');
         });
