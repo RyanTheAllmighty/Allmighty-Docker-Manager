@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var expect = require('chai').expect;
 
 var Link = require('../../inc/classes/link');
@@ -11,6 +12,7 @@ describe('Component', function () {
         image: "test/test",
         dataOnly: false,
         restart: true,
+        memLimit: "1g",
         command: "test some arguments --help",
         links: [
             {}
@@ -45,6 +47,18 @@ describe('Component', function () {
     describe('#shouldRestart()', function () {
         it('should return if the component should restart or not', function () {
             expect(component.shouldRestart()).to.equal(true);
+        });
+    });
+
+    describe('#getMemoryLimit()', function () {
+        it('should return the memory limit of a component as undefined if not defined', function () {
+            var testComponent = new Component({});
+
+            expect(testComponent.getMemoryLimit()).to.be.an('undefined');
+        });
+
+        it('should return the memory limit of a component', function () {
+            expect(component.getMemoryLimit()).to.equal('1g');
         });
     });
 

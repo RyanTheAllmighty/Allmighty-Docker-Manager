@@ -25,10 +25,11 @@ function Application(name) {
     }
 
     this.components = {};
-
-    _.forEach(object.components, function (component, key) {
-        this.components[key] = new Component(component);
-    }, this);
+    if (object.components) {
+        _.forEach(object.components, function (component, key) {
+            this.components[key] = new Component(component);
+        }, this);
+    }
 }
 
 methods.setupDirectories = function (options) {
