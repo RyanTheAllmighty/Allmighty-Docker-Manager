@@ -19,14 +19,12 @@ describe('Application', function () {
     describe('#getName()', function () {
         it('should return the name of the application', function () {
             expect(application.getName()).to.equal('Test Application');
-            expect(application.name).to.equal('Test Application');
         });
     });
 
     describe('#getDescription()', function () {
         it('should return the description of the application', function () {
             expect(application.getDescription()).to.equal('This is a test application!');
-            expect(application.description).to.equal('This is a test application!');
         });
     });
 

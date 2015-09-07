@@ -15,14 +15,12 @@ describe('Environment', function () {
     describe('#getName()', function () {
         it('should return the name of an environment', function () {
             expect(environment.getName()).to.equal('TEST');
-            expect(environment.name).to.equal('TEST');
         });
     });
 
     describe('#getValue()', function () {
         it('should return the value of an environment', function () {
             expect(environment.getValue()).to.equal('test');
-            expect(environment.value).to.equal('test');
         });
     });
 });

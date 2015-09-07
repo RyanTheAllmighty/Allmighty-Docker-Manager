@@ -2,6 +2,7 @@ var _ = require('lodash');
 
 var Volume = require('./volume');
 var Environment = require('./environment');
+var Link = require('./link');
 
 var methods = Component.prototype;
 
@@ -12,16 +13,22 @@ function Component(object) {
         }
     }
 
-    this.volumes = {};
+    this.links = [];
 
-    _.forEach(object.volumes, function (volume, key) {
-        this.volumes[key] = new Volume(volume);
+    _.forEach(object.links, function (link) {
+        this.links.push(new Link(link));
     }, this);
 
-    this.environment = {};
+    this.volumes = [];
 
-    _.forEach(object.environment, function (env, key) {
-        this.environment[key] = new Environment(env);
+    _.forEach(object.volumes, function (volume) {
+        this.volumes.push(new Volume(volume));
+    }, this);
+
+    this.environment = [];
+
+    _.forEach(object.environment, function (env) {
+        this.environment.push(new Environment(env));
     }, this);
 }
 
@@ -35,6 +42,10 @@ methods.shouldRestart = function () {
 
 methods.getCommand = function () {
     return this.command;
+};
+
+methods.getLinks = function () {
+    return this.links;
 };
 
 methods.getVolumes = function () {
