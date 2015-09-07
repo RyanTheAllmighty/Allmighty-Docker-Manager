@@ -15,25 +15,21 @@ function Component(object) {
     }
 
     this.links = [];
-
     _.forEach(object.links, function (link) {
         this.links.push(new Link(link));
     }, this);
 
     this.volumes = [];
-
     _.forEach(object.volumes, function (volume) {
         this.volumes.push(new Volume(volume));
     }, this);
 
     this.volumesFrom = [];
-
     _.forEach(object.volumesFrom, function (volume) {
         this.volumesFrom.push(new VolumeFrom(volume));
     }, this);
 
     this.environment = [];
-
     _.forEach(object.environment, function (env) {
         this.environment.push(new Environment(env));
     }, this);
@@ -57,6 +53,10 @@ methods.getLinks = function () {
 
 methods.getVolumes = function () {
     return this.volumes;
+};
+
+methods.getVolumesFrom = function () {
+    return this.volumesFrom;
 };
 
 methods.getEnvironment = function () {

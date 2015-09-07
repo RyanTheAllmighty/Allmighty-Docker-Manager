@@ -3,6 +3,7 @@ var expect = require('chai').expect;
 var Link = require('../../inc/classes/link');
 var Volume = require('../../inc/classes/volume');
 var Component = require('../../inc/classes/component');
+var VolumeFrom = require('../../inc/classes/volumefrom');
 var Environment = require('../../inc/classes/environment');
 
 describe('Component', function () {
@@ -14,6 +15,9 @@ describe('Component', function () {
             {}
         ],
         volumes: [
+            {}
+        ],
+        volumesFrom: [
             {}
         ],
         "environment": [
@@ -54,6 +58,13 @@ describe('Component', function () {
         it('should return the volumes of a component', function () {
             expect(component.getVolumes()).to.be.an('array');
             expect(component.getVolumes()[0] instanceof Volume).to.equal(true);
+        });
+    });
+
+    describe('#getVolumesFrom()', function () {
+        it('should return the volumes of other containers for a component', function () {
+            expect(component.getVolumesFrom()).to.be.an('array');
+            expect(component.getVolumesFrom()[0] instanceof VolumeFrom).to.equal(true);
         });
     });
 
