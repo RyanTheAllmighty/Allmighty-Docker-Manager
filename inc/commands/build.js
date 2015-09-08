@@ -1,23 +1,38 @@
-// Load the brain in for the application
+// Our library requirements and the brain of the application
 var brain = require('../brain');
-
-var _ = require('lodash');
 var async = require('async');
 var merge = require('merge');
 
-var args;
+/**
+ * The Components we want to build.
+ *
+ * @type {Component[]}
+ */
 var toBuild = [];
 
-// The options for this command, if any, and their defaults
+/**
+ * The options for this command along with their defaults.
+ *
+ * quiet: If there should be no output from the command (default: false)
+ * noCache: If we should bypass the build cache when building (default: false)
+ * async: If we should run all the builds we're doing asynchronously (default: false)
+ *
+ * @type {{quiet: boolean, noCache: boolean, async: boolean}}
+ */
 var options = {
     quiet: false,
     noCache: false,
     async: false
 };
 
+/**
+ * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+ *
+ * @param {Object} arguments - An object of arguments
+ * @param {App~commandRunCallback} callback - The callback for when we're done
+ */
 module.exports.init = function (arguments, callback) {
-    args = arguments;
-    options = merge(options, args);
+    options = merge(options, arguments);
 
     if (args._ && args._.length > 0) {
         var componentName = arguments._.shift();
@@ -36,6 +51,12 @@ module.exports.init = function (arguments, callback) {
     callback();
 };
 
+/**
+ * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+ * response in the callback if any.
+ *
+ * @param {App~commandRunCallback} callback - The callback for when we're done
+ */
 module.exports.run = function (callback) {
     var _asyncEachCallback = function (component, next) {
         component.build(options, next);

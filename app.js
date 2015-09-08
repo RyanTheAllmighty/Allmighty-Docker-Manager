@@ -61,3 +61,11 @@ command.init(arguments, function (res) {
         process.exit(0);
     });
 });
+
+/**
+ * This is a callback for any errors and results from running a command.
+ *
+ * @callback App~commandRunCallback
+ * @param {Object|undefined} err - The error (if any) returned from this command
+ * @param {string|undefined} res - The response (if any) returned from this command
+ */
