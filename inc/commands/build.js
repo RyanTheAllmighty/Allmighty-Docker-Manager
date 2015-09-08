@@ -1,14 +1,12 @@
-var docker = require('../docker');
+// Load the brain in for the application
+var brain = require('../brain');
 
-var fs = require('fs');
 var _ = require('lodash');
-var path = require('path');
 var async = require('async');
 var merge = require('merge');
-var sprintf = require("sprintf-js").sprintf;
 
 var args;
-var componentName = null;
+var toBuild = [];
 
 // The options for this command, if any, and their defaults
 var options = {
@@ -22,68 +20,30 @@ module.exports.init = function (arguments, callback) {
     options = merge(options, args);
 
     if (args._ && args._.length > 0) {
-        componentName = arguments._.shift();
+        var componentName = arguments._.shift();
 
-        if (!docker.isComponentSync(componentName)) {
+        if (!brain.isComponent(componentName)) {
             return callback({
                 error: 'No component exists called "' + componentName + '"!'
             });
         }
+
+        toBuild.push(brain.getComponent(componentName));
+    } else {
+        toBuild = toBuild.concat(brain.getComponentsAsArray());
     }
 
     callback();
 };
 
 module.exports.run = function (callback) {
-    if (componentName != null) {
-        build(componentName, callback);
+    var _asyncEachCallback = function (component, next) {
+        component.build(options, next);
+    };
+
+    if (options.async) {
+        async.each(toBuild, _asyncEachCallback, callback);
     } else {
-        if (options.async) {
-            buildAll(callback);
-        } else {
-            buildAllSync(callback);
-        }
+        async.eachSeries(toBuild, _asyncEachCallback, callback);
     }
 };
-
-function build(name, callback) {
-    docker.isBuildable(name, function (buildable) {
-        if (!buildable) {
-            return callback({
-                error: 'Cannot build ' + name + ' as there is no Dockerfile!'
-            });
-        }
-
-        var arguments = [];
-
-        arguments.push('build');
-        arguments.push('--rm');
-
-        if (options.noCache) {
-            arguments.push('--no-cache=true');
-        }
-
-        arguments.push(sprintf('--tag="%s/%s"', docker.settings.repositoryURL, name));
-        arguments.push(docker.getBuildDirectory(name));
-
-        docker.spawnDockerProcess(options, arguments, callback);
-    });
-}
-
-function _asyncEachCallback(name, next) {
-    build(name, function (res) {
-        if (res && res.error) {
-            return next(res);
-        }
-
-        next()
-    });
-}
-
-function buildAll(callback) {
-    async.each(docker.getComponentNamesSync(), _asyncEachCallback, callback);
-}
-
-function buildAllSync(callback) {
-    async.eachSeries(docker.getComponentNamesSync(), _asyncEachCallback, callback);
-}

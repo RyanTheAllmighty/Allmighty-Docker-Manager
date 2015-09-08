@@ -1,7 +1,8 @@
 var fs = require('fs');
 
 // Load the brain in for the application
-var brain = require('./inc/brain')();
+var brain = require('./inc/brain');
+brain.load();
 
 // Parse the arguments passed in
 var arguments = require('minimist')(process.argv.slice(2));
@@ -46,10 +47,15 @@ command.init(arguments, function (res) {
     }
 
     // Then we run it with a callback with the result
-    command.run(function (res) {
-        if (res && res.error) {
-            console.error(res.error);
+    command.run(function (err, res) {
+        if (err) {
+            console.error(err);
+
             return process.exit(1);
+        }
+
+        if (res) {
+            console.log(res);
         }
 
         process.exit(0);
