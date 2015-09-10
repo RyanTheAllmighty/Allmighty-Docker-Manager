@@ -52,6 +52,11 @@ methods.build = function (options, callback) {
 
         function onEnd() {
             brain.docker.buildImage(path, buildOpts, function (err, stream) {
+                if (err || stream == null) {
+                    console.log('Error building ' + obj.getName());
+                    return callback(err);
+                }
+
                 brain.docker.modem.followProgress(stream, function (err, output) {
                     console.log('Finished build for ' + obj.getName());
                     callback(err, output);
