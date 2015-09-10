@@ -1,4 +1,3 @@
-// Our library requirements and the brain of the application
 var brain = require('../brain');
 var async = require('async');
 var merge = require('merge');
@@ -34,7 +33,7 @@ var options = {
 module.exports.init = function (arguments, callback) {
     options = merge(options, arguments);
 
-    if (args._ && args._.length > 0) {
+    if (arguments._ && arguments._.length > 0) {
         var componentName = arguments._.shift();
 
         if (!brain.isComponent(componentName)) {

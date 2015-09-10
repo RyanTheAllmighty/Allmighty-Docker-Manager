@@ -27,6 +27,7 @@ methods.getTagName = function () {
 };
 
 methods.build = function (options, callback) {
+    console.log('Started build for ' + this.getName());
     var buildOpts = {
         t: this.getTagName()
     };
@@ -52,6 +53,7 @@ methods.build = function (options, callback) {
         function onEnd() {
             brain.docker.buildImage(path, buildOpts, function (err, stream) {
                 brain.docker.modem.followProgress(stream, function (err, output) {
+                    console.log('Finished build for ' + obj.getName());
                     callback(err, output);
                 }, function (progress) {
                     if (!options.quiet) {
