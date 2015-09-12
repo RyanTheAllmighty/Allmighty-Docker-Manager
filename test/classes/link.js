@@ -19,21 +19,20 @@ describe('Link', function () {
         expect(linkWithoutName instanceof Link).to.equal(true);
     });
 
-    describe('#getContainer()', function () {
+    describe('#container', function () {
         it('should return the container name for a link', function () {
-            expect(linkWithName.getContainer()).to.equal('testWithName');
-
-            expect(linkWithoutName.getContainer()).to.equal('testWithoutName');
+            expect(linkWithName.container).to.equal('testWithName');
+            expect(linkWithoutName.container).to.equal('testWithoutName');
         });
     });
 
-    describe('#getName()', function () {
+    describe('#name', function () {
         it('should return the name of a link with a name', function () {
-            expect(linkWithName.getName()).to.equal('test');
+            expect(linkWithName.name).to.equal('test');
         });
 
         it('should return the name of a link without a name', function () {
-            expect(linkWithoutName.getName()).to.equal('testWithoutName');
+            expect(linkWithoutName.name).to.equal('testWithoutName');
         });
     });
 });

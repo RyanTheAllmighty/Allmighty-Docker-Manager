@@ -11,9 +11,9 @@ describe('Component', function () {
         expect(component instanceof Component).to.equal(true);
     });
 
-    describe('#getName()', function () {
+    describe('#name', function () {
         it('should return the name of the component', function () {
-            expect(component.getName()).to.equal('test');
+            expect(component.name).to.equal('test');
         });
     });
 });

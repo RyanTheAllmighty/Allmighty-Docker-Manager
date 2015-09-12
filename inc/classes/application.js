@@ -9,6 +9,9 @@ var mkdirp = require('mkdirp');
 
 var Layer = require('./layer');
 
+// Symbol for storing the objects properties
+var objectSymbol = Symbol();
+
 module.exports = class Application {
     constructor(name) {
         var originalObject = {};
@@ -19,22 +22,24 @@ module.exports = class Application {
             originalObject = require(docker.getApplicationJSON(name));
         }
 
+        this[objectSymbol] = {};
+
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
-                this[propName] = originalObject[propName];
+                this[objectSymbol][propName] = originalObject[propName];
             }
         }
 
-        this.layers = {};
+        this[objectSymbol].layers = {};
         if (originalObject.layers) {
             _.forEach(originalObject.layers, function (layer, key) {
-                this.layers[key] = new Layer(layer);
+                this[objectSymbol].layers[key] = new Layer(layer);
             }, this);
         }
     }
 
-    setupDirectories() {
-        _.forEach(this.getDirectories(), function (directory) {
+    setupDirectories(options) {
+        _.forEach(this.directories, function (directory) {
             var thisPath = path.join(docker.settings.directories.storage, directory.path);
 
             if (!fs.existsSync(thisPath)) {
@@ -47,23 +52,19 @@ module.exports = class Application {
         });
     }
 
-    getName() {
-        return this.name;
+    get name() {
+        return this[objectSymbol].name;
     }
 
-    getDescription() {
-        return this.description;
+    get description() {
+        return this[objectSymbol].description;
     }
 
-    getDirectories() {
-        return this.directories || [];
+    get directories() {
+        return this[objectSymbol].directories || [];
     }
 
-    getLayer(name) {
-        return this.layers[name];
-    }
-
-    getLayers() {
-        return this.layers || {};
+    get layers() {
+        return this[objectSymbol].layers || {};
     }
 };

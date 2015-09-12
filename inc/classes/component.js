@@ -10,27 +10,32 @@ var sprintf = require("sprintf-js").sprintf;
 // Load the brain in for the application
 var brain = require('../brain');
 
+// Symbol for storing the objects properties
+var objectSymbol = Symbol();
+
 module.exports = class Component {
     constructor(name) {
-        this.name = name;
+        this[objectSymbol] = {
+            name
+        };
     }
 
-    getName() {
-        return this.name;
+    get name() {
+        return this[objectSymbol].name;
     }
 
-    getDirectory() {
+    get directory() {
         return path.join(brain.getBaseDirectory(), brain.settings.directories.components, this.name);
     }
 
-    getTagName() {
+    get tagName() {
         return sprintf('%s/%s', brain.settings.repositoryURL, this.name);
     }
 
-    build() {
-        console.log('Started build for ' + this.getName());
+    build(options, callback) {
+        console.log('Started build for ' + this.name);
         var buildOpts = {
-            t: this.getTagName()
+            t: this.tagName
         };
 
         if (options.noCache) {
@@ -54,12 +59,12 @@ module.exports = class Component {
             function onEnd() {
                 brain.docker.buildImage(path, buildOpts, function (err, stream) {
                     if (err || stream == null) {
-                        console.log('Error building ' + self.getName());
+                        console.log('Error building ' + self.name);
                         return callback(err);
                     }
 
                     brain.docker.modem.followProgress(stream, function (err, output) {
-                        console.log('Finished build for ' + self.getName());
+                        console.log('Finished build for ' + self.name);
                         callback(err, output);
                     }, function (progress) {
                         if (!options.quiet) {
@@ -70,7 +75,7 @@ module.exports = class Component {
             }
 
             fstream.Reader({
-                path: self.getDirectory(),
+                path: self.directory,
                 type: "Directory"
             }).on('error', onError).pipe(tar.Pack({
                 fromBase: true,

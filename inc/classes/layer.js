@@ -7,76 +7,89 @@ var Volume = require('./volume');
 var VolumeFrom = require('./volumeFrom');
 var Environment = require('./environment');
 
+// Symbol for storing the objects properties
+var objectSymbol = Symbol();
+
 module.exports = class Component {
     constructor(originalObject) {
+        this[objectSymbol] = {};
+
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
-                this[propName] = originalObject[propName];
+                this[objectSymbol][propName] = originalObject[propName];
             }
         }
 
-        this.links = [];
+        this[objectSymbol].links = [];
         if (originalObject.links) {
             _.forEach(originalObject.links, function (link) {
-                this.links.push(new Link(link));
+                this[objectSymbol].links.push(new Link(link));
             }, this);
         }
 
-        this.volumes = [];
+        this[objectSymbol].volumes = [];
         if (originalObject.volumes) {
             _.forEach(originalObject.volumes, function (volume) {
-                this.volumes.push(new Volume(volume));
+                this[objectSymbol].volumes.push(new Volume(volume));
             }, this);
         }
 
-        this.volumesFrom = [];
+        this[objectSymbol].volumesFrom = [];
         if (originalObject.volumesFrom) {
             _.forEach(originalObject.volumesFrom, function (volume) {
-                this.volumesFrom.push(new VolumeFrom(volume));
+                this[objectSymbol].volumesFrom.push(new VolumeFrom(volume));
             }, this);
         }
 
-        this.environment = [];
+        this[objectSymbol].environment = [];
         if (originalObject.environment) {
             _.forEach(originalObject.environment, function (env) {
-                this.environment.push(new Environment(env));
+                this[objectSymbol].environment.push(new Environment(env));
             }, this);
         }
     }
 
-    getImage() {
-        return this.image;
+    get image() {
+        return this[objectSymbol].image;
     }
 
-    isDataOnly() {
-        return this.dataOnly;
+    get dataOnly() {
+        return this[objectSymbol].dataOnly;
     }
 
-    shouldRestart() {
+    get restart() {
+        return this[objectSymbol].restart;
+    }
+
+    get shouldRestart() {
         return this.restart;
     }
 
-    getMemoryLimit() {
+    get memLimit() {
+        return this[objectSymbol].memLimit;
+    }
+
+    get memoryLimit() {
         return this.memLimit;
     }
 
-    getCommand() {
-        return this.command;
+    get command() {
+        return this[objectSymbol].command;
     }
 
-    getLinks() {
-        return this.links || [];
+    get links() {
+        return this[objectSymbol].links || [];
     }
 
-    getVolumes() {
-        return this.volumes || [];
+    get volumes() {
+        return this[objectSymbol].volumes || [];
     }
 
-    getVolumesFrom() {
-        return this.volumesFrom || [];
+    get volumesFrom() {
+        return this[objectSymbol].volumesFrom || [];
     }
 
-    getEnvironment() {
-        return this.environment || [];
+    get environment() {
+        return this[objectSymbol].environment || [];
     }
 };

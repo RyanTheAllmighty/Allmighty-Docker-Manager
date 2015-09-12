@@ -29,14 +29,14 @@ var options = {
 /**
  * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
  *
- * @param {Object} arguments - An object of arguments
+ * @param {Object} passedArgs - An object of arguments
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */
 module.exports.init = function (passedArgs, callback) {
     options = merge(options, passedArgs);
 
     if (passedArgs._ && passedArgs._.length > 0) {
-        var componentName = passedArgs._.shift();
+        let componentName = passedArgs._[0];
 
         if (!brain.isComponent(componentName)) {
             return callback({
@@ -59,7 +59,7 @@ module.exports.init = function (passedArgs, callback) {
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */
 module.exports.run = function (callback) {
-    var _asyncEachCallback = function (component, next) {
+    let _asyncEachCallback = function (component, next) {
         component.build(options, next);
     };
 

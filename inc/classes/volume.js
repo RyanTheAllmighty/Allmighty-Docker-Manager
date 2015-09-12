@@ -1,23 +1,36 @@
 "use strict";
 
+// Symbol for storing the objects properties
+var objectSymbol = Symbol();
+
 module.exports = class Volume {
     constructor(originalObject) {
+        this[objectSymbol] = {};
+
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
-                this[propName] = originalObject[propName];
+                this[objectSymbol][propName] = originalObject[propName];
             }
         }
     }
 
-    getHostMount() {
+    get host() {
+        return this[objectSymbol].host;
+    }
+
+    get hostMount() {
         return this.host;
     }
 
-    getContainerMount() {
+    get container() {
+        return this[objectSymbol].container;
+    }
+
+    get containerMount() {
         return this.container;
     }
 
-    isReadOnly() {
-        return this.readOnly;
+    get readOnly() {
+        return this[objectSymbol].readOnly === true;
     }
 };

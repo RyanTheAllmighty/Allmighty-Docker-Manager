@@ -18,32 +18,33 @@ describe('Volume', function () {
     });
 
     it('should create a read only Volume', function () {
-
         expect(readOnlyVolume instanceof Volume).to.equal(true);
-        expect(readOnlyVolume.isReadOnly()).to.equal(true);
+        expect(readOnlyVolume.readOnly).to.equal(true);
     });
 
     it('should create a read write Volume', function () {
         expect(readWriteVolume instanceof Volume).to.equal(true);
-        expect(readWriteVolume.isReadOnly()).to.equal(false);
+        expect(readWriteVolume.readOnly).to.equal(false);
     });
 
-    describe('#isReadOnly()', function () {
+    describe('#readOnly', function () {
         it('should return if the volume is read only', function () {
-            expect(readWriteVolume.isReadOnly()).to.equal(false);
-            expect(readOnlyVolume.isReadOnly()).to.equal(true);
+            expect(readWriteVolume.readOnly).to.equal(false);
+            expect(readOnlyVolume.readOnly).to.equal(true);
         });
     });
 
-    describe('#getHostMount()', function () {
+    describe('#host', function () {
         it('should return the path to the volume on the host', function () {
-            expect(readOnlyVolume.getHostMount()).to.equal('/test/readonly');
+            expect(readOnlyVolume.host).to.equal('/test/readonly');
+            expect(readOnlyVolume.hostMount).to.equal('/test/readonly');
         });
     });
 
-    describe('#getContainerMount()', function () {
+    describe('#container', function () {
         it('should return the path to the volume within the container', function () {
-            expect(readOnlyVolume.getContainerMount()).to.equal('/mnt/readonly');
+            expect(readOnlyVolume.container).to.equal('/mnt/readonly');
+            expect(readOnlyVolume.containerMount).to.equal('/mnt/readonly');
         });
     });
 });

@@ -18,27 +18,21 @@ describe('Application', function () {
         expect(application instanceof Application).to.equal(true);
     });
 
-    describe('#getName()', function () {
+    describe('#name', function () {
         it('should return the name of the application', function () {
-            expect(application.getName()).to.equal('Test Application');
+            expect(application.name).to.equal('Test Application');
         });
     });
 
-    describe('#getDescription()', function () {
+    describe('#description', function () {
         it('should return the description of the application', function () {
-            expect(application.getDescription()).to.equal('This is a test application!');
+            expect(application.description).to.equal('This is a test application!');
         });
     });
 
-    describe('#getLayers()', function () {
+    describe('#layers', function () {
         it('should return all the layers of the application', function () {
-            expect(application.getLayers().test instanceof Layer).to.equal(true);
-        });
-    });
-
-    describe('#getLayer()', function () {
-        it('should return a single layer of the application', function () {
-            expect(application.getLayer('test') instanceof Layer).to.equal(true);
+            expect(application.layers.test instanceof Layer).to.equal(true);
         });
     });
 });

@@ -10,19 +10,19 @@ describe('Environment', function () {
         value: 'test'
     });
 
-    it('should create an environnment', function () {
+    it('should create an environment', function () {
         expect(environment instanceof Environment).to.equal(true);
     });
 
-    describe('#getName()', function () {
+    describe('#name', function () {
         it('should return the name of an environment', function () {
-            expect(environment.getName()).to.equal('TEST');
+            expect(environment.name).to.equal('TEST');
         });
     });
 
-    describe('#getValue()', function () {
+    describe('#value', function () {
         it('should return the value of an environment', function () {
-            expect(environment.getValue()).to.equal('test');
+            expect(environment.value).to.equal('test');
         });
     });
 });
