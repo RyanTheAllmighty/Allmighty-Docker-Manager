@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var fs = require('fs');
@@ -13,8 +15,8 @@ var applicationName = null;
 // The options for this command, if any, and their defaults
 var options = {};
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
+module.exports.init = function (passedArgs, callback) {
+    args = passedArgs;
     options = merge(options, args);
 
     if (!args._ || args._.length == 0) {
@@ -23,7 +25,7 @@ module.exports.init = function (arguments, callback) {
         });
     }
 
-    applicationName = arguments._.shift();
+    applicationName = args._.shift();
 
     if (!docker.isApplicationSync(applicationName)) {
         return callback({

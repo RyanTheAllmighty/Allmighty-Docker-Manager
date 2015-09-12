@@ -1,17 +1,15 @@
-var methods = VolumeFrom.prototype;
+"use strict";
 
-var _ = require('lodash');
-
-function VolumeFrom(object) {
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+module.exports = class VolumeFrom {
+    constructor(originalObject) {
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
+            }
         }
     }
-}
 
-methods.getContainerName = function () {
-    return this.container;
+    getContainerName() {
+        return this.container;
+    }
 };
-
-module.exports = VolumeFrom;

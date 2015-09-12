@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var fs = require('fs');
@@ -21,8 +23,8 @@ var containersNeedingToBeOnline = [];
 // An array of application names this shouldn't be run with
 var dontRunOnApplications = ['nginx'];
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
+module.exports.init = function (passedArgs, callback) {
+    args = passedArgs;
     options = merge(options, args);
 
     // Check if we have the correct arguments or not
@@ -64,26 +66,26 @@ module.exports.init = function (arguments, callback) {
 };
 
 module.exports.run = function (callback) {
-    var arguments = [];
+    var dockerArgs = [];
 
-    arguments.push('run');
-    arguments.push('--volumes-from');
-    arguments.push(sprintf('%s_data', name));
-    arguments.push('--name');
-    arguments.push(sprintf('%s_composer', name));
-    arguments.push('--rm');
-    arguments.push('-w="/mnt/site/"');
-    arguments.push('-v');
-    arguments.push('/docker/data/composer:/root/.composer/cache');
-    arguments.push(sprintf('%s/php', docker.settings.repositoryURL));
+    dockerArgs.push('run');
+    dockerArgs.push('--volumes-from');
+    dockerArgs.push(sprintf('%s_data', name));
+    dockerArgs.push('--name');
+    dockerArgs.push(sprintf('%s_composer', name));
+    dockerArgs.push('--rm');
+    dockerArgs.push('-w="/mnt/site/"');
+    dockerArgs.push('-v');
+    dockerArgs.push('/docker/data/composer:/root/.composer/cache');
+    dockerArgs.push(sprintf('%s/php', docker.settings.repositoryURL));
 
-    arguments.push('composer');
-    arguments.push('--ansi');
+    dockerArgs.push('composer');
+    dockerArgs.push('--ansi');
 
     // Add in the arguments for composer minus the quiet flag if there
-    arguments = arguments.concat(_.remove(args._raw.slice(args._raw.indexOf(name) + 1), function (n) {
+    dockerArgs = dockerArgs.concat(_.remove(args._raw.slice(args._raw.indexOf(name) + 1), function (n) {
         return n == '--quiet';
     }));
 
-    docker.spawnDockerProcess(options, arguments, callback);
+    docker.spawnDockerProcess(options, dockerArgs, callback);
 };

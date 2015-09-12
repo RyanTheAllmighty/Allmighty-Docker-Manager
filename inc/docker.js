@@ -1,3 +1,5 @@
+"use strict";
+
 var Application = require('./classes/application');
 
 var fs = require('fs');
@@ -155,14 +157,14 @@ module.exports.isRunning = function (name, callback) {
     })
 };
 
-module.exports.spawnDockerProcess = function (options, arguments, callback) {
+module.exports.spawnDockerProcess = function (options, dockerArgs, callback) {
     if (!callback) {
-        callback = arguments;
-        arguments = options;
+        callback = dockerArgs;
+        dockerArgs = options;
         options = {};
     }
 
-    var process = spawn(this.settings.dockerLocation, arguments);
+    var process = spawn(this.settings.dockerLocation, dockerArgs);
 
     if (!options || !options.quiet) {
         process.stdout.on('data', function (data) {
@@ -185,8 +187,8 @@ module.exports.spawnDockerProcess = function (options, arguments, callback) {
     });
 };
 
-module.exports.spawnDockerComposeProcess = function (arguments, callback) {
-    var process = spawn(module.exports.settings.dockerComposeLocation, arguments);
+module.exports.spawnDockerComposeProcess = function (dockerArgs, callback) {
+    var process = spawn(module.exports.settings.dockerComposeLocation, dockerArgs);
 
     process.stdout.on('data', function (data) {
         console.log(data.toString());

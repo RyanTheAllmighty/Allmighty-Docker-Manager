@@ -1,3 +1,5 @@
+"use strict";
+
 var _ = require('lodash');
 
 var Link = require('./link');
@@ -5,78 +7,76 @@ var Volume = require('./volume');
 var VolumeFrom = require('./volumeFrom');
 var Environment = require('./environment');
 
-var methods = Component.prototype;
+module.exports = class Component {
+    constructor(originalObject) {
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
+            }
+        }
 
-function Component(object) {
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+        this.links = [];
+        if (originalObject.links) {
+            _.forEach(originalObject.links, function (link) {
+                this.links.push(new Link(link));
+            }, this);
+        }
+
+        this.volumes = [];
+        if (originalObject.volumes) {
+            _.forEach(originalObject.volumes, function (volume) {
+                this.volumes.push(new Volume(volume));
+            }, this);
+        }
+
+        this.volumesFrom = [];
+        if (originalObject.volumesFrom) {
+            _.forEach(originalObject.volumesFrom, function (volume) {
+                this.volumesFrom.push(new VolumeFrom(volume));
+            }, this);
+        }
+
+        this.environment = [];
+        if (originalObject.environment) {
+            _.forEach(originalObject.environment, function (env) {
+                this.environment.push(new Environment(env));
+            }, this);
         }
     }
 
-    this.links = [];
-    if (object.links) {
-        _.forEach(object.links, function (link) {
-            this.links.push(new Link(link));
-        }, this);
+    getImage() {
+        return this.image;
     }
 
-    this.volumes = [];
-    if (object.volumes) {
-        _.forEach(object.volumes, function (volume) {
-            this.volumes.push(new Volume(volume));
-        }, this);
+    isDataOnly() {
+        return this.dataOnly;
     }
 
-    this.volumesFrom = [];
-    if (object.volumesFrom) {
-        _.forEach(object.volumesFrom, function (volume) {
-            this.volumesFrom.push(new VolumeFrom(volume));
-        }, this);
+    shouldRestart() {
+        return this.restart;
     }
 
-    this.environment = [];
-    if (object.environment) {
-        _.forEach(object.environment, function (env) {
-            this.environment.push(new Environment(env));
-        }, this);
+    getMemoryLimit() {
+        return this.memLimit;
     }
-}
 
-methods.getImage = function () {
-    return this.image;
+    getCommand() {
+        return this.command;
+    }
+
+    getLinks() {
+        return this.links || [];
+    }
+
+    getVolumes() {
+        return this.volumes || [];
+    }
+
+    getVolumesFrom() {
+        return this.volumesFrom || [];
+    }
+
+    getEnvironment() {
+        return this.environment || [];
+    }
 };
-
-methods.isDataOnly = function () {
-    return this.dataOnly;
-};
-
-methods.shouldRestart = function () {
-    return this.restart;
-};
-
-methods.getMemoryLimit = function () {
-    return this.memLimit;
-};
-
-methods.getCommand = function () {
-    return this.command;
-};
-
-methods.getLinks = function () {
-    return this.links || [];
-};
-
-methods.getVolumes = function () {
-    return this.volumes || [];
-};
-
-methods.getVolumesFrom = function () {
-    return this.volumesFrom || [];
-};
-
-methods.getEnvironment = function () {
-    return this.environment || [];
-};
-
-module.exports = Component;

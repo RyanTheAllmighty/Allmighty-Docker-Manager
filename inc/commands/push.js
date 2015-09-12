@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var fs = require('fs');
@@ -17,12 +19,12 @@ var options = {
     async: false
 };
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
+module.exports.init = function (passedArgs, callback) {
+    args = passedArgs;
     options = merge(options, args);
 
     if (args._ && args._.length > 0) {
-        componentName = arguments._.shift();
+        componentName = args._.shift();
 
         if (!docker.isComponentSync(componentName)) {
             return callback({
@@ -54,12 +56,12 @@ function push(name, callback) {
             });
         }
 
-        var arguments = [];
+        var dockerArgs = [];
 
-        arguments.push('push');
-        arguments.push(sprintf('%s/%s', docker.settings.repositoryURL, name));
+        dockerArgs.push('push');
+        dockerArgs.push(sprintf('%s/%s', docker.settings.repositoryURL, name));
 
-        docker.spawnDockerProcess(options, arguments, callback);
+        docker.spawnDockerProcess(options, dockerArgs, callback);
     });
 }
 

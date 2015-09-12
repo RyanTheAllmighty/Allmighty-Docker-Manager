@@ -1,3 +1,5 @@
+"use strict";
+
 var expect = require('chai').expect;
 
 var Component = require('../../inc/classes/component');

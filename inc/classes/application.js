@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var fs = require('fs');
@@ -7,63 +9,61 @@ var mkdirp = require('mkdirp');
 
 var Layer = require('./layer');
 
-var methods = Application.prototype;
+module.exports = class Application {
+    constructor(name) {
+        var originalObject = {};
 
-function Application(name) {
-    var object = {};
-
-    if (name instanceof Object) {
-        object = name;
-    } else {
-        object = require(docker.getApplicationJSON(name));
-    }
-
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+        if (name instanceof Object) {
+            originalObject = name;
+        } else {
+            originalObject = require(docker.getApplicationJSON(name));
         }
-    }
 
-    this.layers = {};
-    if (object.layers) {
-        _.forEach(object.layers, function (layer, key) {
-            this.layers[key] = new Layer(layer);
-        }, this);
-    }
-}
-
-methods.setupDirectories = function (options) {
-    _.forEach(this.getDirectories(), function (directory) {
-        var thisPath = path.join(docker.settings.directories.storage, directory.path);
-
-        if (!fs.existsSync(thisPath)) {
-            if (!options.quiet) {
-                console.log('Creating directory ' + thisPath);
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
             }
-
-            mkdirp.sync(thisPath);
         }
-    });
-};
 
-methods.getName = function () {
-    return this.name;
-};
+        this.layers = {};
+        if (originalObject.layers) {
+            _.forEach(originalObject.layers, function (layer, key) {
+                this.layers[key] = new Layer(layer);
+            }, this);
+        }
+    }
 
-methods.getDirectories = function () {
-    return this.directories || [];
-};
+    setupDirectories() {
+        _.forEach(this.getDirectories(), function (directory) {
+            var thisPath = path.join(docker.settings.directories.storage, directory.path);
 
-methods.getDescription = function () {
-    return this.description;
-};
+            if (!fs.existsSync(thisPath)) {
+                if (!options.quiet) {
+                    console.log('Creating directory ' + thisPath);
+                }
 
-methods.getLayer = function (name) {
-    return this.layers[name];
-};
+                mkdirp.sync(thisPath);
+            }
+        });
+    }
 
-methods.getLayers = function () {
-    return this.layers || {};
-};
+    getName() {
+        return this.name;
+    }
 
-module.exports = Application;
+    getDescription() {
+        return this.description;
+    }
+
+    getDirectories() {
+        return this.directories || [];
+    }
+
+    getLayer(name) {
+        return this.layers[name];
+    }
+
+    getLayers() {
+        return this.layers || {};
+    }
+};

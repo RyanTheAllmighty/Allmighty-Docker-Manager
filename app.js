@@ -1,3 +1,5 @@
+"use strict";
+
 var fs = require('fs');
 
 // Load the brain in for the application
@@ -5,20 +7,20 @@ var brain = require('./inc/brain');
 brain.load();
 
 // Parse the arguments passed in
-var arguments = require('minimist')(process.argv.slice(2));
-arguments._raw = process.argv.slice(2);
+var passedArgs = require('minimist')(process.argv.slice(2));
+passedArgs._raw = process.argv.slice(2);
 
-if (arguments._.length == 0) {
+if (passedArgs._.length == 0) {
     console.error('No arguments were passed in!');
     process.exit(1);
 }
 
 // The action we're taking
-var action = arguments._.shift();
+var action = passedArgs._.shift();
 
 // Check if that was the only element, if so remove it from the array
-if (arguments._.length == 0) {
-    delete arguments._;
+if (passedArgs._.length == 0) {
+    delete passedArgs._;
 }
 
 // Check the action is only letters
@@ -40,7 +42,7 @@ if (!fs.existsSync(commandFile)) {
 var command = require(commandFile);
 
 // First we need to initialize it with the arguments passed in to do some sanity checks and processing
-command.init(arguments, function (res) {
+command.init(passedArgs, function (res) {
     if (res && res.error) {
         console.error(res.error);
         return process.exit(1);

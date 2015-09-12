@@ -1,3 +1,5 @@
+"use strict";
+
 var expect = require('chai').expect;
 
 var VolumeFrom = require('../../inc/classes/volumeFrom');

@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var fs = require('fs');
@@ -16,12 +18,12 @@ var options = {
     async: false
 };
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
+module.exports.init = function (passedArgs, callback) {
+    args = passedArgs;
     options = merge(options, args);
 
     if (args._ && args._.length > 0) {
-        applicationName = arguments._.shift();
+        applicationName = args._.shift();
 
         if (!docker.isApplicationSync(applicationName)) {
             return callback({
@@ -73,15 +75,15 @@ module.exports.run = function (callback) {
 };
 
 function down(name, callback) {
-    var arguments = [];
+    var dockerArgs = [];
 
-    arguments.push('-f');
-    arguments.push(docker.getDockerComposeYML(name));
-    arguments.push('-p');
-    arguments.push(name);
-    arguments.push('stop');
+    dockerArgs.push('-f');
+    dockerArgs.push(docker.getDockerComposeYML(name));
+    dockerArgs.push('-p');
+    dockerArgs.push(name);
+    dockerArgs.push('stop');
 
-    docker.spawnDockerComposeProcess(options, arguments, callback);
+    docker.spawnDockerComposeProcess(options, dockerArgs, callback);
 }
 
 function _asyncEachCallback(name, next) {

@@ -1,3 +1,5 @@
+"use strict";
+
 var docker = require('../docker');
 
 var merge = require('merge');
@@ -9,8 +11,8 @@ var options = {
     quiet: false
 };
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
+module.exports.init = function (passedArgs, callback) {
+    args = passedArgs;
     options = merge(options, args);
 
     callback();

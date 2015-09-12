@@ -1,3 +1,5 @@
+"use strict";
+
 var brain = require('../brain');
 var async = require('async');
 var merge = require('merge');
@@ -30,11 +32,11 @@ var options = {
  * @param {Object} arguments - An object of arguments
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */
-module.exports.init = function (arguments, callback) {
-    options = merge(options, arguments);
+module.exports.init = function (passedArgs, callback) {
+    options = merge(options, passedArgs);
 
-    if (arguments._ && arguments._.length > 0) {
-        var componentName = arguments._.shift();
+    if (passedArgs._ && passedArgs._.length > 0) {
+        var componentName = passedArgs._.shift();
 
         if (!brain.isComponent(componentName)) {
             return callback({

@@ -1,25 +1,23 @@
-var methods = Volume.prototype;
+"use strict";
 
-var _ = require('lodash');
-
-function Volume(object) {
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+module.exports = class Volume {
+    constructor(originalObject) {
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
+            }
         }
     }
-}
 
-methods.getHostMount = function () {
-    return this.host;
+    getHostMount() {
+        return this.host;
+    }
+
+    getContainerMount() {
+        return this.container;
+    }
+
+    isReadOnly() {
+        return this.readOnly;
+    }
 };
-
-methods.getContainerMount = function () {
-    return this.container;
-};
-
-methods.isReadOnly = function () {
-    return this.readOnly;
-};
-
-module.exports = Volume;

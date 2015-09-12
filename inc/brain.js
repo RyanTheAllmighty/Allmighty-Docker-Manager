@@ -1,3 +1,5 @@
+"use strict";
+
 // Require all the external modules
 var fs = require('fs');
 var _ = require('lodash');

@@ -1,21 +1,19 @@
-var methods = Link.prototype;
+"use strict";
 
-var _ = require('lodash');
-
-function Link(object) {
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+module.exports = class Link {
+    constructor(originalObject) {
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
+            }
         }
     }
-}
 
-methods.getContainer = function () {
-    return this.container;
+    getContainer() {
+        return this.container;
+    }
+
+    getName() {
+        return this.name || this.container;
+    }
 };
-
-methods.getName = function () {
-    return this.name || this.container;
-};
-
-module.exports = Link;

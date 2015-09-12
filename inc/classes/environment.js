@@ -1,21 +1,19 @@
-var methods = Environment.prototype;
+"use strict";
 
-var _ = require('lodash');
-
-function Environment(object) {
-    for (var propName in object) {
-        if (object.hasOwnProperty(propName)) {
-            this[propName] = object[propName];
+module.exports = class Environment {
+    constructor(originalObject) {
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[propName] = originalObject[propName];
+            }
         }
     }
-}
 
-methods.getName = function () {
-    return this.name;
+    getName() {
+        return this.name;
+    }
+
+    getValue() {
+        return this.value;
+    }
 };
-
-methods.getValue = function () {
-    return this.value;
-};
-
-module.exports = Environment;
