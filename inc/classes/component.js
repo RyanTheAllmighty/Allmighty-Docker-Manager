@@ -1,14 +1,14 @@
 "use strict";
 
+// Load the brain in for the application
+var brain = require('../brain');
+
 var fs = require('fs');
 var tar = require('tar');
 var tmp = require('tmp');
 var path = require("path");
 var fstream = require("fstream");
 var sprintf = require("sprintf-js").sprintf;
-
-// Load the brain in for the application
-var brain = require('../brain');
 
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
@@ -117,7 +117,7 @@ module.exports = class Component {
                 console.log('Error pushing ' + self.name);
                 return callback(err);
             }
-            
+
             brain.docker.modem.followProgress(stream, function (err, output) {
                 console.log('Finished push for ' + self.name);
                 callback(err, output);

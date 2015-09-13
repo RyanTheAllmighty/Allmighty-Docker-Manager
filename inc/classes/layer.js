@@ -1,5 +1,8 @@
 "use strict";
 
+// Load the brain in for the application
+var brain = require('../brain');
+
 var _ = require('lodash');
 
 var Link = require('./link');

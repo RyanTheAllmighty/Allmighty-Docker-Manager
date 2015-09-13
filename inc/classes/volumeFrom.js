@@ -1,5 +1,8 @@
 "use strict";
 
+// Load the brain in for the application
+var brain = require('../brain');
+
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
 

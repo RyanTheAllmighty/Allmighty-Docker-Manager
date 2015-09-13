@@ -1,14 +1,14 @@
 "use strict";
 
+// Load the brain in for the application
+var brain = require('../brain');
+
 var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
 var mkdirp = require('mkdirp');
 
 var Layer = require('./layer');
-
-// Load the brain in for the application
-var brain = require('../brain');
 
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
