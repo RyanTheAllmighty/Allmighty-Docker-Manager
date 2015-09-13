@@ -1,84 +1,73 @@
+/**
+ * The pull command will pull down the pre built images from the registry defined in the settings.json file.
+ */
 "use strict";
 
-var docker = require('../docker');
+var brain = require('../brain');
 
-var fs = require('fs');
-var _ = require('lodash');
-var path = require('path');
 var async = require('async');
 var merge = require('merge');
-var spawn = require('child_process').spawn;
-var sprintf = require("sprintf-js").sprintf;
 
-var args;
-var componentName = null;
+/**
+ * The Components we want to pull.
+ *
+ * @type {Component[]}
+ */
+var toBuild = [];
 
-// The options for this command, if any, and their defaults
+/**
+ * The options for this command along with their defaults.
+ *
+ * quiet: If there should be no output from the command (default: false)
+ * async: If we should pull all the components asynchronously (default: false)
+ *
+ * @type {{quiet: boolean, async: boolean}}
+ */
 var options = {
     quiet: false,
     async: false
 };
 
-module.exports.init = function (arguments, callback) {
-    args = arguments;
-    options = merge(options, args);
+/**
+ * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+ *
+ * @param {Object} passedArgs - An object of arguments
+ * @param {App~commandRunCallback} callback - The callback for when we're done
+ */
+module.exports.init = function (passedArgs, callback) {
+    options = merge(options, passedArgs);
 
-    if (args._ && args._.length > 0) {
-        componentName = arguments._.shift();
+    if (passedArgs._ && passedArgs._.length > 0) {
+        let componentName = passedArgs._[0];
 
-        if (!docker.isComponentSync(componentName)) {
+        if (!brain.isComponent(componentName)) {
             return callback({
                 error: 'No component exists called "' + componentName + '"!'
             });
         }
+
+        toBuild.push(brain.getComponent(componentName));
+    } else {
+        toBuild = toBuild.concat(brain.getComponentsAsArray());
     }
 
     callback();
 };
 
+/**
+ * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+ * response in the callback if any.
+ *
+ * @param {App~commandRunCallback} callback - The callback for when we're done
+ */
 module.exports.run = function (callback) {
-    if (componentName != null) {
-        pull(componentName, callback);
+    let _asyncEachCallback = function (component, next) {
+        component.pull(options, next);
+    };
+
+    if (options.async) {
+        async.each(toBuild, _asyncEachCallback, callback);
     } else {
-        if (options.async) {
-            pullAll(callback);
-        } else {
-            pullAllSync(callback);
-        }
+        async.eachSeries(toBuild, _asyncEachCallback, callback);
     }
 };
-
-function pull(name, callback) {
-    docker.isBuildable(name, function (buildable) {
-        if (!buildable) {
-            return callback({
-                error: 'Cannot pull component ' + name + '!'
-            });
-        }
-
-        var arguments = [];
-
-        arguments.push('pull');
-        arguments.push(sprintf('%s/%s', docker.settings.repositoryURL, name));
-
-        docker.spawnDockerProcess(options, arguments, callback);
-    });
-}
-
-function _asyncEachCallback(name, next) {
-    pull(name, function (res) {
-        if (res && res.error) {
-            return next(res);
-        }
-
-        next()
-    });
-}
-
-function pullAll(callback) {
-    async.each(docker.getComponentNamesSync(), _asyncEachCallback, callback);
-}
-
-function pullAllSync(callback) {
-    async.eachSeries(docker.getComponentNamesSync(), _asyncEachCallback, callback);
-}

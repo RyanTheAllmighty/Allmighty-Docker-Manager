@@ -67,7 +67,7 @@ module.exports = class Component {
                         console.log('Finished build for ' + self.name);
                         callback(err, output);
                     }, function (progress) {
-                        if (!options.quiet) {
+                        if (!options.quiet && progress.stream) {
                             process.stdout.write(progress.stream);
                         }
                     });
@@ -81,6 +81,47 @@ module.exports = class Component {
                 fromBase: true,
                 noProprietary: true
             }).on('error', onError).on('end', onEnd)).pipe(fs.createWriteStream(path));
+        });
+    }
+
+    pull(options, callback) {
+        if (!brain.settings.repositoryAuth) {
+            return callback(new Error('No repository auth is set in the settings.json file!'))
+        }
+
+        console.log('Started pull for ' + this.name);
+
+        var self = this;
+        brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
+            if (err || stream == null) {
+                console.log('Error pulling ' + self.name);
+                return callback(err);
+            }
+            brain.docker.modem.followProgress(stream, function (err, output) {
+                console.log('Finished pull for ' + self.name);
+                callback(err, output);
+            });
+        });
+    }
+
+    push(options, callback) {
+        if (!brain.settings.repositoryAuth) {
+            return callback(new Error('No repository auth is set in the settings.json file!'))
+        }
+
+        console.log('Started push for ' + this.name);
+
+        var self = this;
+        brain.docker.push(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
+            if (err || stream == null) {
+                console.log('Error pushing ' + self.name);
+                return callback(err);
+            }
+            
+            brain.docker.modem.followProgress(stream, function (err, output) {
+                console.log('Finished push for ' + self.name);
+                callback(err, output);
+            });
         });
     }
 };
