@@ -1,6 +1,13 @@
+/**
+ * The build command will build one or all components for the system.
+ *
+ * When no arguments are passed in to this command it will build all the components in the system. Alternatively you can
+ * pass a name into the command which is the name of the component to build.
+ */
 "use strict";
 
 var brain = require('../brain');
+
 var async = require('async');
 var merge = require('merge');
 
