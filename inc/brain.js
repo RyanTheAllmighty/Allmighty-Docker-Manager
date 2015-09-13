@@ -44,6 +44,12 @@ module.exports.getApplications = function () {
     return _applications;
 };
 
+module.exports.getApplicationsAsArray = function () {
+    return Object.keys(_applications).map(function (key) {
+        return _applications[key]
+    });
+};
+
 module.exports.getApplication = function (name) {
     return _applications[name];
 };
@@ -106,4 +112,47 @@ module.exports.getBuildsDirectory = function () {
 
 module.exports.getApplicationsDirectory = function () {
     return path.resolve(settings.directories.applications);
+};
+
+
+module.exports.getRunningContainerNames = function (callback) {
+    docker.listContainers({all: false}, function (err, containers) {
+        if (err) {
+            return callback(err);
+        }
+
+        var names = _.reduceRight(_.map(containers, 'Names'), function (flattened, other) {
+            return flattened.concat(other);
+        });
+
+        names = _.map(names, function (name) {
+            return name.substring(1);
+        });
+
+        names = _.filter(names, function (name) {
+            return !name.match(/\//g);
+        });
+
+        callback(null, names);
+    });
+};
+
+module.exports.spawnDockerComposeProcess = function (options, dockerArgs, callback) {
+    var process = spawn(settings.dockerComposeLocation, dockerArgs);
+
+    process.stdout.on('data', function (data) {
+        console.log(data.toString());
+    });
+
+    process.stderr.on('data', function (data) {
+        console.error(data.toString());
+    });
+
+    process.on('close', function (code) {
+        if (code != 0) {
+            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'))
+        }
+
+        callback();
+    });
 };

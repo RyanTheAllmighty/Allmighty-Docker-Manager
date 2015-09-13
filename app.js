@@ -42,9 +42,9 @@ if (!fs.existsSync(commandFile)) {
 var command = require(commandFile);
 
 // First we need to initialize it with the arguments passed in to do some sanity checks and processing
-command.init(passedArgs, function (res) {
-    if (res && res.error) {
-        console.error(res.error);
+command.init(passedArgs, function (err, res) {
+    if (err) {
+        console.error(err);
         return process.exit(1);
     }
 
