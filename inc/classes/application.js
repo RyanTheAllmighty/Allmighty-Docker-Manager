@@ -57,6 +57,23 @@ module.exports = class Application {
         this.upWithCompose(options, callback);
     }
 
+    upWithCompose(options, callback) {
+        var dockerArgs = [];
+
+        dockerArgs.push('-f');
+        dockerArgs.push(this.dockerComposeYML);
+        dockerArgs.push('-p');
+        dockerArgs.push(this.name);
+        dockerArgs.push('up');
+        dockerArgs.push('-d');
+
+        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
+    }
+
+    down(options, callback) {
+        this.downWithCompose(options, callback);
+    }
+
     downWithCompose(options, callback) {
         var dockerArgs = [];
 
@@ -69,21 +86,24 @@ module.exports = class Application {
         brain.spawnDockerComposeProcess(options, dockerArgs, callback);
     }
 
-    down(options, callback) {
-        this.downWithCompose(options, callback);
+    restart(options, callback) {
+        this.restartWithCompose(options, callback);
     }
 
-    upWithCompose(options, callback) {
+    restartWithCompose(options, callback) {
         var dockerArgs = [];
 
         dockerArgs.push('-f');
         dockerArgs.push(this.dockerComposeYML);
         dockerArgs.push('-p');
         dockerArgs.push(this.name);
-        dockerArgs.push('up');
-        dockerArgs.push('-d');
+        dockerArgs.push('restart');
 
         brain.spawnDockerComposeProcess(options, dockerArgs, callback);
+    }
+
+    restart(options, callback) {
+        this.restartWithCompose(options, callback);
     }
 
     get name() {
