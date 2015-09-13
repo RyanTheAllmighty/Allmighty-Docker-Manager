@@ -156,3 +156,31 @@ module.exports.spawnDockerComposeProcess = function (options, dockerArgs, callba
         callback();
     });
 };
+
+module.exports.spawnDockerProcess = function (options, dockerArgs, callback) {
+    if (!callback) {
+        callback = dockerArgs;
+        dockerArgs = options;
+        options = {};
+    }
+
+    var process = spawn(this.settings.dockerLocation, dockerArgs);
+
+    if (!options || !options.quiet) {
+        process.stdout.on('data', function (data) {
+            console.log(data.toString());
+        });
+
+        process.stderr.on('data', function (data) {
+            console.error(data.toString());
+        });
+    }
+
+    process.on('close', function (code) {
+        if (code != 0) {
+            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'))
+        }
+
+        callback();
+    });
+};

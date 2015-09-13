@@ -43,7 +43,7 @@ module.exports.init = function (passedArgs, callback) {
     if (passedArgs._ && passedArgs._.length > 0) {
         let applicationName = passedArgs._[0];
 
-        if (!brain.isComponent(applicationName)) {
+        if (!brain.isApplication(applicationName)) {
             return callback({
                 error: 'No application exists called "' + applicationName + '"!'
             });
