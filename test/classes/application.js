@@ -20,7 +20,7 @@ describe('Application', function () {
 
     describe('#name', function () {
         it('should return the name of the application', function () {
-            expect(application.name).to.equal('Test Application');
+            expect(application.name).to.equal('test application');
         });
     });
 
