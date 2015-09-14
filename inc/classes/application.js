@@ -70,55 +70,126 @@ module.exports = class Application {
         });
     }
 
+    run(dockerOptions, callback) {
+        brain.docker.createContainer(dockerOptions, function (err, container) {
+            if (err) {
+                return callback(err);
+            }
+
+            var attach_opts = {stream: true, stdin: true, stdout: true, stderr: true};
+
+            container.attach(attach_opts, function handler(err, stream) {
+                // Show outputs
+                stream.pipe(process.stdout);
+
+                // Connect stdin
+                var isRaw = process.isRaw;
+                process.stdin.resume();
+                process.stdin.setEncoding('utf8');
+                process.stdin.setRawMode(true);
+                process.stdin.pipe(stream);
+
+                function resizeTTY() {
+                    var dimensions = {
+                        h: process.stdout.rows,
+                        w: process.stderr.columns
+                    };
+
+                    if (dimensions.h != 0 && dimensions.w != 0) {
+                        container.resize(dimensions, function () {
+                        });
+                    }
+                }
+
+                container.start(function (err, data) {
+                    if (err) {
+                        return exit(stream, isRaw, container, function () {
+                            callback(err)
+                        });
+                    }
+
+                    resizeTTY();
+
+                    process.stdout.on('resize', function () {
+                        resizeTTY();
+                    });
+
+                    container.wait(function (err, data) {
+                        if (err) {
+                            return exit(stream, isRaw, container, function () {
+                                callback(err)
+                            });
+                        }
+
+                        process.stdout.removeListener('resize', resizeTTY);
+                        process.stdin.removeAllListeners();
+                        process.stdin.setRawMode(isRaw);
+                        process.stdin.resume();
+                        stream.end();
+
+                        container.remove(callback);
+                    });
+                });
+            });
+        });
+    }
+
     runArtisan(options, callback) {
         if (!this.runsArtisan) {
             return callback(new Error('Artisan is not enabled for this application!'));
         }
 
-        let dockerArgs = [];
+        let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
 
-        dockerArgs.push('run');
-        dockerArgs.push('--volumes-from');
-        dockerArgs.push(sprintf('%s_data', this.name));
-        dockerArgs.push('--name');
-        dockerArgs.push(sprintf('%s_artisan', this.name));
-        dockerArgs.push('--rm');
-        dockerArgs.push('-w="/mnt/site/"');
-        dockerArgs.push(sprintf('%s/php', brain.settings.repositoryURL));
+        let dockerArguments = ['php', 'artisan', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
 
-        dockerArgs.push('php');
-        dockerArgs.push('artisan');
-        dockerArgs.push('--ansi');
+        let dockerOptions = {
+            VolumesFrom: [
+                sprintf('%s_data', this.name)
+            ],
+            AttachStdin: true,
+            AttachStdout: true,
+            AttachStderr: true,
+            Tty: true,
+            OpenStdin: true,
+            StdinOnce: false,
+            Cmd: dockerArguments,
+            Dns: ['8.8.8.8', '8.8.4.4'],
+            Image: imageName,
+            WorkingDir: '/mnt/site',
+            name: sprintf('%s_artisan', this.name)
+        };
 
-        // Add in the arguments for artisan minus the quiet flag if there
-        dockerArgs = dockerArgs.concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
-
-        brain.spawnDockerProcess(options, dockerArgs, callback);
+        this.run(dockerOptions, callback);
     }
 
     runComposer(options, callback) {
-        if (!this.runsArtisan) {
+        if (!this.runsComposer) {
             return callback(new Error('Composer is not enabled for this application!'));
         }
 
-        let dockerArgs = [];
+        let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
 
-        dockerArgs.push('run');
-        dockerArgs.push('--volumes-from');
-        dockerArgs.push(sprintf('%s_data', this.name));
-        dockerArgs.push('--name');
-        dockerArgs.push(sprintf('%s_composer', this.name));
-        dockerArgs.push('--rm');
-        dockerArgs.push('-w="/mnt/site/"');
-        dockerArgs.push(sprintf('%s/php', brain.settings.repositoryURL));
+        let dockerArguments = ['composer', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
 
-        dockerArgs.push('composer');
-        dockerArgs.push('--ansi');
+        let dockerOptions = {
+            VolumesFrom: [
+                sprintf('%s_data', this.name)
+            ],
+            AttachStdin: true,
+            AttachStdout: true,
+            AttachStderr: true,
+            Tty: true,
+            OpenStdin: true,
+            StdinOnce: false,
+            Cmd: dockerArguments,
+            Dns: ['8.8.8.8', '8.8.4.4'],
+            Image: imageName,
+            WorkingDir: '/mnt/site',
+            name: sprintf('%s_composer', this.name)
+        };
 
-        // Add in the arguments for artisan minus the quiet flag if there
-        dockerArgs = dockerArgs.concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
-
-        brain.spawnDockerProcess(options, dockerArgs, callback);
+        this.run(dockerOptions, callback);
     }
 
     up(options, callback) {
@@ -174,31 +245,38 @@ module.exports = class Application {
         this.restartWithCompose(options, callback);
     }
 
-    get name() {
+    get
+    name() {
         return this[objectSymbol].name.toLowerCase();
     }
 
-    get description() {
+    get
+    description() {
         return this[objectSymbol].description;
     }
 
-    get directories() {
+    get
+    directories() {
         return this[objectSymbol].directories || [];
     }
 
-    get layers() {
+    get
+    layers() {
         return this[objectSymbol].layers || {};
     }
 
-    get runsArtisan() {
+    get
+    runsArtisan() {
         return this[objectSymbol].runsArtisan || false;
     }
 
-    get runsComposer() {
+    get
+    runsComposer() {
         return this[objectSymbol].runsComposer || false;
     }
 
-    get dockerComposeYML() {
+    get
+    dockerComposeYML() {
         return path.join(brain.getApplicationsDirectory(), this.name + '.yml');
     }
 };
