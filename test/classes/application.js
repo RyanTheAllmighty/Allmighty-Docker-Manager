@@ -6,7 +6,7 @@ var Application = require('../../inc/classes/application');
 var Layer = require('../../inc/classes/layer');
 
 describe('Application', function () {
-    var application = new Application({
+    var application = new Application('testapplication', {
         name: 'Test Application',
         description: 'This is a test application!',
         layers: {
@@ -18,9 +18,15 @@ describe('Application', function () {
         expect(application instanceof Application).to.equal(true);
     });
 
+    describe('#applicationName', function () {
+        it('should return the internal name of the application', function () {
+            expect(application.applicationName).to.equal('testapplication');
+        });
+    });
+
     describe('#name', function () {
         it('should return the name of the application', function () {
-            expect(application.name).to.equal('test application');
+            expect(application.name).to.equal('Test Application');
         });
     });
 

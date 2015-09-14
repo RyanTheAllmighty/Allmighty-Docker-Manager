@@ -51,7 +51,7 @@ module.exports.init = function (passedArgs, callback) {
 
         toActUpon.push(brain.getApplication(applicationName));
     } else {
-        toActUpon = toActUpon.concat(brain.getApplicationsAsArray());
+        toActUpon = brain.getApplicationsAsArray();
     }
 
     brain.getRunningContainerNames(function (err, containers) {
@@ -65,7 +65,7 @@ module.exports.init = function (passedArgs, callback) {
 
         _.forEach(toActUpon, function (application) {
             var isUp = _.some(containers, function (container) {
-                return container == application.name || container.startsWith(application.name + "_");
+                return container == application.applicationName || container.startsWith(application.applicationName + "_");
             });
 
             if (!isUp) {

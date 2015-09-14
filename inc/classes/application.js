@@ -15,16 +15,17 @@ var Layer = require('./layer');
 var objectSymbol = Symbol();
 
 module.exports = class Application {
-    constructor(name) {
+    constructor(name, object) {
         var originalObject = {};
 
-        if (name instanceof Object) {
-            originalObject = name;
+        if (name && object) {
+            originalObject = object;
         } else {
             originalObject = require(path.join(brain.getApplicationsDirectory(), name + '.json'));
         }
 
         this[objectSymbol] = {};
+        this[objectSymbol]['applicationName'] = name;
 
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
@@ -63,7 +64,7 @@ module.exports = class Application {
             }
 
             var isUp = _.some(containers, function (container) {
-                return container == sprintf('%s_%s', self.name, layerName);
+                return container == sprintf('%s_%s', self.applicationName, layerName);
             });
 
             callback(isUp);
@@ -77,11 +78,11 @@ module.exports = class Application {
 
         let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
 
-        let dockerArguments = ['php', 'artisan', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
+        let dockerArguments = ['php', 'artisan', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
 
         let dockerOptions = {
             VolumesFrom: [
-                sprintf('%s_data', this.name)
+                sprintf('%s_data', this.applicationName)
             ],
             AttachStdin: true,
             AttachStdout: true,
@@ -93,7 +94,7 @@ module.exports = class Application {
             Dns: ['8.8.8.8', '8.8.4.4'],
             Image: imageName,
             WorkingDir: '/mnt/site',
-            name: sprintf('%s_artisan', this.name)
+            name: sprintf('%s_artisan', this.applicationName)
         };
 
         brain.run(dockerOptions, callback);
@@ -106,11 +107,11 @@ module.exports = class Application {
 
         let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
 
-        let dockerArguments = ['composer', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
+        let dockerArguments = ['composer', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
 
         let dockerOptions = {
             VolumesFrom: [
-                sprintf('%s_data', this.name)
+                sprintf('%s_data', this.applicationName)
             ],
             AttachStdin: true,
             AttachStdout: true,
@@ -122,7 +123,7 @@ module.exports = class Application {
             Dns: ['8.8.8.8', '8.8.4.4'],
             Image: imageName,
             WorkingDir: '/mnt/site',
-            name: sprintf('%s_composer', this.name)
+            name: sprintf('%s_composer', this.applicationName)
         };
 
         brain.run(dockerOptions, callback);
@@ -138,7 +139,7 @@ module.exports = class Application {
         dockerArgs.push('-f');
         dockerArgs.push(this.dockerComposeYML);
         dockerArgs.push('-p');
-        dockerArgs.push(this.name);
+        dockerArgs.push(this.applicationName);
         dockerArgs.push('up');
         dockerArgs.push('-d');
 
@@ -155,7 +156,7 @@ module.exports = class Application {
         dockerArgs.push('-f');
         dockerArgs.push(this.dockerComposeYML);
         dockerArgs.push('-p');
-        dockerArgs.push(this.name);
+        dockerArgs.push(this.applicationName);
         dockerArgs.push('stop');
 
         brain.spawnDockerComposeProcess(options, dockerArgs, callback);
@@ -171,48 +172,41 @@ module.exports = class Application {
         dockerArgs.push('-f');
         dockerArgs.push(this.dockerComposeYML);
         dockerArgs.push('-p');
-        dockerArgs.push(this.name);
+        dockerArgs.push(this.applicationName);
         dockerArgs.push('restart');
 
         brain.spawnDockerComposeProcess(options, dockerArgs, callback);
     }
 
-    restart(options, callback) {
-        this.restartWithCompose(options, callback);
+    get applicationName() {
+        return this[objectSymbol].applicationName;
     }
 
-    get
-    name() {
-        return this[objectSymbol].name.toLowerCase();
+    get name() {
+        return this[objectSymbol].name;
     }
 
-    get
-    description() {
+    get description() {
         return this[objectSymbol].description;
     }
 
-    get
-    directories() {
+    get directories() {
         return this[objectSymbol].directories || [];
     }
 
-    get
-    layers() {
+    get layers() {
         return this[objectSymbol].layers || {};
     }
 
-    get
-    runsArtisan() {
+    get runsArtisan() {
         return this[objectSymbol].runsArtisan || false;
     }
 
-    get
-    runsComposer() {
+    get runsComposer() {
         return this[objectSymbol].runsComposer || false;
     }
 
-    get
-    dockerComposeYML() {
-        return path.join(brain.getApplicationsDirectory(), this.name + '.yml');
+    get dockerComposeYML() {
+        return path.join(brain.getApplicationsDirectory(), this.applicationName + '.yml');
     }
 };
