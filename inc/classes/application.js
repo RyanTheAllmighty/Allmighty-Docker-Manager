@@ -70,70 +70,6 @@ module.exports = class Application {
         });
     }
 
-    run(dockerOptions, callback) {
-        brain.docker.createContainer(dockerOptions, function (err, container) {
-            if (err) {
-                return callback(err);
-            }
-
-            var attach_opts = {stream: true, stdin: true, stdout: true, stderr: true};
-
-            container.attach(attach_opts, function handler(err, stream) {
-                // Show outputs
-                stream.pipe(process.stdout);
-
-                // Connect stdin
-                var isRaw = process.isRaw;
-                process.stdin.resume();
-                process.stdin.setEncoding('utf8');
-                process.stdin.setRawMode(true);
-                process.stdin.pipe(stream);
-
-                function resizeTTY() {
-                    var dimensions = {
-                        h: process.stdout.rows,
-                        w: process.stderr.columns
-                    };
-
-                    if (dimensions.h != 0 && dimensions.w != 0) {
-                        container.resize(dimensions, function () {
-                        });
-                    }
-                }
-
-                container.start(function (err, data) {
-                    if (err) {
-                        return exit(stream, isRaw, container, function () {
-                            callback(err)
-                        });
-                    }
-
-                    resizeTTY();
-
-                    process.stdout.on('resize', function () {
-                        resizeTTY();
-                    });
-
-                    container.wait(function (err, data) {
-                        if (err) {
-                            return exit(stream, isRaw, container, function () {
-                                callback(err)
-                            });
-                        }
-
-                        process.stdout.removeListener('resize', resizeTTY);
-                        process.stdin.removeAllListeners();
-                        process.stdin.setRawMode(isRaw);
-                        process.stdin.resume();
-                        stream.end();
-
-                        container.remove(callback);
-                    });
-                });
-            });
-        });
-    }
-
     runArtisan(options, callback) {
         if (!this.runsArtisan) {
             return callback(new Error('Artisan is not enabled for this application!'));
@@ -160,7 +96,7 @@ module.exports = class Application {
             name: sprintf('%s_artisan', this.name)
         };
 
-        this.run(dockerOptions, callback);
+        brain.run(dockerOptions, callback);
     }
 
     runComposer(options, callback) {
@@ -189,7 +125,7 @@ module.exports = class Application {
             name: sprintf('%s_composer', this.name)
         };
 
-        this.run(dockerOptions, callback);
+        brain.run(dockerOptions, callback);
     }
 
     up(options, callback) {
