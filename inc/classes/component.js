@@ -39,7 +39,7 @@ module.exports = class Component {
         };
 
         if (options.noCache) {
-            buildOpts['nocache'] = true;
+            buildOpts.nocache = true;
         }
 
         var self = this;
@@ -58,7 +58,7 @@ module.exports = class Component {
 
             function onEnd() {
                 brain.docker.buildImage(path, buildOpts, function (err, stream) {
-                    if (err || stream == null) {
+                    if (err || stream === null) {
                         console.log('Error building ' + self.name);
                         return callback(err);
                     }
@@ -86,14 +86,14 @@ module.exports = class Component {
 
     pull(options, callback) {
         if (!brain.settings.repositoryAuth) {
-            return callback(new Error('No repository auth is set in the settings.json file!'))
+            return callback(new Error('No repository auth is set in the settings.json file!'));
         }
 
         console.log('Started pull for ' + this.name);
 
         var self = this;
         brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
-            if (err || stream == null) {
+            if (err || stream === null) {
                 console.log('Error pulling ' + self.name);
                 return callback(err);
             }
@@ -106,14 +106,14 @@ module.exports = class Component {
 
     push(options, callback) {
         if (!brain.settings.repositoryAuth) {
-            return callback(new Error('No repository auth is set in the settings.json file!'))
+            return callback(new Error('No repository auth is set in the settings.json file!'));
         }
 
         console.log('Started push for ' + this.name);
 
         var self = this;
         brain.docker.push(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
-            if (err || stream == null) {
+            if (err || stream === null) {
                 console.log('Error pushing ' + self.name);
                 return callback(err);
             }

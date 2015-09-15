@@ -25,7 +25,7 @@ module.exports = class Application {
         }
 
         this[objectSymbol] = {};
-        this[objectSymbol]['applicationName'] = name;
+        this[objectSymbol].applicationName = name;
 
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
@@ -171,23 +171,25 @@ module.exports = class Application {
         });
 
         let finalLayout = _.remove(initialLayout, function (l) {
-            return l.after.length == 0;
+            return l.after.length !== 0;
         });
 
         let attempts = 0;
 
-        while (initialLayout.length != 0 && attempts < 100) {
-            let layer = _.first(initialLayout);
-
-            let position = -1;
-
-            var canSort = _.every(layer.after, function (l) {
+        function canSort(layer) {
+            return _.every(layer.after, function (l) {
                 return _.some(finalLayout, function (l1) {
                     return l1.layer.name == l;
                 });
             });
+        }
 
-            if (!canSort) {
+        while (initialLayout.length !== 0 && attempts < 100) {
+            let layer = _.first(initialLayout);
+
+            let position = -1;
+
+            if (!canSort(layer)) {
                 _.remove(initialLayout, function (l) {
                     return layer.layer.name == l.layer.name;
                 });
@@ -221,7 +223,7 @@ module.exports = class Application {
         }
 
         if (attempts == 100) {
-            return callback(new Error('Cannot start application ' + this.name + ' as we cannot determine the correct order to start the machines up! Please check your application json file and try again!'))
+            return callback(new Error('Cannot start application ' + this.name + ' as we cannot determine the correct order to start the machines up! Please check your application json file and try again!'));
         }
 
         let sortedLayers = [];

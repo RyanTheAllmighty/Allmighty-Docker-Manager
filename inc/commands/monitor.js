@@ -35,7 +35,7 @@ module.exports.init = function (passedArgs, callback) {
             return callback(err);
         }
 
-        if (containers.length == 0) {
+        if (containers.length === 0) {
             return callback(new Error('There are no containers currently running!'));
         }
 

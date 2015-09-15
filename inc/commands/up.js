@@ -67,7 +67,7 @@ module.exports.init = function (passedArgs, callback) {
             }
         });
 
-        if (toActUpon.length == 0) {
+        if (toActUpon.length === 0) {
             return callback(new Error('All the necessary containers are already up!'));
         }
 

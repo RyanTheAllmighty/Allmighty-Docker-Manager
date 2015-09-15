@@ -46,7 +46,7 @@ module.exports.getApplications = function () {
 
 module.exports.getApplicationsAsArray = function () {
     return Object.keys(_applications).map(function (key) {
-        return _applications[key]
+        return _applications[key];
     });
 };
 
@@ -64,7 +64,7 @@ module.exports.getComponents = function () {
 
 module.exports.getComponentsAsArray = function () {
     return Object.keys(_components).map(function (key) {
-        return _components[key]
+        return _components[key];
     });
 };
 
@@ -149,8 +149,8 @@ module.exports.spawnDockerComposeProcess = function (options, dockerArgs, callba
     });
 
     process.on('close', function (code) {
-        if (code != 0) {
-            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'))
+        if (code !== 0) {
+            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'));
         }
 
         callback();
@@ -177,8 +177,8 @@ module.exports.spawnDockerProcess = function (options, dockerArgs, callback) {
     }
 
     process.on('close', function (code) {
-        if (code != 0) {
-            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'))
+        if (code !== 0) {
+            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'));
         }
 
         callback();
@@ -210,7 +210,7 @@ module.exports.run = function (dockerOptions, callback) {
                     w: process.stderr.columns
                 };
 
-                if (dimensions.h != 0 && dimensions.w != 0) {
+                if (dimensions.h !== 0 && dimensions.w !== 0) {
                     container.resize(dimensions, function () {
                     });
                 }
@@ -218,8 +218,8 @@ module.exports.run = function (dockerOptions, callback) {
 
             container.start(function (err, data) {
                 if (err) {
-                    return exit(stream, isRaw, container, function () {
-                        callback(err)
+                    return exit(stream, isRaw, function () {
+                        callback(err);
                     });
                 }
 
@@ -231,8 +231,8 @@ module.exports.run = function (dockerOptions, callback) {
 
                 container.wait(function (err, data) {
                     if (err) {
-                        return exit(stream, isRaw, container, function () {
-                            callback(err)
+                        return exit(stream, isRaw, function () {
+                            callback(err);
                         });
                     }
 
@@ -248,3 +248,11 @@ module.exports.run = function (dockerOptions, callback) {
         });
     });
 };
+
+function exit (stream, isRaw, callback) {
+    process.stdin.removeAllListeners();
+    process.stdin.setRawMode(isRaw);
+    process.stdin.resume();
+    stream.end();
+    callback();
+}

@@ -17,7 +17,7 @@ module.exports = class Layer {
     constructor(name, originalObject) {
         this[objectSymbol] = {};
 
-        this[objectSymbol]['name'] = name;
+        this[objectSymbol].name = name;
 
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {

@@ -59,7 +59,7 @@ module.exports.init = function (passedArgs, callback) {
             return callback(err);
         }
 
-        if (containers.length == 0) {
+        if (containers.length === 0) {
             return callback(new Error('There are no containers currently running!'));
         }
 
@@ -73,7 +73,7 @@ module.exports.init = function (passedArgs, callback) {
             }
         });
 
-        if (toActUpon.length == 0) {
+        if (toActUpon.length === 0) {
             return callback(new Error('There are no containers currently running for any applications!'));
         }
 
