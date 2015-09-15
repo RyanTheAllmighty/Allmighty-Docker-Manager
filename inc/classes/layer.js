@@ -1,9 +1,9 @@
 "use strict";
 
+var _ = require('lodash');
+
 // Load the brain in for the application
 var brain = require('../brain');
-
-var _ = require('lodash');
 
 var Link = require('./link');
 var Volume = require('./volume');
@@ -13,9 +13,11 @@ var Environment = require('./environment');
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
 
-module.exports = class Component {
-    constructor(originalObject) {
+module.exports = class Layer {
+    constructor(name, originalObject) {
         this[objectSymbol] = {};
+
+        this[objectSymbol]['name'] = name;
 
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
@@ -50,6 +52,10 @@ module.exports = class Component {
                 this[objectSymbol].environment.push(new Environment(env));
             }, this);
         }
+    }
+
+    get name() {
+        return this[objectSymbol].name;
     }
 
     get image() {

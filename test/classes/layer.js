@@ -10,7 +10,7 @@ var VolumeFrom = require('../../inc/classes/volumefrom');
 var Environment = require('../../inc/classes/environment');
 
 describe('Layer', function () {
-    var layer = new Layer({
+    var layer = new Layer('test', {
         image: "test/test",
         dataOnly: false,
         restart: true,
@@ -34,6 +34,12 @@ describe('Layer', function () {
         expect(layer instanceof Layer).to.equal(true);
     });
 
+    describe('#name)', function () {
+        it('should return the name of a layer', function () {
+            expect(layer.name).to.equal('test');
+        });
+    });
+
     describe('#image)', function () {
         it('should return the image of a layer', function () {
             expect(layer.image).to.equal('test/test');
@@ -55,7 +61,7 @@ describe('Layer', function () {
 
     describe('#memLimit', function () {
         it('should return the memory limit of a layer as undefined if not defined', function () {
-            var testComponent = new Layer({});
+            var testComponent = new Layer('', {});
 
             expect(testComponent.memLimit).to.be.an('undefined');
             expect(testComponent.memoryLimit).to.be.an('undefined');

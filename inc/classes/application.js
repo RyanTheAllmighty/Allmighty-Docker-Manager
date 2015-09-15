@@ -36,7 +36,7 @@ module.exports = class Application {
         this[objectSymbol].layers = {};
         if (originalObject.layers) {
             _.forEach(originalObject.layers, function (layer, key) {
-                this[objectSymbol].layers[key] = new Layer(layer);
+                this[objectSymbol].layers[key] = new Layer(key, layer);
             }, this);
         }
     }
@@ -130,20 +130,107 @@ module.exports = class Application {
     }
 
     up(options, callback) {
-        this.upWithCompose(options, callback);
+        this.getOrderOfLayers(options, function (err, layersOrder) {
+            if (err) {
+                return callback(err);
+            }
+
+            console.log(layersOrder);
+            callback();
+        });
     }
 
-    upWithCompose(options, callback) {
-        var dockerArgs = [];
+    /**
+     * This sorts out all of the layers for this application and returns to the callback an array of layers in the
+     * order they need to be started up in order to ensure links and volumes from other containers work as expected.
+     */
+    getOrderOfLayers(options, callback) {
+        let initialLayout = [];
 
-        dockerArgs.push('-f');
-        dockerArgs.push(this.dockerComposeYML);
-        dockerArgs.push('-p');
-        dockerArgs.push(this.applicationName);
-        dockerArgs.push('up');
-        dockerArgs.push('-d');
+        _.forEach(this.layers, function (layer) {
+            var obj = {
+                layer,
+                after: []
+            };
 
-        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
+            if (layer.links.length > 0) {
+                // There is one or more links, so we need to figure out what we need to startup before this layer
+                _.forEach(layer.links, function (link) {
+                    obj.after.push(link.container);
+                });
+            }
+
+            if (layer.volumesFrom.length > 0) {
+                // There is one or more volumesFrom, so we need to figure out what we need to startup before this layer
+                _.forEach(layer.volumesFrom, function (volumeFrom) {
+                    obj.after.push(volumeFrom.container);
+                });
+            }
+
+            initialLayout.push(obj);
+        });
+
+        let finalLayout = _.remove(initialLayout, function (l) {
+            return l.after.length == 0;
+        });
+
+        let attempts = 0;
+
+        while (initialLayout.length != 0 && attempts < 100) {
+            let layer = _.first(initialLayout);
+
+            let position = -1;
+
+            var canSort = _.every(layer.after, function (l) {
+                return _.some(finalLayout, function (l1) {
+                    return l1.layer.name == l;
+                });
+            });
+
+            if (!canSort) {
+                _.remove(initialLayout, function (l) {
+                    return layer.layer.name == l.layer.name;
+                });
+
+                initialLayout.push(layer);
+
+                attempts++;
+
+                continue;
+            }
+
+            layer.after.forEach(function (after) {
+                let indexOf = -1;
+
+                for (let i = 0; i < finalLayout.length; i++) {
+                    if (finalLayout[i].layer.name == after) {
+                        indexOf = i;
+                    }
+                }
+
+                if (indexOf > position) {
+                    position = indexOf;
+                }
+            });
+
+            finalLayout.splice(position + 1, 0, layer);
+
+            _.remove(initialLayout, function (l) {
+                return layer.layer.name == l.layer.name;
+            });
+        }
+
+        if (attempts == 100) {
+            return callback(new Error('Cannot start application ' + this.name + ' as we cannot determine the correct order to start the machines up! Please check your application json file and try again!'))
+        }
+
+        let sortedLayers = [];
+
+        finalLayout.forEach(function (l) {
+            sortedLayers.push(l.layer);
+        });
+
+        callback(null, sortedLayers);
     }
 
     down(options, callback) {
