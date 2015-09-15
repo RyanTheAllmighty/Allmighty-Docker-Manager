@@ -43,6 +43,8 @@ module.exports.run = function (callback) {
             return callback(err);
         }
 
+        console.log('Deleting all containers!');
+
         async.each(containers, function (containerInfo, next) {
             brain.docker.getContainer(containerInfo.Id).stop(function (err) {
                 if (err && err.statusCode != 304) {
@@ -60,6 +62,8 @@ module.exports.run = function (callback) {
                 if (err) {
                     return callback(err);
                 }
+
+                console.log('Deleting all images!');
 
                 async.each(images, function (imageInfo, next) {
                     brain.docker.getImage(imageInfo.Id).remove(next);
