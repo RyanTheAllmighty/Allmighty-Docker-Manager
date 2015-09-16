@@ -91,7 +91,7 @@ module.exports = class Application {
             OpenStdin: true,
             StdinOnce: false,
             Cmd: dockerArguments,
-            Dns: ['8.8.8.8', '8.8.4.4'],
+            Dns: brain.settings.dns,
             Image: imageName,
             WorkingDir: '/mnt/site',
             name: sprintf('%s_artisan', this.applicationName)
@@ -120,7 +120,7 @@ module.exports = class Application {
             OpenStdin: true,
             StdinOnce: false,
             Cmd: dockerArguments,
-            Dns: ['8.8.8.8', '8.8.4.4'],
+            Dns: brain.settings.dns,
             Image: imageName,
             WorkingDir: '/mnt/site',
             name: sprintf('%s_composer', this.applicationName)
@@ -130,12 +130,22 @@ module.exports = class Application {
     }
 
     up(options, callback) {
+        let self = this;
+
         this.getOrderOfLayers(options, function (err, layersOrder) {
             if (err) {
                 return callback(err);
             }
 
-            console.log(layersOrder);
+            layersOrder.forEach(function (layer) {
+                //this.docker.createContainer(layer.getDockerOptions(this.applicationName), function (err, container) {
+                //    if (err) {
+                //        return callback(err);
+                //    }
+                //});
+                console.log(layer.getDockerOptions(self.applicationName));
+            });
+
             callback();
         });
     }

@@ -10,6 +10,9 @@ var Volume = require('./volume');
 var VolumeFrom = require('./volumeFrom');
 var Environment = require('./environment');
 
+var bytes = require('bytes');
+var sprintf = require("sprintf-js").sprintf;
+
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
 
@@ -83,7 +86,63 @@ module.exports = class Layer {
     }
 
     get command() {
-        return this[objectSymbol].command;
+        if (!this[objectSymbol].command) {
+            return [];
+        } else if (!this[objectSymbol].command instanceof Array) {
+            return [this[objectSymbol].command];
+        } else {
+            return this[objectSymbol].command;
+        }
+    }
+
+    getDockerOptions(applicationName) {
+        let dockerOptions = {
+            AttachStdin: false,
+            AttachStdout: false,
+            AttachStderr: false,
+            Tty: false,
+            OpenStdin: false,
+            Cmd: this.command,
+            Dns: brain.settings.dns,
+            Image: this.image,
+            Env: null,
+            name: sprintf('%s_%s', applicationName, this.name),
+            HostConfig: {}
+        };
+
+        if (this.restart) {
+            dockerOptions.HostConfig.RestartPolicy = {"Name": "always"}
+        }
+
+        if (this.environment && this.environment.length > 0) {
+            dockerOptions.Env = [];
+
+            this.environment.forEach(function (env) {
+                dockerOptions.Env.push(sprintf('%s=%s', env.name, env.value));
+            });
+        }
+
+        if (this.volumes && this.volumes.length > 0) {
+            dockerOptions.HostConfig.Binds = [];
+
+            this.volumes.forEach(function (volume) {
+                dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ''));
+            });
+        }
+
+        if (this.volumesFrom && this.volumesFrom.length > 0) {
+            dockerOptions.VolumesFrom = [];
+
+            this.volumesFrom.forEach(function (container) {
+                dockerOptions.VolumesFrom.push(sprintf('%s_%s', applicationName, container.container));
+            });
+        }
+
+        if (this.memLimit) {
+            dockerOptions.HostConfig.Memory = bytes(this.memLimit);
+        }
+
+        return dockerOptions;
     }
 
     get links() {
