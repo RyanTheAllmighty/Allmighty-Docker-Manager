@@ -1,0 +1,20 @@
+{
+    "dockerSocket": "/var/run/docker.sock",
+    "dockerLocation": "/usr/bin/docker",
+    "repositoryURL": "index.docker.io/v1/",
+    "repositoryAuth": {
+        "username": "Username",
+        "password": "Password",
+        "email": "my@email.com",
+        "serveraddress": "index.docker.io/v1/"
+    },
+    "dns": [
+        "8.8.8.8",
+        "8.8.4.4"
+    ],
+    "directories": {
+        "applications": "applications/",
+        "components": "components/",
+        "storage": "/var/lib/adm/"
+    }
+}
