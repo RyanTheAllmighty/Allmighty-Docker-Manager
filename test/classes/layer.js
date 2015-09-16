@@ -14,7 +14,7 @@ describe('Layer', function () {
         image: "test/test",
         dataOnly: false,
         restart: true,
-        memLimit: "1g",
+        memLimit: "1GB",
         command: "test some arguments --help",
         links: [
             {}
@@ -68,14 +68,15 @@ describe('Layer', function () {
         });
 
         it('should return the memory limit of a layer', function () {
-            expect(layer.memLimit).to.equal('1g');
-            expect(layer.memoryLimit).to.equal('1g');
+            expect(layer.memLimit).to.equal('1GB');
+            expect(layer.memoryLimit).to.equal('1GB');
         });
     });
 
     describe('#command', function () {
         it('should return the command of a layer', function () {
-            expect(layer.command).to.equal('test some arguments --help');
+            expect(layer.command).to.be.an('array');
+            expect(layer.command[0]).to.equal('test some arguments --help');
         });
     });
 
