@@ -94,8 +94,16 @@ module.exports = class Component {
                         console.log('Finished build for ' + self.name);
                         callback(err, output);
                     }, function (progress) {
-                        if (!options.quiet && progress && progress.stream) {
-                            process.stdout.write(progress.stream);
+                        if (progress) {
+                            if (progress.error) {
+                                return callback(new Error(progress.error.errorDetail.message));
+                            }
+
+                            if (!options.quiet) {
+                                if (progress.stream) {
+                                    process.stdout.write(progress.stream);
+                                }
+                            }
                         }
                     });
                 });
@@ -119,6 +127,18 @@ module.exports = class Component {
             brain.docker.modem.followProgress(stream, function (err, output) {
                 console.log('Finished pull for ' + self.name);
                 callback(err, output);
+            }, function (progress) {
+                if (progress) {
+                    if (progress.error) {
+                        return callback(new Error(progress.error.errorDetail.message));
+                    }
+
+                    if (!options.quiet) {
+                        if (progress.stream) {
+                            process.stdout.write(progress.stream);
+                        }
+                    }
+                }
             });
         });
     }
@@ -140,6 +160,18 @@ module.exports = class Component {
             brain.docker.modem.followProgress(stream, function (err, output) {
                 console.log('Finished push for ' + self.name);
                 callback(err, output);
+            }, function (progress) {
+                if (progress) {
+                    if (progress.error) {
+                        return callback(new Error(progress.error.errorDetail.message));
+                    }
+
+                    if (!options.quiet) {
+                        if (progress.stream) {
+                            process.stdout.write(progress.stream);
+                        }
+                    }
+                }
             });
         });
     }
