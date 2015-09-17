@@ -256,19 +256,43 @@ module.exports = class Application {
     }
 
     restart(options, callback) {
-        this.restartWithCompose(options, callback);
-    }
+        let self = this;
 
-    restartWithCompose(options, callback) {
-        var dockerArgs = [];
+        this.getOrderOfLayers(options, function (err, layersOrder) {
+            if (err) {
+                return callback(err);
+            }
 
-        dockerArgs.push('-f');
-        dockerArgs.push(this.dockerComposeYML);
-        dockerArgs.push('-p');
-        dockerArgs.push(this.applicationName);
-        dockerArgs.push('restart');
+            let _asyncEachCallback = function (layer, next) {
+                self.isLayerUp(layer.name, function (isUp) {
+                    if (!isUp) {
+                        return next();
+                    }
 
-        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
+                    self.getLayerContainer(layer.name, function (err, container) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        container.restart(function (err) {
+                            if (err) {
+                                return next(err);
+                            }
+
+                            console.log(layer.getContainerName(self.applicationName) + ' has been restarted!');
+
+                            next();
+                        });
+                    });
+                });
+            };
+
+            if (options.async) {
+                async.each(layersOrder, _asyncEachCallback, callback);
+            } else {
+                async.eachSeries(layersOrder, _asyncEachCallback, callback);
+            }
+        });
     }
 
     /**
