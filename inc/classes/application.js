@@ -196,10 +196,7 @@ module.exports = class Application {
                         });
                     };
 
-                    // Pull the layers image so we make sure we're up to date
-                    if (!options.pull) {
-                        bringUp();
-                    } else {
+                    let pullAndUp = function () {
                         layer.pull(options, function (err) {
                             if (err) {
                                 return next(err);
@@ -207,6 +204,19 @@ module.exports = class Application {
 
                             bringUp();
                         });
+                    };
+
+                    // Pull the layers image so we make sure we're up to date
+                    if (!options.pull) {
+                        brain.docker.getImage(layer.image).get(function (err) {
+                            if (err) {
+                                pullAndUp();
+                            } else {
+                                bringUp();
+                            }
+                        });
+                    } else {
+                        pullAndUp();
                     }
                 });
             };

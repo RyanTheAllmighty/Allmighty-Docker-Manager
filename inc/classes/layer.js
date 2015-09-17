@@ -222,6 +222,7 @@ module.exports = class Layer {
         let pullOpts = fromCustomRepo ? brain.settings.repositoryAuth : {};
 
         var self = this;
+
         brain.docker.pull(this.image, pullOpts, function (err, stream) {
             if (err || stream === null) {
                 console.log('Error pulling ' + self.name + ' (' + self.image + ')');
