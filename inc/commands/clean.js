@@ -30,11 +30,15 @@ var merge = require('merge');
  * The options for this command along with their defaults.
  *
  * quiet: If there should be no output from the command (default: false)
+ * containers: If all containers should be cleaned up (default: false)
+ * images: If all images should be cleaned up (default: false)
  *
- * @type {{quiet: boolean}}
+ * @type {{quiet: boolean, containers: boolean, images: boolean}}
  */
 var options = {
-    quiet: false
+    quiet: false,
+    containers: false,
+    images: false
 };
 
 /**
@@ -45,6 +49,10 @@ var options = {
  */
 module.exports.init = function (passedArgs, callback) {
     options = merge(options, passedArgs);
+
+    if (!options.containers && !options.images) {
+        return callback(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
+    }
 
     callback();
 };
@@ -61,21 +69,21 @@ module.exports.run = function (callback) {
             return callback(err);
         }
 
-        console.log('Deleting all containers!');
+        if (options.containers) {
+            console.log('Deleting all containers!');
 
-        async.each(containers, function (containerInfo, next) {
-            brain.docker.getContainer(containerInfo.Id).stop(function (err) {
-                if (err && err.statusCode != 304) {
-                    return next(err);
-                }
+            async.each(containers, function (containerInfo, next) {
+                brain.docker.getContainer(containerInfo.Id).stop(function (err) {
+                    if (err && err.statusCode != 304) {
+                        return next(err);
+                    }
 
-                brain.docker.getContainer(containerInfo.Id).remove(next);
-            });
-        }, function (err) {
-            if (err) {
-                return callback(err);
-            }
+                    brain.docker.getContainer(containerInfo.Id).remove(next);
+                });
+            }, callback);
+        }
 
+        if (options.images) {
             brain.docker.listImages(function (err, images) {
                 if (err) {
                     return callback(err);
@@ -85,14 +93,8 @@ module.exports.run = function (callback) {
 
                 async.each(images, function (imageInfo, next) {
                     brain.docker.getImage(imageInfo.Id).remove(next);
-                }, function (err) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    callback();
-                });
+                }, callback);
             });
-        });
+        }
     });
 };
