@@ -170,9 +170,11 @@ module.exports = class Layer {
         }
 
         if (this.volumes && this.volumes.length > 0) {
+            dockerOptions.Volumes = {};
             dockerOptions.HostConfig.Binds = [];
 
             this.volumes.forEach(function (volume) {
+                dockerOptions.Volumes[volume.container] = {};
                 dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ''));
             });
         }
