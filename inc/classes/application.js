@@ -95,7 +95,7 @@ module.exports = class Application {
 
         this.isLayerUp(layerName, function (up) {
             if (!up) {
-                return callback(new Error('The layer with a name of ' + layerName + ' isn\'t online!'))
+                return callback(new Error('The layer with a name of ' + layerName + ' isn\'t online!'));
             }
 
             callback(null, brain.docker.getContainer(sprintf('%s_%s', self.applicationName, layerName)));
@@ -234,7 +234,7 @@ module.exports = class Application {
                             if (err) {
                                 return next(err);
                             }
-                            
+
                             console.log(layer.getContainerName(self.applicationName) + ' is now down!');
 
                             if (options.rm) {
