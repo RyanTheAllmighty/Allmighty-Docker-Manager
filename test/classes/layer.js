@@ -66,8 +66,17 @@ describe('Layer', function () {
     });
 
     describe('#image)', function () {
+        var imageWithoutVersion = new Layer('test', {
+            image: "test/test"
+        });
+
+        var imageWithVersion = new Layer('test', {
+            image: "test/test:test"
+        });
+
         it('should return the image of a layer', function () {
-            expect(layer.image).to.equal('test/test');
+            expect(imageWithoutVersion.image).to.equal('test/test:latest');
+            expect(imageWithVersion.image).to.equal('test/test:test');
         });
     });
 
