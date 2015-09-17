@@ -79,6 +79,10 @@ module.exports = class Layer {
         return this[objectSymbol].name;
     }
 
+    getContainerName(applicationName) {
+        return sprintf('%s_%s', applicationName, this[objectSymbol].name);
+    }
+
     get image() {
         return this[objectSymbol].image;
     }
@@ -124,7 +128,7 @@ module.exports = class Layer {
             Dns: brain.settings.dns,
             Image: this.image,
             Env: null,
-            name: sprintf('%s_%s', applicationName, this.name),
+            name: this.getContainerName(applicationName),
             HostConfig: {}
         };
 
@@ -177,5 +181,30 @@ module.exports = class Layer {
 
     get environment() {
         return this[objectSymbol].environment || [];
+    }
+
+    pull(options, callback) {
+        let fromCustomRepo = this.image.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
+
+        if (fromCustomRepo && !brain.settings.repositoryAuth) {
+            return callback(new Error('No repository auth is set in the settings.json file!'));
+        }
+
+        console.log('Started pull for ' + this.name + ' (' + this.image + ')');
+
+        let pullOpts = fromCustomRepo ? brain.settings.repositoryAuth : {};
+
+        var self = this;
+        brain.docker.pull(this.image, pullOpts, function (err, stream) {
+            if (err || stream === null) {
+                console.log('Error pulling ' + self.name + ' (' + self.image + ')');
+                return callback(err);
+            }
+
+            brain.docker.modem.followProgress(stream, function (err, output) {
+                console.log('Finished pull for ' + self.name + ' (' + self.image + ')');
+                callback(err, output);
+            });
+        });
     }
 };

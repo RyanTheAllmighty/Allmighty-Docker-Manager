@@ -41,12 +41,14 @@ var toActUpon = [];
  *
  * quiet: If there should be no output from the command (default: false)
  * async: If we should run all the builds we're doing asynchronously (default: false)
+ * rm: If the container should be removed after being taken down (default: false)
  *
- * @type {{quiet: boolean, async: boolean}}
+ * @type {{quiet: boolean, async: boolean, rm: boolean}}
  */
 var options = {
     quiet: false,
-    async: false
+    async: false,
+    rm: false
 };
 
 /**
@@ -102,8 +104,6 @@ module.exports.init = function (passedArgs, callback) {
 /**
  * This runs the command with the given arguments/options set in the init method and returns possibly an error and
  * response in the callback if any.
- *
- * TODO: Switch this to use the JSON specifications rather than the YML with Docker Compose
  *
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */

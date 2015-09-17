@@ -24,6 +24,7 @@ var brain = require('../brain');
 var fs = require('fs');
 var _ = require('lodash');
 var path = require('path');
+var async = require('async');
 var mkdirp = require('mkdirp');
 var sprintf = require("sprintf-js").sprintf;
 
@@ -86,6 +87,18 @@ module.exports = class Application {
             });
 
             callback(isUp);
+        });
+    }
+
+    getLayerContainer(layerName, callback) {
+        let self = this;
+
+        this.isLayerUp(layerName, function (up) {
+            if (!up) {
+                return callback(new Error('The layer with a name of ' + layerName + ' isn\'t online!'))
+            }
+
+            callback(null, brain.docker.getContainer(sprintf('%s_%s', self.applicationName, layerName)));
         });
     }
 
@@ -155,17 +168,107 @@ module.exports = class Application {
                 return callback(err);
             }
 
-            layersOrder.forEach(function (layer) {
-                //this.docker.createContainer(layer.getDockerOptions(this.applicationName), function (err, container) {
-                //    if (err) {
-                //        return callback(err);
-                //    }
-                //});
-                console.log(layer.getDockerOptions(self.applicationName));
-            });
+            let _asyncEachCallback = function (layer, next) {
+                self.isLayerUp(layer.name, function (isUp) {
+                    if (isUp) {
+                        return next();
+                    }
 
-            callback();
+                    // Pull the layers image so we make sure we're up to date
+                    layer.pull(options, function (err) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        let layerName = layer.getContainerName(self.applicationName);
+
+                        brain.docker.getContainer(layerName).remove(function () {
+                            brain.docker.createContainer(layer.getDockerOptions(self.applicationName), function (err, container) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
+                                container.start(function (err, d) {
+                                    if (err) {
+                                        return next(err);
+                                    }
+
+                                    console.log(layerName + ' is now up!');
+
+                                    next();
+                                });
+                            });
+                        });
+                    });
+                });
+            };
+
+            if (options.async) {
+                async.each(layersOrder, _asyncEachCallback, callback);
+            } else {
+                async.eachSeries(layersOrder, _asyncEachCallback, callback);
+            }
         });
+    }
+
+    down(options, callback) {
+        let self = this;
+
+        this.getOrderOfLayers(options, function (err, layersOrder) {
+            if (err) {
+                return callback(err);
+            }
+
+            let _asyncEachCallback = function (layer, next) {
+                self.isLayerUp(layer.name, function (isUp) {
+                    if (!isUp) {
+                        return next();
+                    }
+
+                    self.getLayerContainer(layer.name, function (err, container) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        container.stop(function (err) {
+                            if (err) {
+                                return next(err);
+                            }
+                            
+                            console.log(layer.getContainerName(self.applicationName) + ' is now down!');
+
+                            if (options.rm) {
+                                container.remove(next);
+                            } else {
+                                next();
+                            }
+                        });
+                    });
+                });
+            };
+
+            if (options.async) {
+                async.each(layersOrder, _asyncEachCallback, callback);
+            } else {
+                async.eachSeries(layersOrder, _asyncEachCallback, callback);
+            }
+        });
+    }
+
+    restart(options, callback) {
+        this.restartWithCompose(options, callback);
+    }
+
+    restartWithCompose(options, callback) {
+        var dockerArgs = [];
+
+        dockerArgs.push('-f');
+        dockerArgs.push(this.dockerComposeYML);
+        dockerArgs.push('-p');
+        dockerArgs.push(this.applicationName);
+        dockerArgs.push('restart');
+
+        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
     }
 
     /**
@@ -261,38 +364,6 @@ module.exports = class Application {
         });
 
         callback(null, sortedLayers);
-    }
-
-    down(options, callback) {
-        this.downWithCompose(options, callback);
-    }
-
-    downWithCompose(options, callback) {
-        var dockerArgs = [];
-
-        dockerArgs.push('-f');
-        dockerArgs.push(this.dockerComposeYML);
-        dockerArgs.push('-p');
-        dockerArgs.push(this.applicationName);
-        dockerArgs.push('stop');
-
-        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
-    }
-
-    restart(options, callback) {
-        this.restartWithCompose(options, callback);
-    }
-
-    restartWithCompose(options, callback) {
-        var dockerArgs = [];
-
-        dockerArgs.push('-f');
-        dockerArgs.push(this.dockerComposeYML);
-        dockerArgs.push('-p');
-        dockerArgs.push(this.applicationName);
-        dockerArgs.push('restart');
-
-        brain.spawnDockerComposeProcess(options, dockerArgs, callback);
     }
 
     get applicationName() {

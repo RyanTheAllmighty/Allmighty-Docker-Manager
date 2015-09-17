@@ -132,7 +132,6 @@ module.exports.getApplicationsDirectory = function () {
     return path.resolve(settings.directories.applications);
 };
 
-
 module.exports.getRunningContainerNames = function (callback) {
     docker.listContainers({all: false}, function (err, containers) {
         if (err) {
@@ -152,6 +151,22 @@ module.exports.getRunningContainerNames = function (callback) {
         });
 
         callback(null, names);
+    });
+};
+
+module.exports.getRunningContainers = function (callback) {
+    docker.listContainers({all: false}, function (err, containers) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, containers);
+    });
+};
+
+module.exports.haveImage = function (name, callback) {
+    this.docker.getImage(name).get(function (err, data) {
+        callback(null, !err);
     });
 };
 
@@ -267,7 +282,7 @@ module.exports.run = function (dockerOptions, callback) {
     });
 };
 
-function exit (stream, isRaw, callback) {
+function exit(stream, isRaw, callback) {
     process.stdin.removeAllListeners();
     process.stdin.setRawMode(isRaw);
     process.stdin.resume();
