@@ -55,7 +55,7 @@ module.exports = class Application {
         this[objectSymbol].layers = {};
         if (originalObject.layers) {
             _.forEach(originalObject.layers, function (layer, key) {
-                this[objectSymbol].layers[key] = new Layer(key, layer);
+                this[objectSymbol].layers[key] = new Layer(this, key, layer);
             }, this);
         }
     }
@@ -161,70 +161,13 @@ module.exports = class Application {
     }
 
     up(options, callback) {
-        let self = this;
-
         this.getOrderOfLayers(options, function (err, layersOrder) {
             if (err) {
                 return callback(err);
             }
 
             let _asyncEachCallback = function (layer, next) {
-                self.isLayerUp(layer.name, function (isUp) {
-                    if (isUp) {
-                        return next();
-                    }
-
-                    let bringUp = function () {
-                        let layerName = layer.getContainerName(self.applicationName);
-
-                        brain.docker.getContainer(layerName).remove(function () {
-                            brain.docker.createContainer(layer.getDockerOptions(self.applicationName), function (err, container) {
-                                if (err) {
-                                    return callback(err);
-                                }
-
-                                // This is a data only container, so we don't need to run it
-                                if (layer.dataOnly) {
-                                    console.log(layerName + ' data container has been created!');
-                                    return next();
-                                }
-
-                                container.start(function (err, d) {
-                                    if (err) {
-                                        return next(err);
-                                    }
-
-                                    console.log(layerName + ' is now up!');
-
-                                    next();
-                                });
-                            });
-                        });
-                    };
-
-                    let pullAndUp = function () {
-                        layer.pull(options, function (err) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            bringUp();
-                        });
-                    };
-
-                    // Pull the layers image so we make sure we're up to date
-                    if (!options.pull) {
-                        brain.docker.getImage(layer.image).get(function (err) {
-                            if (err) {
-                                pullAndUp();
-                            } else {
-                                bringUp();
-                            }
-                        });
-                    } else {
-                        pullAndUp();
-                    }
-                });
+                layer.up(options, next);
             };
 
             if (options.async) {
@@ -236,39 +179,13 @@ module.exports = class Application {
     }
 
     down(options, callback) {
-        let self = this;
-
         this.getOrderOfLayers(options, function (err, layersOrder) {
             if (err) {
                 return callback(err);
             }
 
             let _asyncEachCallback = function (layer, next) {
-                self.isLayerUp(layer.name, function (isUp) {
-                    if (!isUp) {
-                        return next();
-                    }
-
-                    self.getLayerContainer(layer.name, function (err, container) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        container.stop(function (err) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            console.log(layer.getContainerName(self.applicationName) + ' is now down!');
-
-                            if (options.rm) {
-                                container.remove(next);
-                            } else {
-                                next();
-                            }
-                        });
-                    });
-                });
+                layer.down(options, next);
             };
 
             if (options.async) {
@@ -280,35 +197,13 @@ module.exports = class Application {
     }
 
     restart(options, callback) {
-        let self = this;
-
         this.getOrderOfLayers(options, function (err, layersOrder) {
             if (err) {
                 return callback(err);
             }
 
             let _asyncEachCallback = function (layer, next) {
-                self.isLayerUp(layer.name, function (isUp) {
-                    if (!isUp) {
-                        return next();
-                    }
-
-                    self.getLayerContainer(layer.name, function (err, container) {
-                        if (err) {
-                            return next(err);
-                        }
-
-                        container.restart(function (err) {
-                            if (err) {
-                                return next(err);
-                            }
-
-                            console.log(layer.getContainerName(self.applicationName) + ' has been restarted!');
-
-                            next();
-                        });
-                    });
-                });
+                layer.restart(options, next);
             };
 
             if (options.async) {

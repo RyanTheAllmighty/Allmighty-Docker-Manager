@@ -36,9 +36,10 @@ var sprintf = require("sprintf-js").sprintf;
 var objectSymbol = Symbol();
 
 module.exports = class Layer {
-    constructor(name, originalObject) {
+    constructor(application, name, originalObject) {
         this[objectSymbol] = {};
 
+        this[objectSymbol]._application = application;
         this[objectSymbol].name = name;
 
         for (var propName in originalObject) {
@@ -83,12 +84,158 @@ module.exports = class Layer {
         }
     }
 
-    get name() {
-        return this[objectSymbol].name;
+    get application() {
+        return this[objectSymbol]._application;
     }
 
-    getContainerName(applicationName) {
-        return sprintf('%s_%s', applicationName, this[objectSymbol].name);
+    /**
+     * Gets this layers name which is given to the container it creates.
+     *
+     * This takes the form of [application name]_[name].
+     *
+     * @returns {String}
+     */
+    get containerName() {
+        return sprintf('%s_%s', this.application.applicationName, this.name);
+    }
+
+    /**
+     * Checks to see if this layer is up.
+     *
+     * @param callback - a callback which returns a boolean of if this layer is up or not
+     */
+    isUp(callback) {
+        this.container.inspect(function (err, data) {
+            if (err) {
+                return callback(false);
+            }
+
+            callback(data.State.Running || false);
+        });
+    }
+
+    /**
+     * This brings this layer up if it needs to be brought up.
+     *
+     * @param {Array} options - array of options passed in from the user
+     * @param callback - the callback to run when an error occurs or things are done successfully
+     */
+    up(options, callback) {
+        var self = this;
+
+        this.isUp(function (isUp) {
+            if (isUp) {
+                // This layer is already up, so there is no need to bring it up again
+                return callback();
+            }
+
+            let bringUp = function () {
+                self.container.remove(function () {
+                    brain.docker.createContainer(self.dockerOptions, function (err, container) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        // This is a data only container, so we don't need to run it
+                        if (self.dataOnly) {
+                            console.log(self.containerName + ' data container has been created!');
+                            return callback();
+                        }
+
+                        container.start(function (err, d) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            console.log(self.containerName + ' is now up!');
+
+                            callback();
+                        });
+                    });
+                });
+            };
+
+            let pullAndUp = function () {
+                self.pull(options, function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    bringUp();
+                });
+            };
+
+            // Pull the layers image so we make sure we're up to date
+            if (!options.pull) {
+                brain.docker.getImage(self.image).get(function (err) {
+                    if (err) {
+                        pullAndUp();
+                    } else {
+                        bringUp();
+                    }
+                });
+            } else {
+                pullAndUp();
+            }
+        });
+    }
+
+    down(options, callback) {
+        let self = this;
+
+        this.isUp(function (isUp) {
+            if (!isUp) {
+                return callback();
+            }
+
+            self.container.stop(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+
+                console.log(self.containerName + ' is now down!');
+
+                if (options.rm) {
+                    self.container.remove(callback);
+                } else {
+                    callback();
+                }
+            });
+        });
+    }
+
+    restart(options, callback) {
+        let self = this;
+
+        this.isUp(function (isUp) {
+            if (!isUp) {
+                return callback();
+            }
+
+            console.log(self.containerName + ' is being restarted!');
+
+            self.container.restart(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+
+                console.log(self.containerName + ' has been restarted!');
+
+                if (options.rm) {
+                    self.container.remove(callback);
+                } else {
+                    callback();
+                }
+            });
+        });
+    }
+
+    get container() {
+        return brain.docker.getContainer(this.containerName);
+    }
+
+    get name() {
+        return this[objectSymbol].name;
     }
 
     get ports() {
@@ -108,12 +255,8 @@ module.exports = class Layer {
         return this[objectSymbol].dataOnly;
     }
 
-    get restart() {
-        return this[objectSymbol].restart;
-    }
-
     get shouldRestart() {
-        return this.restart;
+        return this[objectSymbol].restart;
     }
 
     get memLimit() {
@@ -134,7 +277,9 @@ module.exports = class Layer {
         }
     }
 
-    getDockerOptions(applicationName) {
+    get dockerOptions() {
+        let self = this;
+        
         let dockerOptions = {
             AttachStdin: false,
             AttachStdout: false,
@@ -145,11 +290,11 @@ module.exports = class Layer {
             Dns: brain.settings.dns,
             Image: this.image,
             Env: null,
-            name: this.getContainerName(applicationName),
+            name: this.containerName,
             HostConfig: {}
         };
 
-        if (this.restart) {
+        if (this.shouldRestart) {
             dockerOptions.HostConfig.RestartPolicy = {"Name": "always"};
         }
 
@@ -188,7 +333,7 @@ module.exports = class Layer {
             dockerOptions.HostConfig.VolumesFrom = [];
 
             this.volumesFrom.forEach(function (container) {
-                dockerOptions.HostConfig.VolumesFrom.push(sprintf('%s_%s', applicationName, container.container));
+                dockerOptions.HostConfig.VolumesFrom.push(sprintf('%s_%s', self.application.applicationName, container.container));
             });
         }
 

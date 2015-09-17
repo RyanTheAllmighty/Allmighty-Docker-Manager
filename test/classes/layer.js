@@ -26,10 +26,15 @@ var Port = require('../../inc/classes/port');
 var Layer = require('../../inc/classes/layer');
 var Volume = require('../../inc/classes/volume');
 var VolumeFrom = require('../../inc/classes/volumefrom');
+var Application = require('../../inc/classes/application');
 var Environment = require('../../inc/classes/environment');
 
 describe('Layer', function () {
-    var layer = new Layer('test', {
+    var application = new Application('testapp', {
+        name: "Test Application"
+    });
+
+    var layer = new Layer(application, 'test', {
         image: "test/test",
         dataOnly: false,
         restart: true,
@@ -59,6 +64,19 @@ describe('Layer', function () {
         expect(layer instanceof Layer).to.equal(true);
     });
 
+    describe('#application)', function () {
+        it('should return the application this layer belongs to', function () {
+            expect(layer.application instanceof Application).to.equal(true);
+            expect(layer.application).to.equal(application);
+        });
+    });
+
+    describe('#containerName)', function () {
+        it('should return the name of the container this layer creates', function () {
+            expect(layer.containerName).to.equal('testapp_test');
+        });
+    });
+
     describe('#name)', function () {
         it('should return the name of a layer', function () {
             expect(layer.name).to.equal('test');
@@ -66,11 +84,11 @@ describe('Layer', function () {
     });
 
     describe('#image)', function () {
-        var imageWithoutVersion = new Layer('test', {
+        var imageWithoutVersion = new Layer(new Application('test', {}), 'test', {
             image: "test/test"
         });
 
-        var imageWithVersion = new Layer('test', {
+        var imageWithVersion = new Layer(new Application('test', {}), 'test', {
             image: "test/test:test"
         });
 
@@ -86,16 +104,15 @@ describe('Layer', function () {
         });
     });
 
-    describe('#restart)', function () {
+    describe('#shouldRestart)', function () {
         it('should return if the layer should restart or not', function () {
-            expect(layer.restart).to.equal(true);
             expect(layer.shouldRestart).to.equal(true);
         });
     });
 
     describe('#memLimit', function () {
         it('should return the memory limit of a layer as undefined if not defined', function () {
-            var testComponent = new Layer('', {});
+            var testComponent = new Layer(new Application('test', {}), 'test', {});
 
             expect(testComponent.memLimit).to.be.an('undefined');
             expect(testComponent.memoryLimit).to.be.an('undefined');
