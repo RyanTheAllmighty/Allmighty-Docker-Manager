@@ -22,10 +22,10 @@
 var brain = require('../brain');
 
 var fs = require('fs');
-var tar = require('tar');
 var tmp = require('tmp');
 var path = require("path");
 var fstream = require("fstream");
+var spawn = require('child_process').spawn;
 var sprintf = require("sprintf-js").sprintf;
 
 // Symbol for storing the objects properties
@@ -61,6 +61,7 @@ module.exports = class Component {
         }
 
         var self = this;
+
         tmp.file(function (err, path, fd, cleanupCallback) {
             if (err) {
                 cleanupCallback();
@@ -68,13 +69,21 @@ module.exports = class Component {
                 return callback(err);
             }
 
-            function onError(err) {
-                cleanupCallback();
+            let tarArgs = [
+                '-cf',
+                path,
+                '-C',
+                self.directory,
+                '.'
+            ];
 
-                callback(err);
-            }
+            var tarPS = spawn('tar', tarArgs);
 
-            function onEnd() {
+            tarPS.on('close', function (code) {
+                if (code !== 0) {
+                    return callback(new Error('A non 0 exit code! ' + code + ' was returned when trying to tar the folder!'));
+                }
+
                 brain.docker.buildImage(path, buildOpts, function (err, stream) {
                     if (err || stream === null) {
                         console.log('Error building ' + self.name);
@@ -85,20 +94,12 @@ module.exports = class Component {
                         console.log('Finished build for ' + self.name);
                         callback(err, output);
                     }, function (progress) {
-                        if (!options.quiet && progress.stream) {
+                        if (!options.quiet && progress && progress.stream) {
                             process.stdout.write(progress.stream);
                         }
                     });
                 });
-            }
-
-            fstream.Reader({
-                path: self.directory,
-                type: "Directory"
-            }).on('error', onError).pipe(tar.Pack({
-                fromBase: true,
-                noProprietary: true
-            }).on('error', onError).on('end', onEnd)).pipe(fs.createWriteStream(path));
+            });
         });
     }
 
