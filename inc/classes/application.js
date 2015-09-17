@@ -174,12 +174,7 @@ module.exports = class Application {
                         return next();
                     }
 
-                    // Pull the layers image so we make sure we're up to date
-                    layer.pull(options, function (err) {
-                        if (err) {
-                            return next(err);
-                        }
-
+                    let bringUp = function () {
                         let layerName = layer.getContainerName(self.applicationName);
 
                         brain.docker.getContainer(layerName).remove(function () {
@@ -199,7 +194,20 @@ module.exports = class Application {
                                 });
                             });
                         });
-                    });
+                    };
+
+                    // Pull the layers image so we make sure we're up to date
+                    if (!options.pull) {
+                        bringUp();
+                    } else {
+                        layer.pull(options, function (err) {
+                            if (err) {
+                                return next(err);
+                            }
+
+                            bringUp();
+                        });
+                    }
                 });
             };
 

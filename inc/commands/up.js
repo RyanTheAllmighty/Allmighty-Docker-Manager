@@ -41,12 +41,14 @@ var toActUpon = [];
  *
  * quiet: If there should be no output from the command (default: false)
  * async: If we should run all the builds we're doing asynchronously (default: false)
+ * pull: If we should attempt to pull the latest image for each given layer (default: false)
  *
- * @type {{quiet: boolean, async: boolean}}
+ * @type {{quiet: boolean, async: boolean, pull: boolean}}
  */
 var options = {
     quiet: false,
-    async: false
+    async: false,
+    pull: false
 };
 
 /**
