@@ -131,7 +131,7 @@ module.exports = class Component {
         console.log('Started push for ' + this.name);
 
         var self = this;
-        brain.docker.push(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
+        brain.docker.getImage(this.tagName).push({authconfig: brain.settings.repositoryAuth}, function (err, stream) {
             if (err || stream === null) {
                 console.log('Error pushing ' + self.name);
                 return callback(err);
