@@ -180,10 +180,10 @@ module.exports = class Layer {
         }
 
         if (this.volumesFrom && this.volumesFrom.length > 0) {
-            dockerOptions.VolumesFrom = [];
+            dockerOptions.HostConfig.VolumesFrom = [];
 
             this.volumesFrom.forEach(function (container) {
-                dockerOptions.VolumesFrom.push(sprintf('%s_%s', applicationName, container.container));
+                dockerOptions.HostConfig.VolumesFrom.push(sprintf('%s_%s', applicationName, container.container));
             });
         }
 

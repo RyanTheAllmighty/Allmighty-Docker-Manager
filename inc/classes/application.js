@@ -183,6 +183,12 @@ module.exports = class Application {
                                     return callback(err);
                                 }
 
+                                // This is a data only container, so we don't need to run it
+                                if (layer.dataOnly) {
+                                    console.log(layerName + ' data container has been created!');
+                                    return next();
+                                }
+
                                 container.start(function (err, d) {
                                     if (err) {
                                         return next(err);
