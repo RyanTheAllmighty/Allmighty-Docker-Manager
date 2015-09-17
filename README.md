@@ -21,6 +21,24 @@ For instance if you have a component for PHP, simply make a folder in the compon
 
 There are no examples of this, as they're no different than your standard build directories you'd make for Docker.
 
+# Environment
+This application was created, tested and used with NodeJS 4.0.0.
+
+This provides access to use ECMAScript 6. While it should work fine on newer versions of NodeJS, older versions may have issues.
+
+# Testing & Linting
+To run this applications tests and linter, simply install Grunt globally with the below command:
+
+```
+npm install -g grunt-cli
+```
+
+Then run the following command in the directory this repository was cloned into:
+
+```
+grunt
+```
+
 # Note About Commands
 All the commands for this are run through NodeJS with the app.js file.
 
