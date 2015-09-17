@@ -24,6 +24,7 @@ var _ = require('lodash');
 var brain = require('../brain');
 
 var Link = require('./link');
+var Port = require('./port');
 var Volume = require('./volume');
 var VolumeFrom = require('./volumeFrom');
 var Environment = require('./environment');
@@ -44,6 +45,13 @@ module.exports = class Layer {
             if (originalObject.hasOwnProperty(propName)) {
                 this[objectSymbol][propName] = originalObject[propName];
             }
+        }
+
+        this[objectSymbol].ports = [];
+        if (originalObject.ports) {
+            _.forEach(originalObject.ports, function (port) {
+                this[objectSymbol].ports.push(new Port(port));
+            }, this);
         }
 
         this[objectSymbol].links = [];
@@ -81,6 +89,10 @@ module.exports = class Layer {
 
     getContainerName(applicationName) {
         return sprintf('%s_%s', applicationName, this[objectSymbol].name);
+    }
+
+    get ports() {
+        return this[objectSymbol].ports;
     }
 
     get image() {
@@ -134,6 +146,19 @@ module.exports = class Layer {
 
         if (this.restart) {
             dockerOptions.HostConfig.RestartPolicy = {"Name": "always"};
+        }
+
+        if (this.ports && this.ports.length > 0) {
+            dockerOptions.ExposedPorts = {};
+            dockerOptions.HostConfig.PortBindings = {};
+
+            this.ports.forEach(function (port) {
+                dockerOptions.ExposedPorts[sprintf('%d/tcp', port.container)] = {};
+                dockerOptions.ExposedPorts[sprintf('%d/udp', port.container)] = {};
+
+                dockerOptions.HostConfig.PortBindings[sprintf('%d/tcp', port.container)] = [{HostPort: port.host.toString()}];
+                dockerOptions.HostConfig.PortBindings[sprintf('%d/udp', port.container)] = [{HostPort: port.host.toString()}];
+            });
         }
 
         if (this.environment && this.environment.length > 0) {

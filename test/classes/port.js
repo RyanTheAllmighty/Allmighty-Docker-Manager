@@ -20,18 +20,27 @@
 
 var expect = require('chai').expect;
 
-var Component = require('../../inc/classes/component');
+var Port = require('../../inc/classes/port');
 
-describe('Component', function () {
-    var component = new Component('test');
-
-    it('should create a Component', function () {
-        expect(component instanceof Component).to.equal(true);
+describe('Port', function () {
+    var port = new Port({
+        host: 80,
+        container: 8888
     });
 
-    describe('#name', function () {
-        it('should return the name of the component', function () {
-            expect(component.name).to.equal('test');
+    it('should create a port', function () {
+        expect(port instanceof Port).to.equal(true);
+    });
+
+    describe('#host', function () {
+        it('should return the hosts port', function () {
+            expect(port.host).to.equal(80);
+        });
+    });
+
+    describe('#container', function () {
+        it('should return the containers port', function () {
+            expect(port.container).to.equal(8888);
         });
     });
 });

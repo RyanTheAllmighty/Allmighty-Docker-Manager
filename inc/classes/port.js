@@ -18,20 +18,28 @@
 
 "use strict";
 
-var expect = require('chai').expect;
+// Load the brain in for the application
+var brain = require('../brain');
 
-var Component = require('../../inc/classes/component');
+// Symbol for storing the objects properties
+var objectSymbol = Symbol();
 
-describe('Component', function () {
-    var component = new Component('test');
+module.exports = class Port {
+    constructor(originalObject) {
+        this[objectSymbol] = {};
 
-    it('should create a Component', function () {
-        expect(component instanceof Component).to.equal(true);
-    });
+        for (var propName in originalObject) {
+            if (originalObject.hasOwnProperty(propName)) {
+                this[objectSymbol][propName] = originalObject[propName];
+            }
+        }
+    }
 
-    describe('#name', function () {
-        it('should return the name of the component', function () {
-            expect(component.name).to.equal('test');
-        });
-    });
-});
+    get host() {
+        return this[objectSymbol].host;
+    }
+
+    get container() {
+        return this[objectSymbol].container;
+    }
+};

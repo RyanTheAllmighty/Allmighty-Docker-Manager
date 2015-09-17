@@ -1,9 +1,28 @@
+/*
+ * Allmighty Docker Manager - https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager
+ * Copyright (C) 2015 RyanTheAllmighty
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 "use strict";
 
 var _ = require('lodash');
 var expect = require('chai').expect;
 
 var Link = require('../../inc/classes/link');
+var Port = require('../../inc/classes/port');
 var Layer = require('../../inc/classes/layer');
 var Volume = require('../../inc/classes/volume');
 var VolumeFrom = require('../../inc/classes/volumefrom');
@@ -16,6 +35,12 @@ describe('Layer', function () {
         restart: true,
         memLimit: "1GB",
         command: "test some arguments --help",
+        ports: [
+            {
+                host: 80,
+                container: 80
+            }
+        ],
         links: [
             {}
         ],
@@ -77,6 +102,13 @@ describe('Layer', function () {
         it('should return the command of a layer', function () {
             expect(layer.command).to.be.an('array');
             expect(layer.command[0]).to.equal('test some arguments --help');
+        });
+    });
+
+    describe('#ports', function () {
+        it('should return the ports of a layer', function () {
+            expect(layer.ports).to.be.an('array');
+            expect(layer.ports[0] instanceof Port).to.equal(true);
         });
     });
 
