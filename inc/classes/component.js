@@ -18,17 +18,17 @@
 
 "use strict";
 
-var brain = require('../brain');
+let brain = require('../brain');
 
-var fs = require('fs');
-var tmp = require('tmp');
-var path = require("path");
-var fstream = require("fstream");
-var spawn = require('child_process').spawn;
-var sprintf = require("sprintf-js").sprintf;
+let fs = require('fs');
+let tmp = require('tmp');
+let path = require("path");
+let fstream = require("fstream");
+let spawn = require('child_process').spawn;
+let sprintf = require("sprintf-js").sprintf;
 
 // Symbol for storing the objects properties
-var objectSymbol = Symbol();
+let objectSymbol = Symbol();
 
 module.exports = class Component {
     /**
@@ -77,7 +77,7 @@ module.exports = class Component {
      */
     build(options, callback) {
         console.log('Started build for ' + this.name);
-        var buildOpts = {
+        let buildOpts = {
             t: this.tagName
         };
 
@@ -85,7 +85,7 @@ module.exports = class Component {
             buildOpts.nocache = true;
         }
 
-        var self = this;
+        let self = this;
 
         tmp.file(function (err, path, fd, cleanupCallback) {
             if (err) {
@@ -102,7 +102,7 @@ module.exports = class Component {
                 '.'
             ];
 
-            var tarPS = spawn('tar', tarArgs);
+            let tarPS = spawn('tar', tarArgs);
 
             tarPS.on('close', function (code) {
                 if (code !== 0) {
@@ -149,7 +149,7 @@ module.exports = class Component {
 
         console.log('Started pull for ' + this.name);
 
-        var self = this;
+        let self = this;
         brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
             if (err || stream === null) {
                 console.log('Error pulling ' + self.name);
@@ -187,7 +187,7 @@ module.exports = class Component {
 
         console.log('Started push for ' + this.name);
 
-        var self = this;
+        let self = this;
         brain.docker.getImage(this.tagName).push({authconfig: brain.settings.repositoryAuth}, function (err, stream) {
             if (err || stream === null) {
                 console.log('Error pushing ' + self.name);

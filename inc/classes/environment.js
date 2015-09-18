@@ -18,10 +18,10 @@
 
 "use strict";
 
-var brain = require('../brain');
+let brain = require('../brain');
 
 // Symbol for storing the objects properties
-var objectSymbol = Symbol();
+let objectSymbol = Symbol();
 
 module.exports = class Environment {
     /**
@@ -33,7 +33,7 @@ module.exports = class Environment {
         this[objectSymbol] = {};
 
         // Copy over the original objects properties to this objects private Symbol
-        for (var propName in originalObject) {
+        for (let propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
                 this[objectSymbol][propName] = originalObject[propName];
             }
