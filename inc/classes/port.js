@@ -18,16 +18,21 @@
 
 "use strict";
 
-// Load the brain in for the application
 var brain = require('../brain');
 
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
 
 module.exports = class Port {
+    /**
+     * Constructor to create a new Port.
+     *
+     * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
+     */
     constructor(originalObject) {
         this[objectSymbol] = {};
 
+        // Copy over the original objects properties to this objects private Symbol
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
                 this[objectSymbol][propName] = originalObject[propName];
@@ -35,11 +40,21 @@ module.exports = class Port {
         }
     }
 
-    get host() {
-        return this[objectSymbol].host;
-    }
-
+    /**
+     * Gets the port number in the container to expose.
+     *
+     * @returns {Number}
+     */
     get container() {
         return this[objectSymbol].container;
+    }
+
+    /**
+     * Gets the port number to map to the container on the host.
+     *
+     * @returns {Number}
+     */
+    get host() {
+        return this[objectSymbol].host;
     }
 };

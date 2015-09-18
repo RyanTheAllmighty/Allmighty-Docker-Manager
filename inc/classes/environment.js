@@ -18,16 +18,21 @@
 
 "use strict";
 
-// Load the brain in for the application
 var brain = require('../brain');
 
 // Symbol for storing the objects properties
 var objectSymbol = Symbol();
 
 module.exports = class Environment {
+    /**
+     * Constructor to create a new Environment.
+     *
+     * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
+     */
     constructor(originalObject) {
         this[objectSymbol] = {};
 
+        // Copy over the original objects properties to this objects private Symbol
         for (var propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
                 this[objectSymbol][propName] = originalObject[propName];
@@ -35,10 +40,20 @@ module.exports = class Environment {
         }
     }
 
+    /**
+     * Gets the name of this environment variable.
+     *
+     * @returns {String}
+     */
     get name() {
         return this[objectSymbol].name;
     }
 
+    /**
+     * Gets the value of this environment variable.
+     *
+     * @returns {String}
+     */
     get value() {
         return this[objectSymbol].value;
     }

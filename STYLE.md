@@ -16,14 +16,28 @@ Immediately in the body of the class should be the constructor followed by any g
 
 Lastly any callbacks used internally by the class should be referenced at the bottom of the file (outside of the class) for JSDoc purposes.
 
+# Requires
+When using the require syntax in js files, all require statements should be at the top of the file, under the license declaration and strict statement.
+
+When using modules from different methods, they should be separated out into groups, with the applications internal modules first, then any application internal classes and then finally any external modules.
+
+All require groups should be sorted by length with the shortest statement at the top and the longest at the bottom. In the case of a tie, it should be in alphabetical order by the variables name.
+
 # Styling Guidelines
 For details on JSDoc used for all JavaScript files, see [this website](http://usejsdoc.org/).
 
 + Make sure all doc block information has a period at the end.
 + Make sure all doc block @ elements don't have a period at the end.
++ Make sure all type declarations use the Type definitions. For instance {String} instead of {string}.
++ Make sure all comments after the - in @ doc block elements start with a lowercase
 + Make sure all comments not in doc blocks end in a period.
 + Make sure there is a blank line between any main doc block information and any @elements.
 + Make sure all callbacks are documented at the very bottom of the file.
++ Make sure there are no multi line variables. All variables should be declared one per line with no multi line declarations.
++ Make sure to use let instead of var wherever possible.
++ When needing to access this in a callback of a method, the variable to store this should be called self. For example (let self = this;).
++ All files should be saved with lowercamelCase names.
++ All classes should be UpperCamelCase with no spaces or other non alphanumeric characters.
 
 ## Example
     // Some comment. Which ends in a period.
@@ -31,5 +45,5 @@ For details on JSDoc used for all JavaScript files, see [this website](http://us
     /**
      * Where the magic happens. Notice I end in a period.
      *
-     * @param {String} arguments - All the arguments passed in from the command line, notice I don't end in a period
+     * @param {String} arguments - lower case start. All the arguments passed in from the command line, notice I don't end in a period
      */

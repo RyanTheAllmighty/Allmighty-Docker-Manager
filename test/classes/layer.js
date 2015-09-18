@@ -115,12 +115,10 @@ describe('Layer', function () {
             var testComponent = new Layer(new Application('test', {}), 'test', {});
 
             expect(testComponent.memLimit).to.be.an('undefined');
-            expect(testComponent.memoryLimit).to.be.an('undefined');
         });
 
         it('should return the memory limit of a layer', function () {
             expect(layer.memLimit).to.equal('1GB');
-            expect(layer.memoryLimit).to.equal('1GB');
         });
     });
 

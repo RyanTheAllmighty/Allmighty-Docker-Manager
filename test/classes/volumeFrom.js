@@ -35,9 +35,5 @@ describe('VolumeFrom', function () {
         it('should return the name of the container this volume is from', function () {
             expect(volume.container).to.equal('test');
         });
-
-        it('should return the name of the container this volume is from', function () {
-            expect(volume.containerName).to.equal('test');
-        });
     });
 });

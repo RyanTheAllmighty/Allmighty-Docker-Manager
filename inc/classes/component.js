@@ -18,7 +18,6 @@
 
 "use strict";
 
-// Load the brain in for the application
 var brain = require('../brain');
 
 var fs = require('fs');
@@ -32,24 +31,50 @@ var sprintf = require("sprintf-js").sprintf;
 var objectSymbol = Symbol();
 
 module.exports = class Component {
+    /**
+     * Constructor to create a new Component.
+     *
+     * @param {String} name - the name of this component
+     */
     constructor(name) {
         this[objectSymbol] = {
             name
         };
     }
 
-    get name() {
-        return this[objectSymbol].name;
-    }
-
+    /**
+     * Gets the path to the folder where this component is stored.
+     *
+     * @returns {String}
+     */
     get directory() {
         return path.join(brain.getBaseDirectory(), brain.settings.directories.components, this.name);
     }
 
+    /**
+     * Gets the name of this component.
+     *
+     * @returns {String}
+     */
+    get name() {
+        return this[objectSymbol].name;
+    }
+
+    /**
+     * Gets the tag name for this component, used as the tag name when building and pushing.
+     *
+     * @returns {String}
+     */
     get tagName() {
         return sprintf('%s/%s', brain.settings.repositoryURL, this.name);
     }
 
+    /**
+     * Builds this component into a Docker image.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Component~buildCallback} callback - the callback for when we're done
+     */
     build(options, callback) {
         console.log('Started build for ' + this.name);
         var buildOpts = {
@@ -111,6 +136,12 @@ module.exports = class Component {
         });
     }
 
+    /**
+     * Pulls this component from the repository defined in the settings.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Component~pullCallback} callback - the callback for when we're done
+     */
     pull(options, callback) {
         if (!brain.settings.repositoryAuth) {
             return callback(new Error('No repository auth is set in the settings.json file!'));
@@ -143,6 +174,12 @@ module.exports = class Component {
         });
     }
 
+    /**
+     * Pushes this built component to the repository defined in the settings.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Component~pushCallback} callback - the callback for when we're done
+     */
     push(options, callback) {
         if (!brain.settings.repositoryAuth) {
             return callback(new Error('No repository auth is set in the settings.json file!'));
@@ -176,3 +213,24 @@ module.exports = class Component {
         });
     }
 };
+
+/**
+ * This is the callback used when building a component.
+ *
+ * @callback Component~buildCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to build a component
+ */
+
+/**
+ * This is the callback used when pulling a component.
+ *
+ * @callback Component~pullCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to pull a component
+ */
+
+/**
+ * This is the callback used when pushing a component.
+ *
+ * @callback Component~pushCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to push a component
+ */

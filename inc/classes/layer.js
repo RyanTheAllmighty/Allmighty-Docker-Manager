@@ -18,36 +18,43 @@
 
 "use strict";
 
-var _ = require('lodash');
+let brain = require('../brain');
 
-// Load the brain in for the application
-var brain = require('../brain');
+let Link = require('./link');
+let Port = require('./port');
+let Volume = require('./volume');
+let VolumeFrom = require('./volumeFrom');
+let Environment = require('./environment');
 
-var Link = require('./link');
-var Port = require('./port');
-var Volume = require('./volume');
-var VolumeFrom = require('./volumeFrom');
-var Environment = require('./environment');
-
-var bytes = require('bytes');
-var sprintf = require("sprintf-js").sprintf;
+let _ = require('lodash');
+let bytes = require('bytes');
+let sprintf = require("sprintf-js").sprintf;
 
 // Symbol for storing the objects properties
-var objectSymbol = Symbol();
+let objectSymbol = Symbol();
 
 module.exports = class Layer {
+    /**
+     * Constructor to create a new layer.
+     *
+     * @param {Application} application - the application instance this layer belongs to
+     * @param {String} name - the name of this layer
+     * @param {Object} originalObject - the object passed in which represents this layer. Parsed from json
+     */
     constructor(application, name, originalObject) {
         this[objectSymbol] = {};
 
         this[objectSymbol]._application = application;
         this[objectSymbol].name = name;
 
-        for (var propName in originalObject) {
+        // Copy over the original objects properties to this objects private Symbol
+        for (let propName in originalObject) {
             if (originalObject.hasOwnProperty(propName)) {
                 this[objectSymbol][propName] = originalObject[propName];
             }
         }
 
+        // Turn the ports in the object into Port objects
         this[objectSymbol].ports = [];
         if (originalObject.ports) {
             _.forEach(originalObject.ports, function (port) {
@@ -55,6 +62,7 @@ module.exports = class Layer {
             }, this);
         }
 
+        // Turn the links in the object into Link objects
         this[objectSymbol].links = [];
         if (originalObject.links) {
             _.forEach(originalObject.links, function (link) {
@@ -62,6 +70,7 @@ module.exports = class Layer {
             }, this);
         }
 
+        // Turn the volumes in the object into Volume objects
         this[objectSymbol].volumes = [];
         if (originalObject.volumes) {
             _.forEach(originalObject.volumes, function (volume) {
@@ -69,6 +78,7 @@ module.exports = class Layer {
             }, this);
         }
 
+        // Turn the volumes from in the object into VolumeFrom objects
         this[objectSymbol].volumesFrom = [];
         if (originalObject.volumesFrom) {
             _.forEach(originalObject.volumesFrom, function (volume) {
@@ -76,6 +86,7 @@ module.exports = class Layer {
             }, this);
         }
 
+        // Tuen the envionrment variables in the object into Environment objects
         this[objectSymbol].environment = [];
         if (originalObject.environment) {
             _.forEach(originalObject.environment, function (env) {
@@ -84,8 +95,37 @@ module.exports = class Layer {
         }
     }
 
+    /**
+     * Gets the application object that this layer belongs to.
+     *
+     * @returns {Application}
+     */
     get application() {
         return this[objectSymbol]._application;
+    }
+
+    /**
+     * Gets the command to run for this layer, if any.
+     *
+     * @returns {String[]}
+     */
+    get command() {
+        if (!this[objectSymbol].command) {
+            return [];
+        } else if (!(this[objectSymbol].command instanceof Array)) {
+            return [this[objectSymbol].command];
+        } else {
+            return this[objectSymbol].command;
+        }
+    }
+
+    /**
+     * Gets the container object for this layer.
+     *
+     * @returns {Container}
+     */
+    get container() {
+        return brain.docker.getContainer(this.containerName);
     }
 
     /**
@@ -100,186 +140,22 @@ module.exports = class Layer {
     }
 
     /**
-     * Checks to see if this layer is up.
+     * Returns if this layer is a data only layer which means it only holds data and shouldn't be started up.
      *
-     * @param callback - a callback which returns a boolean of if this layer is up or not
+     * @returns {Boolean}
      */
-    isUp(callback) {
-        this.container.inspect(function (err, data) {
-            if (err) {
-                return callback(false);
-            }
-
-            callback(data.State.Running || false);
-        });
+    get dataOnly() {
+        return this[objectSymbol].dataOnly || false;
     }
 
     /**
-     * This brings this layer up if it needs to be brought up.
+     * Gets the options that are passed to Docker to start up this layer.
      *
-     * @param {Array} options - array of options passed in from the user
-     * @param callback - the callback to run when an error occurs or things are done successfully
+     * @returns {Object}
      */
-    up(options, callback) {
-        var self = this;
-
-        this.isUp(function (isUp) {
-            if (isUp) {
-                // This layer is already up, so there is no need to bring it up again
-                return callback();
-            }
-
-            let bringUp = function () {
-                self.container.remove(function () {
-                    brain.docker.createContainer(self.dockerOptions, function (err, container) {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        // This is a data only container, so we don't need to run it
-                        if (self.dataOnly) {
-                            console.log(self.containerName + ' data container has been created!');
-                            return callback();
-                        }
-
-                        container.start(function (err, d) {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            console.log(self.containerName + ' is now up!');
-
-                            callback();
-                        });
-                    });
-                });
-            };
-
-            let pullAndUp = function () {
-                self.pull(options, function (err) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    bringUp();
-                });
-            };
-
-            // Pull the layers image so we make sure we're up to date
-            if (!options.pull) {
-                brain.docker.getImage(self.image).get(function (err) {
-                    if (err) {
-                        pullAndUp();
-                    } else {
-                        bringUp();
-                    }
-                });
-            } else {
-                pullAndUp();
-            }
-        });
-    }
-
-    down(options, callback) {
-        let self = this;
-
-        this.isUp(function (isUp) {
-            if (!isUp) {
-                return callback();
-            }
-
-            self.container.stop(function (err) {
-                if (err) {
-                    return callback(err);
-                }
-
-                console.log(self.containerName + ' is now down!');
-
-                if (options.rm) {
-                    self.container.remove(callback);
-                } else {
-                    callback();
-                }
-            });
-        });
-    }
-
-    restart(options, callback) {
-        let self = this;
-
-        this.isUp(function (isUp) {
-            if (!isUp) {
-                return callback();
-            }
-
-            console.log(self.containerName + ' is being restarted!');
-
-            self.container.restart(function (err) {
-                if (err) {
-                    return callback(err);
-                }
-
-                console.log(self.containerName + ' has been restarted!');
-
-                if (options.rm) {
-                    self.container.remove(callback);
-                } else {
-                    callback();
-                }
-            });
-        });
-    }
-
-    get container() {
-        return brain.docker.getContainer(this.containerName);
-    }
-
-    get name() {
-        return this[objectSymbol].name;
-    }
-
-    get ports() {
-        return this[objectSymbol].ports;
-    }
-
-    get image() {
-        let imageToGet = this[objectSymbol].image;
-
-        let fromCustomRepo = imageToGet.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
-        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == imageToGet.indexOf(':')) : imageToGet.indexOf(':') > -1;
-
-        return hasVersion ? imageToGet : imageToGet + ':latest';
-    }
-
-    get dataOnly() {
-        return this[objectSymbol].dataOnly;
-    }
-
-    get shouldRestart() {
-        return this[objectSymbol].restart;
-    }
-
-    get memLimit() {
-        return this[objectSymbol].memLimit;
-    }
-
-    get memoryLimit() {
-        return this.memLimit;
-    }
-
-    get command() {
-        if (!this[objectSymbol].command) {
-            return [];
-        } else if (!(this[objectSymbol].command instanceof Array)) {
-            return [this[objectSymbol].command];
-        } else {
-            return this[objectSymbol].command;
-        }
-    }
-
     get dockerOptions() {
         let self = this;
-        
+
         let dockerOptions = {
             AttachStdin: false,
             AttachStdout: false,
@@ -344,22 +220,145 @@ module.exports = class Layer {
         return dockerOptions;
     }
 
-    get links() {
-        return this[objectSymbol].links || [];
-    }
-
-    get volumes() {
-        return this[objectSymbol].volumes || [];
-    }
-
-    get volumesFrom() {
-        return this[objectSymbol].volumesFrom || [];
-    }
-
+    /**
+     * Gets the environment variables for this layer.
+     *
+     * @returns {Environment[]}
+     */
     get environment() {
         return this[objectSymbol].environment || [];
     }
 
+    /**
+     * Gets the name of the image used by this layer. If no tag name/version is provided then it will default to 'latest'.
+     *
+     * @returns {String}
+     */
+    get image() {
+        let imageToGet = this[objectSymbol].image;
+
+        let fromCustomRepo = imageToGet.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
+        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == imageToGet.indexOf(':')) : imageToGet.indexOf(':') > -1;
+
+        return hasVersion ? imageToGet : imageToGet + ':latest';
+    }
+
+    /**
+     * Gets the links for this layer that are required to start up and link with other layers.
+     *
+     * @returns {Link[]}
+     */
+    get links() {
+        return this[objectSymbol].links || [];
+    }
+
+    /**
+     * Gets the memory limit for this layer in the format of #MB/#GB.
+     *
+     * @returns {String|undefined}
+     */
+    get memLimit() {
+        return this[objectSymbol].memLimit;
+    }
+
+    /**
+     * Gets the name of this layer.
+     *
+     * @returns {String}
+     */
+    get name() {
+        return this[objectSymbol].name;
+    }
+
+    /**
+     * Gets the ports to expose from this layer.
+     *
+     * @returns {Port[]}
+     */
+    get ports() {
+        return this[objectSymbol].ports;
+    }
+
+    /**
+     * Gets if this layer should restart when it goes offline.
+     *
+     * @returns {Boolean}
+     */
+    get shouldRestart() {
+        return this[objectSymbol].restart;
+    }
+
+    /**
+     * Gets the volumes for this layer.
+     *
+     * @returns {Volume[]}
+     */
+    get volumes() {
+        return this[objectSymbol].volumes || [];
+    }
+
+    /**
+     * Gets the volumes for this layer that come from other layers.
+     *
+     * @returns {VolumeFrom[]}
+     */
+    get volumesFrom() {
+        return this[objectSymbol].volumesFrom || [];
+    }
+
+    /**
+     * Brings this layer down.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Layer~downCallback} callback - the callback for when we're done
+     */
+    down(options, callback) {
+        let self = this;
+
+        this.isUp(function (isUp) {
+            if (!isUp) {
+                return callback();
+            }
+
+            self.container.stop(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+
+                console.log(self.containerName + ' is now down!');
+
+                if (options.rm) {
+                    self.container.remove(callback);
+                } else {
+                    callback();
+                }
+            });
+        });
+    }
+
+    /**
+     * Checks to see if this layer is up.
+     *
+     * @param {Layer~isUpCallback} callback - the callback for when we're done
+     */
+    isUp(callback) {
+        this.container.inspect(function (err, data) {
+            // If there is an error returned then the container hasn't been created
+            if (err) {
+                return callback(false);
+            }
+
+            // Else it has been created so we check if it's running based on what the inspect command tells us
+            callback(data.State.Running || false);
+        });
+    }
+
+    /**
+     * Pulls the image needed for this layer.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Layer~pullCallback} callback - the callback for when we're done
+     */
     pull(options, callback) {
         let fromCustomRepo = this.image.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
         let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? this.image.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == this.image.indexOf(':')) : this.image.indexOf(':') > -1;
@@ -372,7 +371,7 @@ module.exports = class Layer {
 
         let pullOpts = fromCustomRepo ? brain.settings.repositoryAuth : {};
 
-        var self = this;
+        let self = this;
 
         brain.docker.pull(this.image, pullOpts, function (err, stream) {
             if (err || stream === null) {
@@ -386,4 +385,137 @@ module.exports = class Layer {
             });
         });
     }
+
+    /**
+     * Restarts this layer.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Layer~restartCallback} callback - the callback for when we're done
+     */
+    restart(options, callback) {
+        let self = this;
+
+        this.isUp(function (isUp) {
+            if (!isUp) {
+                return callback();
+            }
+
+            console.log(self.containerName + ' is being restarted!');
+
+            self.container.restart({}, function (err) {
+                if (err) {
+                    return callback(err);
+                }
+
+                console.log(self.containerName + ' has been restarted!');
+
+                if (options.rm) {
+                    self.container.remove(callback);
+                } else {
+                    callback();
+                }
+            });
+        });
+    }
+
+    /**
+     * This brings this layer up if it needs to be brought up.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Layer~upCallback} callback - the callback for when we're done
+     */
+    up(options, callback) {
+        let self = this;
+
+        this.isUp(function (isUp) {
+            if (isUp) {
+                // This layer is already up, so there is no need to bring it up again
+                return callback();
+            }
+
+            let bringUp = function () {
+                self.container.remove(function () {
+                    brain.docker.createContainer(self.dockerOptions, function (err, container) {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        // This is a data only container, so we don't need to run it
+                        if (self.dataOnly) {
+                            console.log(self.containerName + ' data container has been created!');
+                            return callback();
+                        }
+
+                        container.start(function (err, d) {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            console.log(self.containerName + ' is now up!');
+
+                            callback();
+                        });
+                    });
+                });
+            };
+
+            let pullAndUp = function () {
+                self.pull(options, function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    bringUp();
+                });
+            };
+
+            // Pull the layers image so we make sure we're up to date
+            if (!options.pull) {
+                brain.docker.getImage(self.image).get(function (err) {
+                    if (err) {
+                        pullAndUp();
+                    } else {
+                        bringUp();
+                    }
+                });
+            } else {
+                pullAndUp();
+            }
+        });
+    }
 };
+
+/**
+ * This is the callback used when bringing a layer down.
+ *
+ * @callback Layer~downCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this layer down
+ */
+
+/**
+ * This is the callback used when checking to see if a layer is up or not.
+ *
+ * @callback Layer~isUpCallback
+ * @param {Boolean} up - if this layer is up or not
+ */
+
+/**
+ * This is the callback used when pulling the image for a layer.
+ *
+ * @callback Layer~pullCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to pull the image for this layer
+ */
+
+/**
+ * This is the callback used when restarting a layer.
+ *
+ * @callback Layer~restartCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to restart this layer
+ */
+
+/**
+ * This is the callback used when we attempt to bring a layer up.
+ *
+ * @callback Layer~upCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this layer up
+ */

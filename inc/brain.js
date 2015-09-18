@@ -109,6 +109,8 @@ module.exports.loadComponents = function () {
 };
 
 module.exports.loadApplications = function () {
+    let self = this;
+    
     var applicationNames = _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
         return file.substr(-5) == '.json';
     }), function (app) {
@@ -118,7 +120,7 @@ module.exports.loadApplications = function () {
     var applications = {};
 
     _.forEach(applicationNames, function (name) {
-        applications[name] = new Application(name);
+        applications[name] = new Application(name, require(path.join(self.getApplicationsDirectory(), name + '.json')));
     });
 
     return applications;
