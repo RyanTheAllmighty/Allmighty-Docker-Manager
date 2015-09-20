@@ -55,14 +55,12 @@ describe('Volume', function () {
     describe('#host', function () {
         it('should return the path to the volume on the host', function () {
             expect(readOnlyVolume.host).to.equal('/test/readonly');
-            expect(readOnlyVolume.hostMount).to.equal('/test/readonly');
         });
     });
 
     describe('#container', function () {
         it('should return the path to the volume within the container', function () {
             expect(readOnlyVolume.container).to.equal('/mnt/readonly');
-            expect(readOnlyVolume.containerMount).to.equal('/mnt/readonly');
         });
     });
 });
