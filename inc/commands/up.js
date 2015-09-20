@@ -72,21 +72,21 @@ module.exports.init = function (passedArgs, callback) {
         toActUpon = brain.getApplicationsAsArray();
     }
 
-    brain.getRunningContainerNames(function (err, containers) {
+    // Go through and check each application and remove the ones that are already online.
+    async.each(toActUpon, function (application, next) {
+        application.isUp(function (up) {
+            if (up) {
+                toActUpon.splice(toActUpon.indexOf(application), 1);
+            }
+
+            next();
+        });
+    }, function (err) {
         if (err) {
             return callback(err);
         }
 
-        _.forEach(toActUpon, function (application) {
-            var isUp = _.some(containers, function (container) {
-                return container == application.applicationName || container.startsWith(application.applicationName + "_");
-            });
-
-            if (isUp) {
-                toActUpon.splice(toActUpon.indexOf(application), 1);
-            }
-        });
-
+        // If all the applications we want to start are already online, then we don't need to do anything.
         if (toActUpon.length === 0) {
             return callback(new Error('All the necessary containers are already up!'));
         }

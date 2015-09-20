@@ -246,6 +246,26 @@ module.exports = class Application {
     }
 
     /**
+     * Checks to see if this application and all of it's necessary layers are up.
+     *
+     * @param {Application~isUpCallback} callback - the callback for when we're done
+     */
+    isUp(callback) {
+        async.each(this.layers, function (layer, next) {
+            layer.container.inspect(function (err, data) {
+                // Data only containers don't need to be running, but they must be created, so lets check that, else we see if inspect says it's running
+                if (!err && (layer.dataOnly || data.State.Running)) {
+                    return next();
+                }
+
+                next(new Error('The layer ' + layer.containerName + ' is not online!'));
+            });
+        }, function (err) {
+            callback(!err);
+        });
+    }
+
+    /**
      * Restarts this application by restarting each of it's layers.
      *
      * @param {Object} options - options passed in from the user
@@ -396,6 +416,13 @@ module.exports = class Application {
  * @callback Application~getOrderOfLayersCallback
  * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this application down
  * @param {Layer[]} layers - an array of each of the layers in the order the should be started
+ */
+
+/**
+ * This is the callback used when checking to see if an application is up or not.
+ *
+ * @callback Application~isUpCallback
+ * @param {Boolean} up - if this application is up or not
  */
 
 /**

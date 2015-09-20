@@ -74,27 +74,24 @@ module.exports.init = function (passedArgs, callback) {
         toActUpon = brain.getApplicationsAsArray();
     }
 
-    brain.getRunningContainerNames(function (err, containers) {
+
+    // Go through and check each application and remove the ones that are already online.
+    async.each(toActUpon, function (application, next) {
+        application.isUp(function (up) {
+            if (!up) {
+                toActUpon.splice(toActUpon.indexOf(application), 1);
+            }
+
+            next();
+        });
+    }, function (err) {
         if (err) {
             return callback(err);
         }
 
-        if (containers.length === 0) {
-            return callback(new Error('There are no containers currently running!'));
-        }
-
-        _.forEach(toActUpon, function (application) {
-            var isUp = _.some(containers, function (container) {
-                return container == application.applicationName || container.startsWith(application.applicationName + "_");
-            });
-
-            if (!isUp) {
-                toActUpon.splice(toActUpon.indexOf(application), 1);
-            }
-        });
-
+        // If all the applications we want to start are already offline, then we don't need to do anything.
         if (toActUpon.length === 0) {
-            return callback(new Error('There are no containers currently running for any applications!'));
+            return callback(new Error('All the necessary containers are already down!'));
         }
 
         callback();
