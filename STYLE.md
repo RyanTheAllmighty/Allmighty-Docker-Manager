@@ -30,7 +30,7 @@ For details on JSDoc used for all JavaScript files, see [this website](http://us
 + Make sure all doc block @ elements don't have a period at the end.
 + Make sure all type declarations use the Type definitions. For instance {String} instead of {string}.
 + Make sure all comments after the - in @ doc block elements start with a lowercase
-+ Make sure all comments not in doc blocks end in a period.
++ Make sure all comments not in doc blocks don't end in a period.
 + Make sure there is a blank line between any main doc block information and any @elements.
 + Make sure all callbacks are documented at the very bottom of the file.
 + Make sure there are no multi line variables. All variables should be declared one per line with no multi line declarations.
@@ -40,7 +40,7 @@ For details on JSDoc used for all JavaScript files, see [this website](http://us
 + All classes should be UpperCamelCase with no spaces or other non alphanumeric characters.
 
 ## Example
-    // Some comment. Which ends in a period.
+    // Some comment. Which doesn't end in a period
 
     /**
      * Where the magic happens. Notice I end in a period.

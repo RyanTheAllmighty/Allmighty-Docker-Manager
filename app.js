@@ -87,5 +87,5 @@ command.init(passedArgs, function (err, res) {
  *
  * @callback App~commandRunCallback
  * @param {Object|undefined} err - The error (if any) returned from this command
- * @param {string|undefined} res - The response (if any) returned from this command
+ * @param {String|undefined} res - The response (if any) returned from this command
  */
