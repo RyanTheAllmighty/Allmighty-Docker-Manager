@@ -402,18 +402,13 @@ module.exports = class Layer {
 
             console.log(self.containerName + ' is being restarted!');
 
-            self.container.restart({}, function (err) {
+            self.container.restart(function (err) {
                 if (err) {
                     return callback(err);
                 }
 
                 console.log(self.containerName + ' has been restarted!');
-
-                if (options.rm) {
-                    self.container.remove(callback);
-                } else {
-                    callback();
-                }
+                callback();
             });
         });
     }
