@@ -250,11 +250,31 @@ module.exports = class Application {
      *
      * @param {Application~isUpCallback} callback - the callback for when we're done
      */
-    isUp(callback) {
+    isAnyUp(callback) {
         async.each(this.layers, function (layer, next) {
             layer.container.inspect(function (err, data) {
                 // Data only containers don't need to be running, but they must be created, so lets check that, else we see if inspect says it's running
-                if (!err && (layer.dataOnly || data.State.Running)) {
+                if (!err && (data.State.Running === true)) {
+                    return next(new Error('The layer ' + layer.containerName + ' is online!'));
+                }
+
+                next();
+            });
+        }, function (err) {
+            callback(err);
+        });
+    }
+
+    /**
+     * Checks to see if this application and all of it's necessary layers are up.
+     *
+     * @param {Application~isUpCallback} callback - the callback for when we're done
+     */
+    isAllUp(callback) {
+        async.each(this.layers, function (layer, next) {
+            layer.container.inspect(function (err, data) {
+                // Data only containers don't need to be running, but they must be created, so lets check that, else we see if inspect says it's running
+                if (!err && (layer.dataOnly || data.State.Running === true)) {
                     return next();
                 }
 

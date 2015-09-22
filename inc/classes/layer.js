@@ -397,7 +397,7 @@ module.exports = class Layer {
 
         this.isUp(function (isUp) {
             if (!isUp) {
-                return callback();
+                self.up(callback);
             }
 
             console.log(self.containerName + ' is being restarted!');

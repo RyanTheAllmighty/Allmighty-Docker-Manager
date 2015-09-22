@@ -71,32 +71,6 @@ module.exports.init = function (passedArgs, callback) {
     } else {
         toActUpon = toActUpon.concat(brain.getApplicationsAsArray());
     }
-
-    brain.getRunningContainerNames(function (err, containers) {
-        if (err) {
-            return callback(err);
-        }
-
-        if (containers.length === 0) {
-            return callback(new Error('There are no containers currently running!'));
-        }
-
-        _.forEach(toActUpon, function (application) {
-            var isUp = _.some(containers, function (container) {
-                return container == application.name || container.startsWith(application.name + "_");
-            });
-
-            if (!isUp) {
-                toActUpon.splice(toActUpon.indexOf(application), 1);
-            }
-        });
-
-        if (toActUpon.length === 0) {
-            return callback(new Error('There are no containers currently running for any applications!'));
-        }
-
-        callback();
-    });
 };
 
 /**

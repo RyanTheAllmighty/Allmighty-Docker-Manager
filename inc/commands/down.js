@@ -77,7 +77,7 @@ module.exports.init = function (passedArgs, callback) {
 
     // Go through and check each application and remove the ones that are already online.
     async.each(toActUpon, function (application, next) {
-        application.isUp(function (up) {
+        application.isAnyUp(function (up) {
             if (!up) {
                 toActUpon.splice(toActUpon.indexOf(application), 1);
             }
