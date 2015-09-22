@@ -286,6 +286,18 @@ module.exports = class Application {
     }
 
     /**
+     * Checks to see if this application has a layer with the given name.
+     *
+     * @param {String} layerName - the name of the layer
+     * @param {Application~isLayerCallback} callback - the callback for when we're done
+     */
+    isLayer(layerName, callback) {
+        callback(_.some(this.layers, function (layer) {
+            return layer.name == layerName;
+        }));
+    }
+
+    /**
      * Restarts this application by restarting each of it's layers.
      *
      * @param {Object} options - options passed in from the user
@@ -443,6 +455,13 @@ module.exports = class Application {
  *
  * @callback Application~isUpCallback
  * @param {Boolean} up - if this application is up or not
+ */
+
+/**
+ * This is the callback used when checking to see if this application has a layer with the given name.
+ *
+ * @callback Application~isLayerCallback
+ * @param {Boolean} up - if there is a layer with this name
  */
 
 /**

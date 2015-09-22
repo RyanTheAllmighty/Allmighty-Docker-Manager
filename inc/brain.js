@@ -72,8 +72,12 @@ module.exports.getApplication = function (name) {
     return _applications[name];
 };
 
-module.exports.isApplication = function (name) {
+module.exports.isApplicationSync = function (name) {
     return name in _applications;
+};
+
+module.exports.isApplication = function (name, callback) {
+    callback(this.isApplicationSync(name));
 };
 
 module.exports.getComponents = function () {
@@ -110,7 +114,7 @@ module.exports.loadComponents = function () {
 
 module.exports.loadApplications = function () {
     let self = this;
-    
+
     var applicationNames = _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
         return file.substr(-5) == '.json';
     }), function (app) {
