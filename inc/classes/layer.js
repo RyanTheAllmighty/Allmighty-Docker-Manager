@@ -422,6 +422,8 @@ module.exports = class Layer {
     up(options, callback) {
         let self = this;
 
+        console.log(self.containerName + ' is starting up!');
+
         this.isUp(function (isUp) {
             if (isUp) {
                 // This layer is already up, so there is no need to bring it up again
