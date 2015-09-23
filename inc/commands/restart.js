@@ -59,15 +59,17 @@ module.exports.init = function (passedArgs, callback) {
     options = merge(options, passedArgs);
 
     if (passedArgs._ && passedArgs._.length > 0) {
-        let applicationName = passedArgs._[0];
+        for (let i = 0; i < passedArgs._.length; i++) {
+            let applicationName = passedArgs._[i];
 
-        if (!brain.isApplicationSync(applicationName)) {
-            return callback({
-                error: 'No application exists called "' + applicationName + '"!'
-            });
+            if (!brain.isApplicationSync(applicationName)) {
+                return callback({
+                    error: 'No application exists called "' + applicationName + '"!'
+                });
+            }
+
+            toActUpon.push(brain.getApplication(applicationName));
         }
-
-        toActUpon.push(brain.getApplication(applicationName));
     } else {
         toActUpon = toActUpon.concat(brain.getApplicationsAsArray());
     }

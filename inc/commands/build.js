@@ -61,15 +61,17 @@ module.exports.init = function (passedArgs, callback) {
     options = merge(options, passedArgs);
 
     if (passedArgs._ && passedArgs._.length > 0) {
-        let componentName = passedArgs._[0];
+        for (let i = 0; i < passedArgs._.length; i++) {
+            let componentName = passedArgs._[i];
 
-        if (!brain.isComponent(componentName)) {
-            return callback({
-                error: 'No component exists called "' + componentName + '"!'
-            });
+            if (!brain.isComponent(componentName)) {
+                return callback({
+                    error: 'No component exists called "' + componentName + '"!'
+                });
+            }
+
+            toBuild.push(brain.getComponent(componentName));
         }
-
-        toBuild.push(brain.getComponent(componentName));
     } else {
         toBuild = toBuild.concat(brain.getComponentsAsArray());
     }
