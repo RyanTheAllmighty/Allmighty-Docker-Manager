@@ -174,6 +174,14 @@ module.exports = class Layer {
             dockerOptions.HostConfig.RestartPolicy = {"Name": "always"};
         }
 
+        if (this.links && this.links.length > 0) {
+            dockerOptions.HostConfig.Links = [];
+
+            this.links.forEach(function (link) {
+                dockerOptions.HostConfig.Links.push(sprintf('%s:%s', sprintf('%s_%s', self.application.applicationName, link.container), link.name));
+            });
+        }
+
         if (this.ports && this.ports.length > 0) {
             dockerOptions.ExposedPorts = {};
             dockerOptions.HostConfig.PortBindings = {};

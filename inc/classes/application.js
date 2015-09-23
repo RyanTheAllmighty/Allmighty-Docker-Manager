@@ -160,6 +160,7 @@ module.exports = class Application {
         _.forEach(this.layers, function (layer) {
             let obj = {
                 layer,
+                name: layer.name,
                 after: []
             };
 
@@ -181,7 +182,7 @@ module.exports = class Application {
         });
 
         let finalLayout = _.remove(initialLayout, function (l) {
-            return l.after.length !== 0;
+            return l.after.length === 0;
         });
 
         let attempts = 0;
