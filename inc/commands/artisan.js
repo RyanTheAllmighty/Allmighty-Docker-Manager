@@ -70,14 +70,7 @@ module.exports.init = function (passedArgs, callback) {
         return callback(new Error('Artisan cannot be run on this application!'));
     }
 
-    // Check if the containers we need to be up are actually up
-    theApplication.getLayer('data').isUp(function (running) {
-        if (!running) {
-            return callback(new Error('Cannot run Artisan as the data container isn\'t online!'));
-        }
-
-        callback();
-    });
+    callback();
 };
 
 /**

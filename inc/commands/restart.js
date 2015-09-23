@@ -77,8 +77,6 @@ module.exports.init = function (passedArgs, callback) {
  * This runs the command with the given arguments/options set in the init method and returns possibly an error and
  * response in the callback if any.
  *
- * TODO: Switch this to use the JSON specifications rather than the YML with Docker Compose
- *
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */
 module.exports.run = function (callback) {
