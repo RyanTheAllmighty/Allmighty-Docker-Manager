@@ -60,7 +60,7 @@ module.exports.init = function (passedArgs, callback) {
     let applicationName = passedArgs._[0];
 
     // And check it's valid
-    if (!brain.isApplication(applicationName)) {
+    if (!brain.isApplicationSync(applicationName)) {
         return callback(new Error('No application exists called "' + applicationName + '"!'));
     }
 
