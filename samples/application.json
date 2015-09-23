@@ -1,29 +1,29 @@
 {
     "name": "application",
     "description": "This is a sample application which shows some basic setup.",
-    "directories": [
-        {
+    "directories": {
+        "test": {
             "path": "/example/test",
             "description": "Some test data. The shared boolean shows if ONLY this application uses that directory or if other applications also use it.",
             "shared": false
         },
-        {
+        "read_only": {
             "path": "/example/readOnly",
             "description": "Some more test data. This one is shared by other containers. Also note this is not an absolute path, it's appended to the directories.storage value in the settings.json.",
             "shared": true
         }
-    ],
+    },
     "layers": {
         "data": {
             "dataOnly": true,
             "volumes": [
                 {
-                    "host": "/example/test",
+                    "host": "${test}",
                     "container": "/mounted/test",
                     "readOnly": false
                 },
                 {
-                    "host": "/example/readOnly",
+                    "host": "${read_only}",
                     "container": "/mounted/RO",
                     "readOnly": true
                 }

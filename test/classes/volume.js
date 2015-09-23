@@ -20,17 +20,33 @@
 
 var expect = require('chai').expect;
 
+var Layer = require('../../inc/classes/layer');
 var Volume = require('../../inc/classes/volume');
+var Application = require('../../inc/classes/application');
 
 describe('Volume', function () {
-    var readWriteVolume = new Volume({
+    var readWriteVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
         host: "/test/readwrite",
         container: "/mnt/readwrite",
         readOnly: false
     });
 
-    var readOnlyVolume = new Volume({
+    var readOnlyVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
         host: "/test/readonly",
+        container: "/mnt/readonly",
+        readOnly: true
+    });
+
+    var variableVolume = new Volume(new Layer(new Application('test', {
+        directories: {
+            test: {
+                "path": "/test/variable",
+                "description": "Testing variable replacements!",
+                "shared": false
+            }
+        }
+    }), 'test', {}), {
+        host: "${test}/hello",
         container: "/mnt/readonly",
         readOnly: true
     });
@@ -53,8 +69,12 @@ describe('Volume', function () {
     });
 
     describe('#host', function () {
-        it('should return the path to the volume on the host', function () {
-            expect(readOnlyVolume.host).to.equal('/test/readonly');
+        it('should return the path to the volume on the host without variables', function () {
+            expect(readOnlyVolume.host.indexOf("/test/readonly") > -1).to.equal(true);
+        });
+
+        it('should return the path to the volume on the host with variables', function () {
+            expect(variableVolume.host.indexOf("/test/variable/hello") > -1).to.equal(true);
         });
     });
 

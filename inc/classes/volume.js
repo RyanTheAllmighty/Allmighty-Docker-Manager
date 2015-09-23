@@ -27,10 +27,13 @@ module.exports = class Volume {
     /**
      * Constructor to create a new Volume.
      *
+     * @param {Layer} layer - the layer tha this volume belongs to
      * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
      */
-    constructor(originalObject) {
+    constructor(layer, originalObject) {
         this[objectSymbol] = {};
+
+        this[objectSymbol]._layer = layer;
 
         // Copy over the original objects properties to this objects private Symbol
         for (let propName in originalObject) {
@@ -52,10 +55,33 @@ module.exports = class Volume {
     /**
      * Gets the path on the host system to mount inside the container.
      *
+     * \${([\w]+)}
+     *
      * @returns {String}
      */
     get host() {
-        return this[objectSymbol].host;
+        let value = this[objectSymbol].host;
+
+        let matches = value.match(/\${([\w]+)}/);
+
+        if (!matches) {
+            return value;
+        }
+
+        for (let i = 0; i < matches.length; i += 2) {
+            value = value.replace(matches[i], brain.settings.directories.storage.slice(0, -1) + this.layer.application.directories[matches[i + 1]].path);
+        }
+
+        return value;
+    }
+
+    /**
+     * Gets the layer that this volume belongs to.
+     *
+     * @returns {Layer}
+     */
+    get layer() {
+        return this[objectSymbol]._layer;
     }
 
     /**

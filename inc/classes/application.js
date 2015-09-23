@@ -79,6 +79,15 @@ module.exports = class Application {
     }
 
     /**
+     * Gets the directories of this application.
+     *
+     * @returns {Object}
+     */
+    get directories() {
+        return this[objectSymbol].directories;
+    }
+
+    /**
      * Gets the layers for this application. A layer is a single component (MySQL, nginx, PHP, NodeJS etc) of this whole application.
      *
      * @returns {Layer[]}
@@ -398,7 +407,7 @@ module.exports = class Application {
      * @param {Object} options - options passed in from the user
      */
     setupDirectories(options) {
-        _.forEach(this.directories, function (directory) {
+        _.forEach(this.directories, function (directory, key) {
             let thisPath = path.join(brain.settings.directories.storage, directory.path);
 
             if (!fs.existsSync(thisPath)) {

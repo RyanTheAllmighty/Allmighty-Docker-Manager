@@ -74,19 +74,19 @@ module.exports = class Layer {
         this[objectSymbol].volumes = [];
         if (originalObject.volumes) {
             _.forEach(originalObject.volumes, function (volume) {
-                this[objectSymbol].volumes.push(new Volume(volume));
+                this[objectSymbol].volumes.push(new Volume(this, volume));
             }, this);
         }
 
         // Turn the volumes from in the object into VolumeFrom objects
         this[objectSymbol].volumesFrom = [];
         if (originalObject.volumesFrom) {
-            _.forEach(originalObject.volumesFrom, function (volume) {
-                this[objectSymbol].volumesFrom.push(new VolumeFrom(volume));
+            _.forEach(originalObject.volumesFrom, function (volumeFrom) {
+                this[objectSymbol].volumesFrom.push(new VolumeFrom(volumeFrom));
             }, this);
         }
 
-        // Tuen the envionrment variables in the object into Environment objects
+        // Tuen the environment variables in the object into Environment objects
         this[objectSymbol].environment = [];
         if (originalObject.environment) {
             _.forEach(originalObject.environment, function (env) {
