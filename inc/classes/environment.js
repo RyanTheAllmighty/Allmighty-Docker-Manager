@@ -55,6 +55,6 @@ module.exports = class Environment {
      * @returns {String}
      */
     get value() {
-        return this[objectSymbol].value;
+        return this[objectSymbol].value instanceof Array ? this[objectSymbol].value.join(',') : this[objectSymbol].value;
     }
 };

@@ -28,6 +28,14 @@ describe('Environment', function () {
         value: 'test'
     });
 
+    var environmentWithArray = new Environment({
+        name: 'TEST',
+        value: [
+            'test1',
+            'test2'
+        ]
+    });
+
     it('should create an environment', function () {
         expect(environment instanceof Environment).to.equal(true);
     });
@@ -39,8 +47,12 @@ describe('Environment', function () {
     });
 
     describe('#value', function () {
-        it('should return the value of an environment', function () {
+        it('should return the value of an environment from a string', function () {
             expect(environment.value).to.equal('test');
+        });
+
+        it('should return the value of an environment from an array', function () {
+            expect(environmentWithArray.value).to.equal('test1,test2');
         });
     });
 });
