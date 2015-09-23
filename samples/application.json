@@ -15,6 +15,7 @@
     },
     "layers": {
         "data": {
+            "image": "ubuntu:14.04",
             "dataOnly": true,
             "volumes": [
                 {
