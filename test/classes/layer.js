@@ -39,6 +39,7 @@ describe('Layer', function () {
         dataOnly: false,
         restart: true,
         memLimit: "1GB",
+        cpuShares: 512,
         command: "test some arguments --help",
         ports: [
             {
@@ -119,6 +120,18 @@ describe('Layer', function () {
 
         it('should return the memory limit of a layer', function () {
             expect(layer.memLimit).to.equal('1GB');
+        });
+    });
+
+    describe('#cpuShares', function () {
+        it('should return the number of CPU shares for a layer as 1024 if not defined', function () {
+            var testComponent = new Layer(new Application('test', {}), 'test', {});
+
+            expect(testComponent.cpuShares).to.equal(1024);
+        });
+
+        it('should return the number of CPU shares for a layer', function () {
+            expect(layer.cpuShares).to.equal(512);
         });
     });
 

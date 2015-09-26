@@ -34,6 +34,7 @@
             "image": "ubuntu:14.04",
             "dataOnly": false,
             "restart": true,
+            "cpuShares": 512,
             "command": "sleep 365d",
             "ports": [
                 {
@@ -51,6 +52,7 @@
             "image": "component",
             "dataOnly": false,
             "restart": true,
+            "cpuShares": 512,
             "ports": [
                 {
                     "host": 7777,

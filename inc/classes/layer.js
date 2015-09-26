@@ -140,6 +140,15 @@ module.exports = class Layer {
     }
 
     /**
+     * Gets the number of CPU shares for this layer. Defaults to 1024.
+     *
+     * @returns {Number}
+     */
+    get cpuShares() {
+        return this[objectSymbol].cpuShares || 1024;
+    }
+
+    /**
      * Returns if this layer is a data only layer which means it only holds data and shouldn't be started up.
      *
      * @returns {Boolean}
@@ -223,6 +232,10 @@ module.exports = class Layer {
 
         if (this.memLimit) {
             dockerOptions.HostConfig.Memory = bytes(this.memLimit);
+        }
+
+        if (this.cpuShares) {
+            dockerOptions.HostConfig.CpuShares = this.cpuShares;
         }
 
         return dockerOptions;
