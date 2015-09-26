@@ -218,7 +218,7 @@ module.exports = class Layer {
 
             this.volumes.forEach(function (volume) {
                 dockerOptions.Volumes[volume.container] = {};
-                dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ''));
+                dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ':rw'));
             });
         }
 
