@@ -10,9 +10,9 @@
     "author": "Ryan Dowling <ryan@ryandowling.me>",
     "license": "GPL-3.0",
     "bugs": {
-        "url": "https://gitlab.com/RyanTheAllmighty/Docker-Setup/issues"
+        "url": "https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager/issues"
     },
-    "homepage": "https://gitlab.com/RyanTheAllmighty/Docker-Setup#README",
+    "homepage": "https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager",
     "scripts": {
         "test": "node_modules/.bin/mocha"
     },
@@ -35,6 +35,7 @@
         "grunt-contrib-jshint": "^0.11.3",
         "grunt-mocha-test": "^0.12.7",
         "jshint": "^2.8.0",
-        "mocha": "^2.3.0"
+        "mocha": "^2.3.0",
+        "sinon": "^1.17.1"
     }
 }
