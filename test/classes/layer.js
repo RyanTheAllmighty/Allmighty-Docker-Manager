@@ -23,6 +23,7 @@ var expect = require('chai').expect;
 
 var Link = require('../../inc/classes/link');
 var Port = require('../../inc/classes/port');
+var Label = require('../../inc/classes/label');
 var Layer = require('../../inc/classes/layer');
 var Volume = require('../../inc/classes/volume');
 var VolumeFrom = require('../../inc/classes/volumefrom');
@@ -46,6 +47,9 @@ describe('Layer', function () {
                 host: 80,
                 container: 80
             }
+        ],
+        labels: [
+            {}
         ],
         links: [
             {}
@@ -153,6 +157,13 @@ describe('Layer', function () {
         it('should return the links of a layer', function () {
             expect(layer.links).to.be.an('array');
             expect(layer.links[0] instanceof Link).to.equal(true);
+        });
+    });
+
+    describe('#labels', function () {
+        it('should return the labels of a layer', function () {
+            expect(layer.labels).to.be.an('array');
+            expect(layer.labels[0] instanceof Label).to.equal(true);
         });
     });
 

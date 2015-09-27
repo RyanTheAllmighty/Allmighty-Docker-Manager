@@ -22,6 +22,7 @@ let brain = require('../brain');
 
 let Link = require('./link');
 let Port = require('./port');
+let Label = require('./label');
 let Volume = require('./volume');
 let VolumeFrom = require('./volumeFrom');
 let Environment = require('./environment');
@@ -59,6 +60,14 @@ module.exports = class Layer {
         if (originalObject.ports) {
             _.forEach(originalObject.ports, function (port) {
                 this[objectSymbol].ports.push(new Port(port));
+            }, this);
+        }
+
+        // Turn the labels in the object into Label objects
+        this[objectSymbol].labels = [];
+        if (originalObject.labels) {
+            _.forEach(originalObject.labels, function (label) {
+                this[objectSymbol].labels.push(new Label(label));
             }, this);
         }
 
@@ -183,6 +192,14 @@ module.exports = class Layer {
             dockerOptions.HostConfig.RestartPolicy = {"Name": "always"};
         }
 
+        if (this.labels && this.labels.length > 0) {
+            dockerOptions.Labels = {};
+
+            this.labels.forEach(function (label) {
+                dockerOptions.Labels[label.name] = label.value;
+            });
+        }
+
         if (this.links && this.links.length > 0) {
             dockerOptions.HostConfig.Links = [];
 
@@ -262,6 +279,15 @@ module.exports = class Layer {
         let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == imageToGet.indexOf(':')) : imageToGet.indexOf(':') > -1;
 
         return hasVersion ? imageToGet : imageToGet + ':latest';
+    }
+
+    /**
+     * Gets the labels for this layer.
+     *
+     * @returns {Label[]}
+     */
+    get labels() {
+        return this[objectSymbol].labels || [];
     }
 
     /**
