@@ -175,13 +175,16 @@ module.exports = class Application {
         let initialLayout = [];
 
         _.forEach(this.layers, function (layer) {
-            let obj = {
-                layer,
-                name: layer.name,
-                after: layer.dependentLayers
-            };
+            // Run only containers don't need to be bought up so we skip them
+            if (!layer.runOnly) {
+                let obj = {
+                    layer,
+                    name: layer.name,
+                    after: layer.dependentLayers
+                };
 
-            initialLayout.push(obj);
+                initialLayout.push(obj);
+            }
         });
 
         let finalLayout = _.remove(initialLayout, function (l) {
