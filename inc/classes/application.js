@@ -347,9 +347,6 @@ module.exports = class Application {
         let dockerArguments = ['php', 'artisan', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
 
         let dockerOptions = {
-            VolumesFrom: [
-                sprintf('%s_data', this.applicationName)
-            ],
             AttachStdin: true,
             AttachStdout: true,
             AttachStderr: true,
@@ -360,7 +357,12 @@ module.exports = class Application {
             Dns: brain.settings.dns,
             Image: imageName,
             WorkingDir: '/mnt/site',
-            name: sprintf('%s_artisan', this.applicationName)
+            name: sprintf('%s_artisan', this.applicationName),
+            HostConfig: {
+                VolumesFrom: [
+                    sprintf('%s_data', this.applicationName)
+                ]
+            }
         };
 
         brain.run(dockerOptions, callback);
@@ -382,9 +384,6 @@ module.exports = class Application {
         let dockerArguments = ['composer', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
 
         let dockerOptions = {
-            VolumesFrom: [
-                sprintf('%s_data', this.applicationName)
-            ],
             AttachStdin: true,
             AttachStdout: true,
             AttachStderr: true,
@@ -395,7 +394,12 @@ module.exports = class Application {
             Dns: brain.settings.dns,
             Image: imageName,
             WorkingDir: '/mnt/site',
-            name: sprintf('%s_composer', this.applicationName)
+            name: sprintf('%s_composer', this.applicationName),
+            HostConfig: {
+                VolumesFrom: [
+                    sprintf('%s_data', this.applicationName)
+                ]
+            }
         };
 
         brain.run(dockerOptions, callback);
