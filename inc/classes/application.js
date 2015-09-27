@@ -106,21 +106,29 @@ module.exports = class Application {
     }
 
     /**
-     * Gets if this application can run Artisan.
+     * Checks if all the layers passed in as names are up/have been created (for dataOnly layers) or not.
      *
-     * @returns {Boolean}
+     * @param {String[]} layers - an array of names of layers
+     * @param {Application~areLayersUpCallback} callback - the callback for when we're done
      */
-    get runsArtisan() {
-        return this[objectSymbol].runsArtisan || false;
-    }
+    areLayersUp(layers, callback) {
+        async.each(this.layers, function (layer, next) {
+            if (!layers.some(lName => lName == layer.name)) {
+                // This layer is irrelevant to us
+                return next();
+            }
 
-    /**
-     * Gets if this application can run Composer.
-     *
-     * @returns {Boolean}
-     */
-    get runsComposer() {
-        return this[objectSymbol].runsComposer || false;
+            layer.container.inspect(function (err, data) {
+                // Data only containers don't need to be running, but they must be created, so lets check that, else we see if inspect says it's running
+                if (!err && (layer.dataOnly || data.State.Running === true)) {
+                    return next();
+                }
+
+                next(new Error('The layer ' + layer.containerName + ' is not online!'));
+            });
+        }, function (err) {
+            callback(!err);
+        });
     }
 
     /**
@@ -170,22 +178,8 @@ module.exports = class Application {
             let obj = {
                 layer,
                 name: layer.name,
-                after: []
+                after: layer.dependentLayers
             };
-
-            if (layer.links.length > 0) {
-                // There is one or more links, so we need to figure out what we need to startup before this layer
-                _.forEach(layer.links, function (link) {
-                    obj.after.push(link.container);
-                });
-            }
-
-            if (layer.volumesFrom.length > 0) {
-                // There is one or more volumesFrom, so we need to figure out what we need to startup before this layer
-                _.forEach(layer.volumesFrom, function (volumeFrom) {
-                    obj.after.push(volumeFrom.container);
-                });
-            }
 
             initialLayout.push(obj);
         });
@@ -332,80 +326,6 @@ module.exports = class Application {
     }
 
     /**
-     * This runs Artisan on the container (if we can) and attaches to the stdout, stdin and stderr to allow input and output from the container process.
-     *
-     * @param {Object} options - options passed in from the user
-     * @param {Application~runArtisanCallback} callback - the callback for when we're done
-     */
-    runArtisan(options, callback) {
-        if (!this.runsArtisan) {
-            return callback(new Error('Artisan is not enabled for this application!'));
-        }
-
-        let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
-
-        let dockerArguments = ['php', 'artisan', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
-
-        let dockerOptions = {
-            AttachStdin: true,
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: true,
-            OpenStdin: true,
-            StdinOnce: false,
-            Cmd: dockerArguments,
-            Dns: brain.settings.dns,
-            Image: imageName,
-            WorkingDir: '/mnt/site',
-            name: sprintf('%s_artisan', this.applicationName),
-            HostConfig: {
-                VolumesFrom: [
-                    sprintf('%s_data', this.applicationName)
-                ]
-            }
-        };
-
-        brain.run(dockerOptions, callback);
-    }
-
-    /**
-     * This runs Composer on the container (if we can) and attaches to the stdout, stdin and stderr to allow input and output from the container process.
-     *
-     * @param {Object} options - options passed in from the user
-     * @param {Application~runComposerCallback} callback - the callback for when we're done
-     */
-    runComposer(options, callback) {
-        if (!this.runsComposer) {
-            return callback(new Error('Composer is not enabled for this application!'));
-        }
-
-        let imageName = sprintf('%s/%s', brain.settings.repositoryURL, 'php');
-
-        let dockerArguments = ['composer', '--ansi'].concat(options._raw.slice(options._raw.indexOf(this.applicationName) + 1));
-
-        let dockerOptions = {
-            AttachStdin: true,
-            AttachStdout: true,
-            AttachStderr: true,
-            Tty: true,
-            OpenStdin: true,
-            StdinOnce: false,
-            Cmd: dockerArguments,
-            Dns: brain.settings.dns,
-            Image: imageName,
-            WorkingDir: '/mnt/site',
-            name: sprintf('%s_composer', this.applicationName),
-            HostConfig: {
-                VolumesFrom: [
-                    sprintf('%s_data', this.applicationName)
-                ]
-            }
-        };
-
-        brain.run(dockerOptions, callback);
-    }
-
-    /**
      * Sets up this applications directories in the hosts filesystem.
      *
      * @param {Object} options - options passed in from the user
@@ -450,6 +370,13 @@ module.exports = class Application {
 };
 
 /**
+ * This is the callback used when checking to see if given layers are up/created or not.
+ *
+ * @callback Application~areLayersUpCallback
+ * @param {Boolean} areUp - if all the layers specified are up/created
+ */
+
+/**
  * This is the callback used when bringing an application down.
  *
  * @callback Application~downCallback
@@ -483,20 +410,6 @@ module.exports = class Application {
  *
  * @callback Application~restartCallback
  * @param {Error|undefined} err - the error (if any) that occurred while trying to restart this application
- */
-
-/**
- * This is the callback used when running Artisan on an application.
- *
- * @callback Application~runArtisanCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to run Artisan
- */
-
-/**
- * This is the callback used when running Composer on an application.
- *
- * @callback Application~runComposerCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to run Composer
  */
 
 /**

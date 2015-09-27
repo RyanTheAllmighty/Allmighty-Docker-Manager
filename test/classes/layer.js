@@ -38,10 +38,12 @@ describe('Layer', function () {
     var layer = new Layer(application, 'test', {
         image: "test/test",
         dataOnly: false,
+        runOnly: false,
         restart: true,
         memLimit: "1GB",
         cpuShares: 512,
         command: "test some arguments --help",
+        workingDirectory: "/some/dir",
         ports: [
             {
                 host: 80,
@@ -109,6 +111,12 @@ describe('Layer', function () {
         });
     });
 
+    describe('#runOnly', function () {
+        it('should return if the layer is a run only layer that should only be run as a single application', function () {
+            expect(layer.runOnly).to.equal(false);
+        });
+    });
+
     describe('#shouldRestart)', function () {
         it('should return if the layer should restart or not', function () {
             expect(layer.shouldRestart).to.equal(true);
@@ -136,6 +144,18 @@ describe('Layer', function () {
 
         it('should return the number of CPU shares for a layer', function () {
             expect(layer.cpuShares).to.equal(512);
+        });
+    });
+
+    describe('#workingDirectory', function () {
+        it('should return the working directory of a layer as / if not defined', function () {
+            var testComponent = new Layer(new Application('test', {}), 'test', {});
+
+            expect(testComponent.workingDirectory).to.equal('/');
+        });
+
+        it('should return the working directory for a layer', function () {
+            expect(layer.workingDirectory).to.equal('/some/dir');
         });
     });
 

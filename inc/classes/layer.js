@@ -167,6 +167,31 @@ module.exports = class Layer {
     }
 
     /**
+     * Gets an array of the layers that this layer depends on being online/created before this layer can be started.
+     *
+     * @returns {String[]}
+     */
+    get dependentLayers() {
+        let layers = [];
+
+        if (this.links.length > 0) {
+            // There is one or more links, so we need to figure out what we need to startup before this layer
+            _.forEach(this.links, function (link) {
+                layers.push(link.container);
+            });
+        }
+
+        if (this.volumesFrom.length > 0) {
+            // There is one or more volumesFrom, so we need to figure out what we need to startup before this layer
+            _.forEach(this.volumesFrom, function (volumeFrom) {
+                layers.push(volumeFrom.container);
+            });
+        }
+
+        return layers;
+    }
+
+    /**
      * Gets the options that are passed to Docker to start up this layer.
      *
      * @returns {Object}
@@ -327,6 +352,15 @@ module.exports = class Layer {
     }
 
     /**
+     * Returns if this layer is a run only layer which means it's intended to be run by itself only.
+     *
+     * @returns {Boolean}
+     */
+    get runOnly() {
+        return this[objectSymbol].runOnly || false;
+    }
+
+    /**
      * Gets if this layer should restart when it goes offline.
      *
      * @returns {Boolean}
@@ -351,6 +385,34 @@ module.exports = class Layer {
      */
     get volumesFrom() {
         return this[objectSymbol].volumesFrom || [];
+    }
+
+    /**
+     * Gets the working directory for this layer or / if not set.
+     *
+     * @returns {String}
+     */
+    get workingDirectory() {
+        return this[objectSymbol].workingDirectory || '/';
+    }
+
+    /**
+     * See's if this layer can be run or not.
+     *
+     * @param {Layer~canRunCallback} callback - the callback for when we're done
+     */
+    canRun(callback) {
+        if (!this.runOnly) {
+            return callback(new Error('Cannot run this layer because it\'s not set as runOnly!'), false);
+        }
+
+        this.application.areLayersUp(this.dependentLayers, function (areUp) {
+            if (!areUp) {
+                return callback(new Error('All The necessary layers to run this layer aren\'t up! Please bring them up and try again!'), false);
+            }
+
+            callback(null, true);
+        });
     }
 
     /**
@@ -461,6 +523,27 @@ module.exports = class Layer {
     }
 
     /**
+     * This runs a layer for the application that's set as runOnly. The stdin is attached and allows interaction with the container.
+     *
+     * @param {Object} options - options passed in from the user
+     * @param {Layer~runCallback} callback - the callback for when we're done
+     */
+    run(options, callback) {
+        let dOpts = this.dockerOptions;
+
+        // Change our specific options for Docker
+        dOpts.Cmd = this.command.concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
+        dOpts.AttachStdin = true;
+        dOpts.AttachStdout = true;
+        dOpts.AttachStderr = true;
+        dOpts.Tty = true;
+        dOpts.OpenStdin = true;
+        dOpts.StdinOnce = false;
+
+        brain.run(dOpts, callback);
+    }
+
+    /**
      * This brings this layer up if it needs to be brought up.
      *
      * @param {Object} options - options passed in from the user
@@ -530,6 +613,14 @@ module.exports = class Layer {
 };
 
 /**
+ * This is the callback used when checking to see if a layer can be run.
+ *
+ * @callback Layer~canRunCallback
+ * @param {Error} err - the error (if any) of why this layer cannot be run
+ * @param {Boolean} canRun - if this layer can be run or not
+ */
+
+/**
  * This is the callback used when bringing a layer down.
  *
  * @callback Layer~downCallback
@@ -555,6 +646,13 @@ module.exports = class Layer {
  *
  * @callback Layer~restartCallback
  * @param {Error|undefined} err - the error (if any) that occurred while trying to restart this layer
+ */
+
+/**
+ * This is the callback used when running a runOnly layer.
+ *
+ * @callback Layer~runCallback
+ * @param {Error|undefined} err - the error (if any) that occurred while trying to run the layer
  */
 
 /**

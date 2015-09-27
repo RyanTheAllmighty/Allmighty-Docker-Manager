@@ -30,6 +30,17 @@
                 }
             ]
         },
+        "composer": {
+            "image": "composer/composer",
+            "runOnly": true,
+            "command": "composer --ansi",
+            "workingDirectory": "/mounted/test",
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        },
         "test": {
             "image": "ubuntu:14.04",
             "dataOnly": false,

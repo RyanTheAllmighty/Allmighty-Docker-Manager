@@ -17,9 +17,9 @@
  */
 
 /**
- * The composer command will run the composer command on a container.
+ * The run command will run a runOnly layer for an application.
  *
- * Any arguments passed after the applications name to run on will be passed to the container to run on composer.
+ * Any arguments passed after the applications name to run on will be passed to the container to run.
  */
 "use strict";
 
@@ -30,22 +30,16 @@ var async = require('async');
 var merge = require('merge');
 
 /**
- * The Application we want to run Composer in.
+ * The Layer we want to run.
  *
- * @type Application|null
+ * @type Layer|null
  */
-var theApplication = null;
+var theLayer = null;
 
 /**
  * The options for this command along with their defaults.
- *
- * quiet: If there should be no output from the command (default: false)
- *
- * @type {{quiet: boolean}}
  */
-var options = {
-    quiet: false
-};
+var options = {};
 
 /**
  * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
@@ -56,21 +50,34 @@ var options = {
 module.exports.init = function (passedArgs, callback) {
     options = merge(options, passedArgs);
 
-    // Now we get the application name we're targeting
+    if (!passedArgs._ || passedArgs._.length < 2) {
+        return callback(new Error('2 arguments must be passed in!'));
+    }
+
+    if (passedArgs.l <= 0) {
+        return callback(new Error('The n option must be a number more than 0!'));
+    }
+
     let applicationName = passedArgs._[0];
+    let layerName = passedArgs._[1];
 
-    // And check it's valid
-    if (!brain.isApplicationSync(applicationName)) {
-        return callback(new Error('No application exists called "' + applicationName + '"!'));
-    }
+    brain.isApplication(applicationName, function (isApp) {
+        if (!isApp) {
+            return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
+        }
 
-    theApplication = brain.getApplication(applicationName);
+        let application = brain.getApplication(applicationName);
 
-    if (!theApplication.runsComposer) {
-        return callback(new Error('Composer cannot be run on this application!'));
-    }
+        application.isLayer(layerName, function (isLayer) {
+            if (!isLayer) {
+                return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+            }
 
-    callback();
+            theLayer = application.getLayer(layerName);
+
+            theLayer.canRun(callback);
+        });
+    });
 };
 
 /**
@@ -80,5 +87,5 @@ module.exports.init = function (passedArgs, callback) {
  * @param {App~commandRunCallback} callback - The callback for when we're done
  */
 module.exports.run = function (callback) {
-    theApplication.runComposer(options, callback);
+    theLayer.run(options, callback);
 };
