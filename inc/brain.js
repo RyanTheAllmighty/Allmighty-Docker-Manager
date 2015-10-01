@@ -74,11 +74,29 @@ module.exports.getApplicationsAsArray = function () {
 };
 
 module.exports.getApplication = function (name) {
-    return _applications[name];
+    let application = _applications[name];
+
+    if (!application) {
+        application = _.find(_applications, function (app) {
+            return app.applicationName.indexOf(name) === 0;
+        });
+    }
+
+    return application;
 };
 
 module.exports.isApplicationSync = function (name) {
-    return name in _applications;
+    let exists = name in _applications;
+
+    if (!exists) {
+        let apps = _.filter(_applications, function (app) {
+            return app.applicationName.indexOf(name) === 0;
+        });
+
+        exists = apps.length == 1;
+    }
+
+    return exists;
 };
 
 module.exports.isApplication = function (name, callback) {
@@ -96,11 +114,29 @@ module.exports.getComponentsAsArray = function () {
 };
 
 module.exports.getComponent = function (name) {
-    return _components[name];
+    let component = _components[name];
+
+    if (!component) {
+        component = _.find(_components, function (comp) {
+            return comp.name.indexOf(name) === 0;
+        });
+    }
+
+    return component;
 };
 
 module.exports.isComponent = function (name) {
-    return name in _components;
+    let exists = name in _components;
+
+    if (!exists) {
+        let comps = _.filter(_components, function (comp) {
+            return comp.name.indexOf(name) === 0;
+        });
+
+        exists = comps.length == 1;
+    }
+
+    return exists;
 };
 
 module.exports.loadComponents = function () {
