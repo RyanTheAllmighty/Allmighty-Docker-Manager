@@ -475,7 +475,13 @@ module.exports = class Layer {
      * @param {Layer~pullCallback} callback - the callback for when we're done
      */
     pull(options, callback) {
-        let fromCustomRepo = this.image.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
+        let address = brain.settings.repositoryAuth.serveraddress;
+
+        if (address.indexOf("://") != 0) {
+            address = address.substr(address.indexOf('://') + 3, address.length);
+        }
+
+        let fromCustomRepo = this.image.indexOf(address) > -1;
 
         if (fromCustomRepo && !brain.settings.repositoryAuth) {
             return callback(new Error('No repository auth is set in the settings.json file!'));
@@ -483,7 +489,7 @@ module.exports = class Layer {
 
         brain.logger.info('Started pull for ' + this.name + ' (' + this.image + ')');
 
-        let pullOpts = fromCustomRepo ? brain.settings.repositoryAuth : {};
+        let pullOpts = fromCustomRepo ? {authconfig: brain.settings.repositoryAuth} : {};
 
         let self = this;
 
