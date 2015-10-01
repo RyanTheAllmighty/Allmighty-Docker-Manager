@@ -62,7 +62,7 @@ module.exports.init = function (passedArgs, callback) {
  */
 module.exports.run = function (callback) {
     if (!options.quiet) {
-        console.log('Setting up the directories needed!');
+        brain.logger.info('Setting up the directories needed!');
     }
 
 

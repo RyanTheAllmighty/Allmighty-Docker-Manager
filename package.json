@@ -19,6 +19,7 @@
     "dependencies": {
         "async": "^1.4.2",
         "bytes": "^2.1.0",
+        "colors": "^1.1.2",
         "dockerode": "^2.2.2",
         "fstream": "^1.0.7",
         "lodash": "^3.10.1",

@@ -93,7 +93,7 @@ module.exports.run = function (callback) {
         name: 'cadvisor'
     };
 
-    console.log('Pulling down latest cAdvisor image!');
+    brain.logger.info('Pulling down latest cAdvisor image!');
 
     brain.docker.pull('google/cadvisor:latest', function (err, stream) {
         if (err) {
@@ -103,9 +103,9 @@ module.exports.run = function (callback) {
         brain.docker.modem.followProgress(stream, onFinished, onProgress);
 
         function onFinished(err, output) {
-            console.log('Running Monitoring now. Access the web UI via port ' + options.port + '!');
+            brain.logger.info('Running monitoring now. Access the web UI via port ' + options.port + '!');
             brain.run(dockerOptions, function (err) {
-                console.log('The monitoring has stopped and is no longer available!');
+                brain.logger.info('The monitoring has stopped and is no longer available!');
                 callback(err);
             });
         }

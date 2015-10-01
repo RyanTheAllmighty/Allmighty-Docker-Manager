@@ -76,7 +76,7 @@ module.exports = class Component {
      * @param {Component~buildCallback} callback - the callback for when we're done
      */
     build(options, callback) {
-        console.log('Started build for ' + this.name);
+        brain.logger.info('Started build for ' + this.name);
         let buildOpts = {
             t: this.tagName
         };
@@ -111,12 +111,12 @@ module.exports = class Component {
 
                 brain.docker.buildImage(path, buildOpts, function (err, stream) {
                     if (err || stream === null) {
-                        console.log('Error building ' + self.name);
+                        brain.logger.error('Error building ' + self.name);
                         return callback(err);
                     }
 
                     brain.docker.modem.followProgress(stream, function (err, output) {
-                        console.log('Finished build for ' + self.name);
+                        brain.logger.info('Finished build for ' + self.name);
                         callback(err, output);
                     }, function (progress) {
                         if (progress) {
@@ -147,16 +147,16 @@ module.exports = class Component {
             return callback(new Error('No repository auth is set in the settings.json file!'));
         }
 
-        console.log('Started pull for ' + this.name);
+        brain.logger.info('Started pull for ' + this.name);
 
         let self = this;
         brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
             if (err || stream === null) {
-                console.log('Error pulling ' + self.name);
+                brain.logger.error('Error pulling ' + self.name);
                 return callback(err);
             }
             brain.docker.modem.followProgress(stream, function (err, output) {
-                console.log('Finished pull for ' + self.name);
+                brain.logger.info('Finished pull for ' + self.name);
                 callback(err, output);
             }, function (progress) {
                 if (progress) {
@@ -185,17 +185,17 @@ module.exports = class Component {
             return callback(new Error('No repository auth is set in the settings.json file!'));
         }
 
-        console.log('Started push for ' + this.name);
+        brain.logger.info('Started push for ' + this.name);
 
         let self = this;
         brain.docker.getImage(this.tagName).push({authconfig: brain.settings.repositoryAuth}, function (err, stream) {
             if (err || stream === null) {
-                console.log('Error pushing ' + self.name);
+                brain.logger.error('Error pushing ' + self.name);
                 return callback(err);
             }
 
             brain.docker.modem.followProgress(stream, function (err, output) {
-                console.log('Finished push for ' + self.name);
+                brain.logger.info('Finished push for ' + self.name);
                 callback(err, output);
             }, function (progress) {
                 if (progress) {

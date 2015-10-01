@@ -434,7 +434,7 @@ module.exports = class Layer {
                     return callback(err);
                 }
 
-                console.log(self.containerName + ' is now down!');
+                brain.logger.info(self.containerName + ' is now down!');
 
                 if (options.rm) {
                     self.container.remove(callback);
@@ -476,7 +476,7 @@ module.exports = class Layer {
             return callback(new Error('No repository auth is set in the settings.json file!'));
         }
 
-        console.log('Started pull for ' + this.name + ' (' + this.image + ')');
+        brain.logger.info('Started pull for ' + this.name + ' (' + this.image + ')');
 
         let pullOpts = fromCustomRepo ? brain.settings.repositoryAuth : {};
 
@@ -484,12 +484,12 @@ module.exports = class Layer {
 
         brain.docker.pull(this.image, pullOpts, function (err, stream) {
             if (err || stream === null) {
-                console.log('Error pulling ' + self.name + ' (' + self.image + ')');
+                brain.logger.error('Error pulling ' + self.name + ' (' + self.image + ')');
                 return callback(err);
             }
 
             brain.docker.modem.followProgress(stream, function (err, output) {
-                console.log('Finished pull for ' + self.name + ' (' + self.image + ')');
+                brain.logger.info('Finished pull for ' + self.name + ' (' + self.image + ')');
                 callback(err, output);
             });
         });
@@ -509,14 +509,14 @@ module.exports = class Layer {
                 self.up(callback);
             }
 
-            console.log(self.containerName + ' is being restarted!');
+            brain.logger.info(self.containerName + ' is being restarted!');
 
             self.container.restart(function (err) {
                 if (err) {
                     return callback(err);
                 }
 
-                console.log(self.containerName + ' has been restarted!');
+                brain.logger.info(self.containerName + ' has been restarted!');
                 callback();
             });
         });
@@ -552,7 +552,7 @@ module.exports = class Layer {
     up(options, callback) {
         let self = this;
 
-        console.log(self.containerName + ' is starting up!');
+        brain.logger.info(self.containerName + ' is starting up!');
 
         this.isUp(function (isUp) {
             if (isUp) {
@@ -569,7 +569,7 @@ module.exports = class Layer {
 
                         // This is a data only container, so we don't need to run it
                         if (self.dataOnly) {
-                            console.log(self.containerName + ' data container has been created!');
+                            brain.logger.info(self.containerName + ' data container has been created!');
                             return callback();
                         }
 
@@ -578,7 +578,7 @@ module.exports = class Layer {
                                 return callback(err);
                             }
 
-                            console.log(self.containerName + ' is now up!');
+                            brain.logger.info(self.containerName + ' is now up!');
 
                             callback();
                         });

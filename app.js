@@ -29,7 +29,7 @@ var passedArgs = require('minimist')(process.argv.slice(2));
 passedArgs._raw = process.argv.slice(2);
 
 if (passedArgs._.length == 0) {
-    console.error('No arguments were passed in!');
+    brain.logger.error('No arguments were passed in!');
     process.exit(1);
 }
 
@@ -43,7 +43,7 @@ if (passedArgs._.length == 0) {
 
 // Check the action is only letters
 if (!/^[a-zA-z]+$/.test(action)) {
-    console.error('Invalid first argument passed in!');
+    brain.logger.error('Invalid first argument passed in!');
     process.exit(1);
 }
 
@@ -52,7 +52,7 @@ var commandFile = './inc/commands/' + action + '.js';
 
 // Check the js file exists in the command directory
 if (!fs.existsSync(commandFile)) {
-    console.error('No command found for ' + action + '!');
+    brain.logger.error('No command found for ' + action + '!');
     process.exit(1);
 }
 
@@ -62,20 +62,20 @@ var command = require(commandFile);
 // First we need to initialize it with the arguments passed in to do some sanity checks and processing
 command.init(passedArgs, function (err, res) {
     if (err) {
-        console.error(err);
+        brain.logger.error(err);
         return process.exit(1);
     }
 
     // Then we run it with a callback with the result
     command.run(function (err, res) {
         if (err) {
-            console.error(err);
+            brain.logger.error(err);
 
             return process.exit(1);
         }
 
         if (res) {
-            console.log(res);
+            brain.ogger.info(res);
         }
 
         process.exit(0);

@@ -339,7 +339,7 @@ module.exports = class Application {
 
             if (!fs.existsSync(thisPath)) {
                 if (!options.quiet) {
-                    console.log('Creating directory ' + thisPath);
+                    brain.logger.info('Creating directory ' + thisPath);
                 }
 
                 mkdirp.sync(thisPath);

@@ -16,5 +16,8 @@
         "applications": "applications/",
         "components": "components/",
         "storage": "/var/lib/adm/"
-    }
+    },
+     "logging": {
+         "level": "info"
+     }
 }

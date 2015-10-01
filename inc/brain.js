@@ -35,6 +35,9 @@ var VolumeFrom = require('./classes/volumeFrom');
 var Application = require('./classes/application');
 var Environment = require('./classes/environment');
 
+// Require our logger
+var logger = require('./logger');
+
 // Now require our settings json file
 var settings = require('../settings.json');
 
@@ -46,6 +49,8 @@ var _components = {};
 var _applications = {};
 
 module.exports.docker = docker;
+
+module.exports.logger = logger;
 
 module.exports.settings = settings;
 
@@ -173,54 +178,6 @@ module.exports.getRunningContainers = function (callback) {
 module.exports.haveImage = function (name, callback) {
     this.docker.getImage(name).get(function (err, data) {
         callback(null, !err);
-    });
-};
-
-module.exports.spawnDockerComposeProcess = function (options, dockerArgs, callback) {
-    var process = spawn(settings.dockerComposeLocation, dockerArgs);
-
-    process.stdout.on('data', function (data) {
-        console.log(data.toString());
-    });
-
-    process.stderr.on('data', function (data) {
-        console.error(data.toString());
-    });
-
-    process.on('close', function (code) {
-        if (code !== 0) {
-            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'));
-        }
-
-        callback();
-    });
-};
-
-module.exports.spawnDockerProcess = function (options, dockerArgs, callback) {
-    if (!callback) {
-        callback = dockerArgs;
-        dockerArgs = options;
-        options = {};
-    }
-
-    var process = spawn(this.settings.dockerLocation, dockerArgs);
-
-    if (!options || !options.quiet) {
-        process.stdout.on('data', function (data) {
-            console.log(data.toString());
-        });
-
-        process.stderr.on('data', function (data) {
-            console.error(data.toString());
-        });
-    }
-
-    process.on('close', function (code) {
-        if (code !== 0) {
-            return callback(new Error('Docker Compose returned a non 0 exit code! ' + code + ' was returned!'));
-        }
-
-        callback();
     });
 };
 
