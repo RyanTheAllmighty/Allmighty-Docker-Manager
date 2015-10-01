@@ -300,8 +300,14 @@ module.exports = class Layer {
     get image() {
         let imageToGet = this[objectSymbol].image;
 
-        let fromCustomRepo = imageToGet.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
-        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') != imageToGet.lastIndexOf(':')) : imageToGet.indexOf(':') > -1;
+        let address = brain.settings.repositoryAuth.serveraddress;
+
+        if (address.indexOf("://") != 0) {
+            address = address.substr(address.indexOf('://') + 3, address.length);
+        }
+
+        let fromCustomRepo = imageToGet.indexOf(address) > -1;
+        let hasVersion = fromCustomRepo ? (address.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : address.indexOf(':') != imageToGet.lastIndexOf(':')) : imageToGet.indexOf(':') > -1;
 
         return hasVersion ? imageToGet : imageToGet + ':latest';
     }

@@ -66,7 +66,13 @@ module.exports = class Component {
      * @returns {String}
      */
     get tagName() {
-        return sprintf('%s/%s', brain.settings.repositoryURL, this.name);
+        let address = brain.settings.repositoryAuth.serveraddress;
+
+        if (address.indexOf("://") != 0) {
+            address = address.substr(address.indexOf('://') + 3, address.length);
+        }
+
+        return sprintf('%s/%s', address, this.name);
     }
 
     /**

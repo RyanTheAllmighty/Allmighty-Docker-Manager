@@ -6,7 +6,7 @@
         "username": "Username",
         "password": "Password",
         "email": "my@email.com",
-        "serveraddress": "index.docker.io/v1/"
+        "serveraddress": "https://index.docker.io/v1/"
     },
     "dns": [
         "8.8.8.8",
