@@ -285,6 +285,11 @@ module.exports = class Layer {
             dockerOptions.HostConfig.CpuShares = this.cpuShares;
         }
 
+
+        if (this.workingDirectory) {
+            dockerOptions.WorkingDir = this.workingDirectory;
+        }
+
         return dockerOptions;
     }
 
@@ -522,7 +527,7 @@ module.exports = class Layer {
 
         this.isUp(function (isUp) {
             if (!isUp) {
-                self.up(callback);
+                return self.up(callback);
             }
 
             brain.logger.info(self.containerName + ' is being restarted!');
