@@ -301,7 +301,7 @@ module.exports = class Layer {
         let imageToGet = this[objectSymbol].image;
 
         let fromCustomRepo = imageToGet.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
-        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == imageToGet.indexOf(':')) : imageToGet.indexOf(':') > -1;
+        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? imageToGet.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') != imageToGet.lastIndexOf(':')) : imageToGet.indexOf(':') > -1;
 
         return hasVersion ? imageToGet : imageToGet + ':latest';
     }
@@ -470,7 +470,6 @@ module.exports = class Layer {
      */
     pull(options, callback) {
         let fromCustomRepo = this.image.indexOf(brain.settings.repositoryAuth.serveraddress) > -1;
-        let hasVersion = fromCustomRepo ? (brain.settings.repositoryAuth.serveraddress.indexOf(':') == -1 ? this.image.indexOf(':') > -1 : brain.settings.repositoryAuth.serveraddress.indexOf(':') == this.image.indexOf(':')) : this.image.indexOf(':') > -1;
 
         if (fromCustomRepo && !brain.settings.repositoryAuth) {
             return callback(new Error('No repository auth is set in the settings.json file!'));
