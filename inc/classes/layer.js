@@ -27,6 +27,7 @@ let Volume = require('./volume');
 let VolumeFrom = require('./volumeFrom');
 let Environment = require('./environment');
 
+let fs = require('fs');
 let _ = require('lodash');
 let bytes = require('bytes');
 let sprintf = require("sprintf-js").sprintf;
@@ -259,6 +260,10 @@ module.exports = class Layer {
             dockerOptions.HostConfig.Binds = [];
 
             this.volumes.forEach(function (volume) {
+                if (!fs.existsSync(volume.host)) {
+                    brain.logger.warning('The volume ' + volume.host + ' doesn\'t exist! This may cause issues!');
+                }
+
                 dockerOptions.Volumes[volume.container] = {};
                 dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ':rw'));
             });
@@ -302,7 +307,7 @@ module.exports = class Layer {
 
         let address = brain.settings.repositoryAuth.serveraddress;
 
-        if (address.indexOf("://") != 0) {
+        if (address.indexOf("://") !== 0) {
             address = address.substr(address.indexOf('://') + 3, address.length);
         }
 
@@ -477,7 +482,7 @@ module.exports = class Layer {
     pull(options, callback) {
         let address = brain.settings.repositoryAuth.serveraddress;
 
-        if (address.indexOf("://") != 0) {
+        if (address.indexOf("://") !== 0) {
             address = address.substr(address.indexOf('://') + 3, address.length);
         }
 

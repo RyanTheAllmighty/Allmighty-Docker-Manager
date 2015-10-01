@@ -68,7 +68,7 @@ module.exports = class Component {
     get tagName() {
         let address = brain.settings.repositoryAuth.serveraddress;
 
-        if (address.indexOf("://") != 0) {
+        if (address.indexOf("://") !== 0) {
             address = address.substr(address.indexOf('://') + 3, address.length);
         }
 
