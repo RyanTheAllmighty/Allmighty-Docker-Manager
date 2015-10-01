@@ -552,7 +552,11 @@ module.exports = class Layer {
     up(options, callback) {
         let self = this;
 
-        brain.logger.info(self.containerName + ' is starting up!');
+        if (self.dataOnly) {
+            brain.logger.info('Creating data only container for ' + self.containerName + '!');
+        } else {
+            brain.logger.info(self.containerName + ' is starting up!');
+        }
 
         this.isUp(function (isUp) {
             if (isUp) {
