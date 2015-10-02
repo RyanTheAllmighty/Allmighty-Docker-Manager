@@ -210,8 +210,13 @@ module.exports = class Layer {
             Dns: brain.settings.dns,
             Image: this.image,
             Env: null,
+            Labels: {},
             name: this.containerName,
-            HostConfig: {}
+            HostConfig: {
+                LxcConf: [],
+                Devices: [],
+                MemorySwappiness: -1
+            }
         };
 
         if (this.shouldRestart) {
@@ -219,8 +224,6 @@ module.exports = class Layer {
         }
 
         if (this.labels && this.labels.length > 0) {
-            dockerOptions.Labels = {};
-
             this.labels.forEach(function (label) {
                 dockerOptions.Labels[label.name] = label.value;
             });
