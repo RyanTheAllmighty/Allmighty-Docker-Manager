@@ -43,3 +43,11 @@ module.exports.info = function (message) {
 module.exports.warning = function (message) {
     console.log(message.yellow);
 };
+
+module.exports.raw = function (message) {
+    process.stdout.write(message);
+};
+
+module.exports.line = function () {
+    console.log();
+};

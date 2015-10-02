@@ -166,6 +166,18 @@ module.exports = class Application {
     }
 
     /**
+     * Gets the layers for this application as an array.
+     *
+     * @returns {Layer[]}
+     */
+    getLayersAsArray() {
+        let self = this;
+        return Object.keys(this.layers).map(function (key) {
+            return self.layers[key];
+        });
+    }
+
+    /**
      * This sorts out each of this applications layers and puts them in the order needed to start them up in, in order to make sure they start with the correct links and volumes from other containers.
      *
      * @param {Object} options - options passed in from the user
