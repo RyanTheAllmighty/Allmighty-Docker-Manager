@@ -57,4 +57,22 @@ module.exports = class Port {
     get host() {
         return this[objectSymbol].host;
     }
+
+    /**
+     * Gets if this port should open up the TCP ports.
+     *
+     * @returns {Boolean}
+     */
+    get tcp() {
+        return (typeof this[objectSymbol].tcp == 'undefined' ? true : this[objectSymbol].tcp);
+    }
+
+    /**
+     * Gets if this port should open up the UDP ports.
+     *
+     * @returns {Boolean}
+     */
+    get udp() {
+        return (typeof this[objectSymbol].udp == 'undefined' ? false : this[objectSymbol].udp);
+    }
 };

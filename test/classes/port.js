@@ -28,6 +28,13 @@ describe('Port', function () {
         container: 8888
     });
 
+    var portUDP = new Port({
+        host: 80,
+        container: 8888,
+        tcp: false,
+        udp: true
+    });
+
     it('should create a port', function () {
         expect(port instanceof Port).to.equal(true);
     });
@@ -41,6 +48,26 @@ describe('Port', function () {
     describe('#container', function () {
         it('should return the containers port', function () {
             expect(port.container).to.equal(8888);
+        });
+    });
+
+    describe('#tcp', function () {
+        it('should return true when tcp isn\'t specified', function () {
+            expect(port.tcp).to.equal(true);
+        });
+
+        it('should return false when tcp is specified as false', function () {
+            expect(portUDP.tcp).to.equal(false);
+        });
+    });
+
+    describe('#udp', function () {
+        it('should return false when udp isn\'t specified', function () {
+            expect(port.udp).to.equal(false);
+        });
+
+        it('should return true when udp is specified as true', function () {
+            expect(portUDP.udp).to.equal(true);
         });
     });
 });

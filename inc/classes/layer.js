@@ -242,11 +242,15 @@ module.exports = class Layer {
             dockerOptions.HostConfig.PortBindings = {};
 
             this.ports.forEach(function (port) {
-                dockerOptions.ExposedPorts[sprintf('%d/tcp', port.container)] = {};
-                dockerOptions.ExposedPorts[sprintf('%d/udp', port.container)] = {};
+                if (port.tcp) {
+                    dockerOptions.ExposedPorts[sprintf('%d/tcp', port.container)] = {};
+                    dockerOptions.HostConfig.PortBindings[sprintf('%d/tcp', port.container)] = [{HostPort: port.host.toString()}];
+                }
 
-                dockerOptions.HostConfig.PortBindings[sprintf('%d/tcp', port.container)] = [{HostPort: port.host.toString()}];
-                dockerOptions.HostConfig.PortBindings[sprintf('%d/udp', port.container)] = [{HostPort: port.host.toString()}];
+                if (port.udp) {
+                    dockerOptions.ExposedPorts[sprintf('%d/udp', port.container)] = {};
+                    dockerOptions.HostConfig.PortBindings[sprintf('%d/udp', port.container)] = [{HostPort: port.host.toString()}];
+                }
             });
         }
 
