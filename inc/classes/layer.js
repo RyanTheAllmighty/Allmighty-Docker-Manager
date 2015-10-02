@@ -264,7 +264,11 @@ module.exports = class Layer {
                     brain.logger.warning('The volume ' + volume.host + ' doesn\'t exist! This may cause issues!');
                 }
 
-                dockerOptions.Volumes[volume.container] = {};
+                // If it exists on the host and is a directory then we add it to the Volumes, files shouldn't be added there
+                if (!fs.existsSync(volume.host) && fs.statSync(volume.host).isDirectory()) {
+                    dockerOptions.Volumes[volume.container] = {};
+                }
+
                 dockerOptions.HostConfig.Binds.push(sprintf('%s:%s', volume.host, volume.container) + (volume.readOnly ? ':ro' : ':rw'));
             });
         }
