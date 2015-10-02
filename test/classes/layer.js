@@ -148,12 +148,6 @@ describe('Layer', function () {
     });
 
     describe('#workingDirectory', function () {
-        it('should return the working directory of a layer as / if not defined', function () {
-            var testComponent = new Layer(new Application('test', {}), 'test', {});
-
-            expect(testComponent.workingDirectory).to.equal('/');
-        });
-
         it('should return the working directory for a layer', function () {
             expect(layer.workingDirectory).to.equal('/some/dir');
         });

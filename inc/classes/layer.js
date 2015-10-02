@@ -415,12 +415,12 @@ module.exports = class Layer {
     }
 
     /**
-     * Gets the working directory for this layer or / if not set.
+     * Gets the working directory for this layer.
      *
      * @returns {String}
      */
     get workingDirectory() {
-        return this[objectSymbol].workingDirectory || '/';
+        return this[objectSymbol].workingDirectory;
     }
 
     /**
