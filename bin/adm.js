@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
  * Allmighty Docker Manager - https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager
  * Copyright (C) 2015 RyanTheAllmighty
@@ -19,7 +21,7 @@
 (function () {
     'use strict';
 
-    let adm = require('./inc/entry');
+    let adm = require('../inc/entry');
 
     adm(process.argv.slice(2));
 })();
