@@ -7,6 +7,7 @@ This is a simple style guide of how I style and present my code (at least try to
 + Don't do large code commits. My preference is a single commit for a single fix/addition rather than bundled up commits.
 + Document appropriately. While there is no need to put single line comments in for everything, having doc blocks and comments where necessary helps others see what the code does.
 + Make sure all code adheres to the provided JSHint and JSCS standards. Running 'gulp style' will run both checkers and check for any issues
++ Increment the version in the package.json before the last commit before release. Nothing worse than having to question if it's already been incremented or not
 
 # Classes
 Since this application is using ECMAScript 6, we have access to classes.

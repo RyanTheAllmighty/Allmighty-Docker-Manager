@@ -32,6 +32,11 @@
 
         global.storagePath = passedArgs.storagePath || process.cwd();
 
+        if (!fs.existsSync(path.join(global.storagePath, 'settings.json'))) {
+            console.log(('Couldn\'t find a settings.json! Path: ' + global.storagePath).red);
+            process.exit(1);
+        }
+
         // Load the brain in for the application
         let brain = require('../inc/brain');
         brain.load();

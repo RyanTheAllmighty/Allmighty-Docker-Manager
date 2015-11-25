@@ -19,10 +19,14 @@
 (function () {
     'use strict';
 
+    let path = require('path');
     let gulp = require('gulp');
     let jscs = require('gulp-jscs');
     let mocha = require('gulp-mocha');
     let jshint = require('gulp-jshint');
+    let passedArgs = require('minimist')(process.argv.splice(2));
+
+    global.storagePath = passedArgs.storagePath || path.join(process.cwd(), 'samples');
 
     gulp.task('jshint', function () {
         return gulp.src(['app.js', 'inc/**/*.js', 'test/**/*.js'])
