@@ -22,53 +22,53 @@
  * This is meant to be run on first setup or when a new component/application is added so that it's correct folders can
  * be created and setup.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var fs = require('fs');
-var _ = require('lodash');
-var path = require('path');
-var merge = require('merge');
+    let brain = require('../brain');
 
-/**
- * The options for this command along with their defaults.
- *
- * quiet: If there should be no output from the command (default: false)
- *
- * @type {{quiet: boolean}}
- */
-var options = {
-    quiet: false
-};
+    let _ = require('lodash');
+    let merge = require('merge');
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    options = merge(options, passedArgs);
+    /**
+     * The options for this command along with their defaults.
+     *
+     * quiet: If there should be no output from the command (default: false)
+     *
+     * @type {{quiet: boolean}}
+     */
+    let options = {
+        quiet: false
+    };
 
-    callback();
-};
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
 
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    if (!options.quiet) {
-        brain.logger.info('Setting up the directories needed!');
-    }
+        callback();
+    };
 
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        if (!options.quiet) {
+            brain.logger.info('Setting up the directories needed!');
+        }
 
-    _.forEach(brain.getApplications(), function (application) {
-        application.setupDirectories(options);
-    });
+        _.forEach(brain.getApplications(), function (application) {
+            application.setupDirectories(options);
+        });
 
-    callback();
-};
+        callback();
+    };
+})();

@@ -21,96 +21,98 @@
  *
  * When no application name is provided after the command name, it will start all applications.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var merge = require('merge');
+    let brain = require('../brain');
 
-/**
- * The applications we wish to bring up.
- *
- * @type {Application[]}
- */
-var toActUpon = [];
+    let async = require('async');
+    let merge = require('merge');
 
-/**
- * The options for this command along with their defaults.
- *
- * quiet: If there should be no output from the command (default: false)
- * async: If we should run all the builds we're doing asynchronously (default: false)
- * pull: If we should attempt to pull the latest image for each given layer (default: false)
- *
- * @type {{quiet: boolean, async: boolean, pull: boolean}}
- */
-var options = {
-    quiet: false,
-    async: false,
-    pull: false
-};
+    /**
+     * The applications we wish to bring up.
+     *
+     * @type {Application[]}
+     */
+    let toActUpon = [];
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    options = merge(options, passedArgs);
-
-    if (passedArgs._ && passedArgs._.length > 0) {
-        for (let i = 0; i < passedArgs._.length; i++) {
-            let applicationName = passedArgs._[i];
-
-            if (!brain.isApplicationSync(applicationName)) {
-                return callback(new Error('No application exists called "' + applicationName + '"!'));
-            }
-
-            toActUpon.push(brain.getApplication(applicationName));
-        }
-    } else {
-        toActUpon = brain.getApplicationsAsArray();
-    }
-
-    // Go through and check each application and remove the ones that are already online.
-    async.each(toActUpon, function (application, next) {
-        application.isAllUp(function (up) {
-            if (up) {
-                toActUpon.splice(toActUpon.indexOf(application), 1);
-            }
-
-            next();
-        });
-    }, function (err) {
-        if (err) {
-            return callback(err);
-        }
-
-        // If all the applications we want to start are already online, then we don't need to do anything.
-        if (toActUpon.length === 0) {
-            return callback(new Error('All the necessary containers are already up!'));
-        }
-
-        callback();
-    });
-};
-
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    let _asyncEachCallback = function (application, next) {
-        application.up(options, next);
+    /**
+     * The options for this command along with their defaults.
+     *
+     * quiet: If there should be no output from the command (default: false)
+     * async: If we should run all the builds we're doing asynchronously (default: false)
+     * pull: If we should attempt to pull the latest image for each given layer (default: false)
+     *
+     * @type {{quiet: boolean, async: boolean, pull: boolean}}
+     */
+    let options = {
+        quiet: false,
+        async: false,
+        pull: false
     };
 
-    if (options.async) {
-        async.each(toActUpon, _asyncEachCallback, callback);
-    } else {
-        async.eachSeries(toActUpon, _asyncEachCallback, callback);
-    }
-};
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
+
+        if (passedArgs._ && passedArgs._.length > 0) {
+            for (let i = 0; i < passedArgs._.length; i++) {
+                let applicationName = passedArgs._[i];
+
+                if (!brain.isApplicationSync(applicationName)) {
+                    return callback(new Error('No application exists called "' + applicationName + '"!'));
+                }
+
+                toActUpon.push(brain.getApplication(applicationName));
+            }
+        } else {
+            toActUpon = brain.getApplicationsAsArray();
+        }
+
+        // Go through and check each application and remove the ones that are already online.
+        async.each(toActUpon, function (application, next) {
+            application.isAllUp(function (up) {
+                if (up) {
+                    toActUpon.splice(toActUpon.indexOf(application), 1);
+                }
+
+                next();
+            });
+        }, function (err) {
+            if (err) {
+                return callback(err);
+            }
+
+            // If all the applications we want to start are already online, then we don't need to do anything.
+            if (toActUpon.length === 0) {
+                return callback(new Error('All the necessary containers are already up!'));
+            }
+
+            callback();
+        });
+    };
+
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        let _asyncEachCallback = function (application, next) {
+            application.up(options, next);
+        };
+
+        if (options.async) {
+            async.each(toActUpon, _asyncEachCallback, callback);
+        } else {
+            async.eachSeries(toActUpon, _asyncEachCallback, callback);
+        }
+    };
+})();

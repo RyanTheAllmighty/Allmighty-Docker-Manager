@@ -21,71 +21,72 @@
  *
  * Any arguments passed after the applications name to run on will be passed to the container to run.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var merge = require('merge');
+    let brain = require('../brain');
 
-/**
- * The Layer we want to run.
- *
- * @type Layer|null
- */
-var theLayer = null;
+    let merge = require('merge');
 
-/**
- * The options for this command along with their defaults.
- */
-var options = {};
+    /**
+     * The Layer we want to run.
+     *
+     * @type Layer|null
+     */
+    let theLayer = null;
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    options = merge(options, passedArgs);
+    /**
+     * The options for this command along with their defaults.
+     */
+    let options = {};
 
-    if (!passedArgs._ || passedArgs._.length < 2) {
-        return callback(new Error('2 arguments must be passed in!'));
-    }
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
 
-    if (passedArgs.l <= 0) {
-        return callback(new Error('The n option must be a number more than 0!'));
-    }
-
-    let applicationName = passedArgs._[0];
-    let layerName = passedArgs._[1];
-
-    brain.isApplication(applicationName, function (isApp) {
-        if (!isApp) {
-            return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
+        if (!passedArgs._ || passedArgs._.length < 2) {
+            return callback(new Error('2 arguments must be passed in!'));
         }
 
-        let application = brain.getApplication(applicationName);
+        if (passedArgs.l <= 0) {
+            return callback(new Error('The n option must be a number more than 0!'));
+        }
 
-        application.isLayer(layerName, function (isLayer) {
-            if (!isLayer) {
-                return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+        let applicationName = passedArgs._[0];
+        let layerName = passedArgs._[1];
+
+        brain.isApplication(applicationName, function (isApp) {
+            if (!isApp) {
+                return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
             }
 
-            theLayer = application.getLayer(layerName);
+            let application = brain.getApplication(applicationName);
 
-            theLayer.canRun(callback);
+            application.isLayer(layerName, function (isLayer) {
+                if (!isLayer) {
+                    return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+                }
+
+                theLayer = application.getLayer(layerName);
+
+                theLayer.canRun(callback);
+            });
         });
-    });
-};
+    };
 
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    theLayer.run(options, callback);
-};
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        theLayer.run(options, callback);
+    };
+})();

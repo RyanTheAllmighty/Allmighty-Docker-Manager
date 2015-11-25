@@ -16,45 +16,45 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-let brain = require('../brain');
+    // Symbol for storing the objects properties
+    let objectSymbol = Symbol();
 
-// Symbol for storing the objects properties
-let objectSymbol = Symbol();
+    module.exports = class Link {
+        /**
+         * Constructor to create a new Link.
+         *
+         * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
+         */
+        constructor(originalObject) {
+            this[objectSymbol] = {};
 
-module.exports = class Link {
-    /**
-     * Constructor to create a new Link.
-     *
-     * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
-     */
-    constructor(originalObject) {
-        this[objectSymbol] = {};
-
-        // Copy over the original objects properties to this objects private Symbol
-        for (let propName in originalObject) {
-            if (originalObject.hasOwnProperty(propName)) {
-                this[objectSymbol][propName] = originalObject[propName];
+            // Copy over the original objects properties to this objects private Symbol
+            for (let propName in originalObject) {
+                if (originalObject.hasOwnProperty(propName)) {
+                    this[objectSymbol][propName] = originalObject[propName];
+                }
             }
         }
-    }
 
-    /**
-     * Gets the container that this link references.
-     *
-     * @returns {String}
-     */
-    get container() {
-        return this[objectSymbol].container;
-    }
+        /**
+         * Gets the container that this link references.
+         *
+         * @returns {String}
+         */
+        get container() {
+            return this[objectSymbol].container;
+        }
 
-    /**
-     * Gets the name that this link is given for use inside the container.
-     *
-     * @returns {String}
-     */
-    get name() {
-        return this[objectSymbol].name || this.container;
-    }
-};
+        /**
+         * Gets the name that this link is given for use inside the container.
+         *
+         * @returns {String}
+         */
+        get name() {
+            return this[objectSymbol].name || this.container;
+        }
+    };
+})();

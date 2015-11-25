@@ -16,45 +16,45 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-let brain = require('../brain');
+    // Symbol for storing the objects properties
+    let objectSymbol = Symbol();
 
-// Symbol for storing the objects properties
-let objectSymbol = Symbol();
+    module.exports = class Label {
+        /**
+         * Constructor to create a new Label.
+         *
+         * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
+         */
+        constructor(originalObject) {
+            this[objectSymbol] = {};
 
-module.exports = class Label {
-    /**
-     * Constructor to create a new Label.
-     *
-     * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
-     */
-    constructor(originalObject) {
-        this[objectSymbol] = {};
-
-        // Copy over the original objects properties to this objects private Symbol
-        for (let propName in originalObject) {
-            if (originalObject.hasOwnProperty(propName)) {
-                this[objectSymbol][propName] = originalObject[propName];
+            // Copy over the original objects properties to this objects private Symbol
+            for (let propName in originalObject) {
+                if (originalObject.hasOwnProperty(propName)) {
+                    this[objectSymbol][propName] = originalObject[propName];
+                }
             }
         }
-    }
 
-    /**
-     * Gets the name of the label.
-     *
-     * @returns {String}
-     */
-    get name() {
-        return this[objectSymbol].name;
-    }
+        /**
+         * Gets the name of the label.
+         *
+         * @returns {String}
+         */
+        get name() {
+            return this[objectSymbol].name;
+        }
 
-    /**
-     * Gets the value of the label.
-     *
-     * @returns {String}
-     */
-    get value() {
-        return this[objectSymbol].value;
-    }
-};
+        /**
+         * Gets the value of the label.
+         *
+         * @returns {String}
+         */
+        get value() {
+            return this[objectSymbol].value;
+        }
+    };
+})();

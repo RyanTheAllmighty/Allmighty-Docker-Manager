@@ -16,38 +16,38 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-let colours = require('colors');
+    let settings = require('../settings.json');
 
-let settings = require('../settings.json');
+    module.exports.debug = function (message) {
+        if (settings.logging.level && settings.logging.level === 'debug') {
+            console.log(message.blue);
+        }
+    };
 
-module.exports.debug = function (message) {
-    if (settings.logging.level && settings.logging.level == 'debug') {
-        console.log(message.blue);
-    }
-};
+    module.exports.error = function (message) {
+        if (message instanceof Error) {
+            console.error(message.message.red);
+        } else {
+            console.log(message.red);
+        }
+    };
 
-module.exports.error = function (message) {
-    if (message instanceof Error) {
-        console.error(message.message.red);
-    } else {
-        console.log(message.red);
-    }
-};
+    module.exports.info = function (message) {
+        console.log(message.green);
+    };
 
-module.exports.info = function (message) {
-    console.log(message.green);
-};
+    module.exports.warning = function (message) {
+        console.log(message.yellow);
+    };
 
-module.exports.warning = function (message) {
-    console.log(message.yellow);
-};
+    module.exports.raw = function (message) {
+        process.stdout.write(message);
+    };
 
-module.exports.raw = function (message) {
-    process.stdout.write(message);
-};
-
-module.exports.line = function () {
-    console.log();
-};
+    module.exports.line = function () {
+        console.log();
+    };
+})();

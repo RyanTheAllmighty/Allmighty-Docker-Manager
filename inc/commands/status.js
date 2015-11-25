@@ -19,67 +19,60 @@
 /**
  * The status command gets the status of all layers for all applications and checks if they are online or not.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var merge = require('merge');
-let colours = require('colors');
-var sprintf = require("sprintf-js").sprintf;
+    let brain = require('../brain');
 
-/**
- * The options for this command along with their defaults.
- *
- * @type {Object}
- */
-var options = {};
+    let async = require('async');
+    let sprintf = require('sprintf-js').sprintf;
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    callback();
-};
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        callback();
+    };
 
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    let first = true;
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        let first = true;
 
-    async.eachSeries(brain.getApplicationsAsArray(), function (application, next) {
-        if (first) {
-            first = false;
-        } else {
-            brain.logger.line();
-        }
-
-        brain.logger.raw(application.applicationName.cyan);
-        brain.logger.line();
-
-        async.eachSeries(application.getLayersAsArray(), function (layer, nextt) {
-            if (!layer.dataOnly && !layer.runOnly) {
-                brain.logger.raw(sprintf('%15s: ', layer.name));
-                layer.isUp(function (isUp) {
-                    brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
-                    brain.logger.line();
-
-                    nextt();
-                });
+        async.eachSeries(brain.getApplicationsAsArray(), function (application, next) {
+            if (first) {
+                first = false;
             } else {
-                nextt();
+                brain.logger.line();
             }
-        }, function (err) {
-            next();
-        });
-    }, callback);
 
-};
+            brain.logger.raw(application.applicationName.cyan);
+            brain.logger.line();
+
+            async.eachSeries(application.getLayersAsArray(), function (layer, nextt) {
+                if (!layer.dataOnly && !layer.runOnly) {
+                    brain.logger.raw(sprintf('%15s: ', layer.name));
+                    layer.isUp(function (isUp) {
+                        brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
+                        brain.logger.line();
+
+                        nextt();
+                    });
+                } else {
+                    nextt();
+                }
+            }, function () {
+                next();
+            });
+        }, callback);
+
+    };
+})();

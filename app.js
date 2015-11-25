@@ -16,71 +16,76 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var fs = require('fs');
+    let fs = require('fs');
 
-// Load the brain in for the application
-var brain = require('./inc/brain');
-brain.load();
+    // This modifies the string prototype to add in coloured things
+    require('colors');
 
-// Parse the arguments passed in
-var passedArgs = require('minimist')(process.argv.slice(2));
-passedArgs._raw = process.argv.slice(2);
+    // Load the brain in for the application
+    let brain = require('./inc/brain');
+    brain.load();
 
-if (passedArgs._.length == 0) {
-    brain.logger.error('No arguments were passed in!');
-    process.exit(1);
-}
+    // Parse the arguments passed in
+    let passedArgs = require('minimist')(process.argv.slice(2));
+    passedArgs._raw = process.argv.slice(2);
 
-// The action we're taking
-var action = passedArgs._.shift();
-
-// Check if that was the only element, if so remove it from the array
-if (passedArgs._.length == 0) {
-    delete passedArgs._;
-}
-
-// Check the action is only letters
-if (!/^[a-zA-z]+$/.test(action)) {
-    brain.logger.error('Invalid first argument passed in!');
-    process.exit(1);
-}
-
-// The file of the possible command
-var commandFile = './inc/commands/' + action + '.js';
-
-// Check the js file exists in the command directory
-if (!fs.existsSync(commandFile)) {
-    brain.logger.error('No command found for ' + action + '!');
-    process.exit(1);
-}
-
-// This is the command we want to run
-var command = require(commandFile);
-
-// First we need to initialize it with the arguments passed in to do some sanity checks and processing
-command.init(passedArgs, function (err, res) {
-    if (err) {
-        brain.logger.error(err);
-        return process.exit(1);
+    if (passedArgs._.length === 0) {
+        brain.logger.error('No arguments were passed in!');
+        process.exit(1);
     }
 
-    // Then we run it with a callback with the result
-    command.run(function (err, res) {
+    // The action we're taking
+    let action = passedArgs._.shift();
+
+    // Check if that was the only element, if so remove it from the array
+    if (passedArgs._.length === 0) {
+        delete passedArgs._;
+    }
+
+    // Check the action is only letters
+    if (!/^[a-zA-z]+$/.test(action)) {
+        brain.logger.error('Invalid first argument passed in!');
+        process.exit(1);
+    }
+
+    // The file of the possible command
+    let commandFile = './inc/commands/' + action + '.js';
+
+    // Check the js file exists in the command directory
+    if (!fs.existsSync(commandFile)) {
+        brain.logger.error('No command found for ' + action + '!');
+        process.exit(1);
+    }
+
+    // This is the command we want to run
+    let command = require(commandFile);
+
+    // First we need to initialize it with the arguments passed in to do some sanity checks and processing
+    command.init(passedArgs, function (err) {
         if (err) {
             brain.logger.error(err);
-
             return process.exit(1);
         }
 
-        if (res) {
-            brain.ogger.info(res);
-        }
+        // Then we run it with a callback with the result
+        command.run(function (err, res) {
+            if (err) {
+                brain.logger.error(err);
 
-        process.exit(0);
+                return process.exit(1);
+            }
+
+            if (res) {
+                brain.logger.info(res);
+            }
+
+            process.exit(0);
+        });
     });
-});
+})();
 
 /**
  * This is a callback for any errors and results from running a command.

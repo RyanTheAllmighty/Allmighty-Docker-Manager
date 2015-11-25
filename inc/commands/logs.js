@@ -21,93 +21,95 @@
  *
  * The first argument should be the applications name and the second argument should be the layers name.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var async = require('async');
-var merge = require('merge');
+    let brain = require('../brain');
 
-/**
- * The Layer we want to get the logs for.
- *
- * @type {Layer}
- */
-var layer;
+    let merge = require('merge');
 
-/**
- * The options for this command along with their defaults.
- *
- * l: The number of lines of logs to get (default: 50)
- *
- * @type {{l: Number}}
- */
-var options = {
-    l: 50
-};
+    /**
+     * The Layer we want to get the logs for.
+     *
+     * @type {Layer}
+     */
+    let layer;
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    options = merge(options, passedArgs);
+    /**
+     * The options for this command along with their defaults.
+     *
+     * l: The number of lines of logs to get (default: 50)
+     *
+     * @type {{l: Number}}
+     */
+    let options = {
+        l: 50
+    };
 
-    if (!passedArgs._ || passedArgs._.length < 2) {
-        return callback(new Error('2 arguments must be passed in!'));
-    }
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
 
-    if (passedArgs.l <= 0) {
-        return callback(new Error('The n option must be a number more than 0!'));
-    }
-
-    let applicationName = passedArgs._[0];
-    let layerName = passedArgs._[1];
-
-    brain.isApplication(applicationName, function (isApp) {
-        if (!isApp) {
-            return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
+        if (!passedArgs._ || passedArgs._.length < 2) {
+            return callback(new Error('2 arguments must be passed in!'));
         }
 
-        let application = brain.getApplication(applicationName);
+        if (passedArgs.l <= 0) {
+            return callback(new Error('The n option must be a number more than 0!'));
+        }
 
-        application.isLayer(layerName, function (isLayer) {
-            if (!isLayer) {
-                return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+        let applicationName = passedArgs._[0];
+        let layerName = passedArgs._[1];
+
+        brain.isApplication(applicationName, function (isApp) {
+            if (!isApp) {
+                return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
             }
 
-            layer = application.getLayer(layerName);
+            let application = brain.getApplication(applicationName);
 
-            layer.isUp(function (isUp) {
-                if (!isUp) {
-                    return callback(new Error('That layer is not up! Please start it before trying to get the logs from it!'));
+            application.isLayer(layerName, function (isLayer) {
+                if (!isLayer) {
+                    return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
                 }
 
-                callback();
+                layer = application.getLayer(layerName);
+
+                layer.isUp(function (isUp) {
+                    if (!isUp) {
+                        return callback(new Error('That layer is not up! Please start it before trying to get the logs from it!'));
+                    }
+
+                    callback();
+                });
             });
         });
-    });
-};
+    };
 
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    layer.container.logs({
-        stdout: true,
-        stderr: true,
-        timestamps: true,
-        tail: options.l
-    }, function (err, stream) {
-        if (err) {
-            return callback(err);
-        }
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        layer.container.logs({
+            stdout: true,
+            stderr: true,
+            timestamps: true,
+            tail: options.l
+        }, function (err, stream) {
+            if (err) {
+                return callback(err);
+            }
 
-        layer.container.modem.demuxStream(stream, process.stdout, process.stderr);
-    });
-};
+            layer.container.modem.demuxStream(stream, process.stdout, process.stderr);
+        });
+    };
+})();

@@ -16,286 +16,281 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-// Require all the external modules
-var fs = require('fs');
-var _ = require('lodash');
-var path = require('path');
-var async = require('async');
-var Docker = require('dockerode');
-var spawn = require('child_process').spawn;
+    // Require all the external modules
+    let fs = require('fs');
+    let _ = require('lodash');
+    let path = require('path');
+    let Docker = require('dockerode');
 
-// Noe our applications specific classes
-var Link = require('./classes/link');
-var Layer = require('./classes/layer');
-var Volume = require('./classes/volume');
-var Component = require('./classes/component');
-var VolumeFrom = require('./classes/volumeFrom');
-var Application = require('./classes/application');
-var Environment = require('./classes/environment');
+    // Now our applications specific classes
+    let Component = require('./classes/component');
+    let Application = require('./classes/application');
 
-// Require our logger
-var logger = require('./logger');
+    // Require our logger
+    let logger = require('./logger');
 
-// Now require our settings json file
-var settings = require('../settings.json');
+    // Now require our settings json file
+    let settings = require('../settings.json');
 
-// Now our objects to store our components and applications in
-var _components = {};
-var _applications = {};
+    // Now our objects to store our components and applications in
+    let _components = {};
+    let _applications = {};
 
-module.exports.docker = getDockerInstance();
+    module.exports.docker = getDockerInstance();
 
-module.exports.logger = logger;
+    module.exports.logger = logger;
 
-module.exports.settings = settings;
+    module.exports.settings = settings;
 
-module.exports.load = function () {
-    _applications = this.loadApplications();
-    _components = this.loadComponents();
-};
+    module.exports.load = function () {
+        _applications = this.loadApplications();
+        _components = this.loadComponents();
+    };
 
-module.exports.getBaseDirectory = function () {
-    return path.join(__dirname, '../');
-};
+    module.exports.getBaseDirectory = function () {
+        return path.join(__dirname, '../');
+    };
 
-module.exports.getApplications = function () {
-    return _applications;
-};
+    module.exports.getApplications = function () {
+        return _applications;
+    };
 
-module.exports.getApplicationsAsArray = function () {
-    return Object.keys(_applications).map(function (key) {
-        return _applications[key];
-    });
-};
-
-module.exports.getApplication = function (name) {
-    let application = _applications[name];
-
-    if (!application) {
-        application = _.find(_applications, function (app) {
-            return app.applicationName.indexOf(name) === 0;
+    module.exports.getApplicationsAsArray = function () {
+        return Object.keys(_applications).map(function (key) {
+            return _applications[key];
         });
-    }
+    };
 
-    return application;
-};
+    module.exports.getApplication = function (name) {
+        let application = _applications[name];
 
-module.exports.isApplicationSync = function (name) {
-    let exists = name in _applications;
-
-    if (!exists) {
-        let apps = _.filter(_applications, function (app) {
-            return app.applicationName.indexOf(name) === 0;
-        });
-
-        exists = apps.length == 1;
-    }
-
-    return exists;
-};
-
-module.exports.isApplication = function (name, callback) {
-    callback(this.isApplicationSync(name));
-};
-
-module.exports.getComponents = function () {
-    return _components;
-};
-
-module.exports.getComponentsAsArray = function () {
-    return Object.keys(_components).map(function (key) {
-        return _components[key];
-    });
-};
-
-module.exports.getComponent = function (name) {
-    let component = _components[name];
-
-    if (!component) {
-        component = _.find(_components, function (comp) {
-            return comp.name.indexOf(name) === 0;
-        });
-    }
-
-    return component;
-};
-
-module.exports.isComponent = function (name) {
-    let exists = name in _components;
-
-    if (!exists) {
-        let comps = _.filter(_components, function (comp) {
-            return comp.name.indexOf(name) === 0;
-        });
-
-        exists = comps.length == 1;
-    }
-
-    return exists;
-};
-
-module.exports.loadComponents = function () {
-    var componentNames = fs.readdirSync(this.getBuildsDirectory()).filter(function (file) {
-        return fs.statSync(path.join(this.getBuildsDirectory(), file)).isDirectory();
-    }, this);
-
-    var components = {};
-
-    _.forEach(componentNames, function (name) {
-        components[name] = new Component(name);
-    });
-
-    return components;
-};
-
-module.exports.loadApplications = function () {
-    let self = this;
-
-    var applicationNames = _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
-        return file.substr(-5) == '.json';
-    }), function (app) {
-        return app.substr(0, app.length - 5);
-    });
-
-    var applications = {};
-
-    _.forEach(applicationNames, function (name) {
-        applications[name] = new Application(name, require(path.join(self.getApplicationsDirectory(), name + '.json')));
-    });
-
-    return applications;
-};
-
-module.exports.getBuildsDirectory = function () {
-    return path.resolve(settings.directories.components);
-};
-
-module.exports.getApplicationsDirectory = function () {
-    return path.resolve(settings.directories.applications);
-};
-
-module.exports.getRunningContainerNames = function (callback) {
-    docker.listContainers({all: false}, function (err, containers) {
-        if (err) {
-            return callback(err);
+        if (!application) {
+            application = _.find(_applications, function (app) {
+                return app.applicationName.indexOf(name) === 0;
+            });
         }
 
-        var names = _.reduceRight(_.map(containers, 'Names'), function (flattened, other) {
-            return flattened.concat(other);
-        });
+        return application;
+    };
 
-        names = _.map(names, function (name) {
-            return name.substring(1);
-        });
+    module.exports.isApplicationSync = function (name) {
+        let exists = name in _applications;
 
-        names = _.filter(names, function (name) {
-            return !name.match(/\//g);
-        });
+        if (!exists) {
+            let apps = _.filter(_applications, function (app) {
+                return app.applicationName.indexOf(name) === 0;
+            });
 
-        callback(null, names);
-    });
-};
-
-module.exports.getRunningContainers = function (callback) {
-    docker.listContainers({all: false}, function (err, containers) {
-        if (err) {
-            return callback(err);
+            exists = apps.length === 1;
         }
 
-        callback(null, containers);
-    });
-};
+        return exists;
+    };
 
-module.exports.haveImage = function (name, callback) {
-    this.docker.getImage(name).get(function (err, data) {
-        callback(null, !err);
-    });
-};
+    module.exports.isApplication = function (name, callback) {
+        callback(this.isApplicationSync(name));
+    };
 
-module.exports.run = function (dockerOptions, callback) {
-    this.docker.createContainer(dockerOptions, function (err, container) {
-        if (err) {
-            return callback(err);
+    module.exports.getComponents = function () {
+        return _components;
+    };
+
+    module.exports.getComponentsAsArray = function () {
+        return Object.keys(_components).map(function (key) {
+            return _components[key];
+        });
+    };
+
+    module.exports.getComponent = function (name) {
+        let component = _components[name];
+
+        if (!component) {
+            component = _.find(_components, function (comp) {
+                return comp.name.indexOf(name) === 0;
+            });
         }
 
-        var attach_opts = {stream: true, stdin: true, stdout: true, stderr: true};
+        return component;
+    };
 
-        container.attach(attach_opts, function handler(err, stream) {
-            // Show outputs
-            stream.pipe(process.stdout);
+    module.exports.isComponent = function (name) {
+        let exists = name in _components;
 
-            // Connect stdin
-            var isRaw = process.isRaw;
-            process.stdin.resume();
-            process.stdin.setEncoding('utf8');
-            process.stdin.setRawMode(true);
-            process.stdin.pipe(stream);
+        if (!exists) {
+            let comps = _.filter(_components, function (comp) {
+                return comp.name.indexOf(name) === 0;
+            });
 
-            function resizeTTY() {
-                var dimensions = {
-                    h: process.stdout.rows,
-                    w: process.stderr.columns
-                };
+            exists = comps.length === 1;
+        }
 
-                if (dimensions.h !== 0 && dimensions.w !== 0) {
-                    container.resize(dimensions, function () {
-                    });
-                }
+        return exists;
+    };
+
+    module.exports.loadComponents = function () {
+        let componentNames = fs.readdirSync(this.getBuildsDirectory()).filter(function (file) {
+            return fs.statSync(path.join(this.getBuildsDirectory(), file)).isDirectory();
+        }, this);
+
+        let components = {};
+
+        _.forEach(componentNames, function (name) {
+            components[name] = new Component(name);
+        });
+
+        return components;
+    };
+
+    module.exports.loadApplications = function () {
+        let self = this;
+
+        let applicationNames = _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
+            return file.substr(-5) === '.json';
+        }), function (app) {
+            return app.substr(0, app.length - 5);
+        });
+
+        let applications = {};
+
+        _.forEach(applicationNames, function (name) {
+            applications[name] = new Application(name, require(path.join(self.getApplicationsDirectory(), name + '.json')));
+        });
+
+        return applications;
+    };
+
+    module.exports.getBuildsDirectory = function () {
+        return path.resolve(settings.directories.components);
+    };
+
+    module.exports.getApplicationsDirectory = function () {
+        return path.resolve(settings.directories.applications);
+    };
+
+    module.exports.getRunningContainerNames = function (callback) {
+        module.exports.docker.listContainers({all: false}, function (err, containers) {
+            if (err) {
+                return callback(err);
             }
 
-            container.start(function (err, data) {
-                if (err) {
-                    return exit(stream, isRaw, function () {
-                        callback(err);
-                    });
+            let names = _.reduceRight(_.map(containers, 'Names'), function (flattened, other) {
+                return flattened.concat(other);
+            });
+
+            names = _.map(names, function (name) {
+                return name.substring(1);
+            });
+
+            names = _.filter(names, function (name) {
+                return !name.match(/\//g);
+            });
+
+            callback(null, names);
+        });
+    };
+
+    module.exports.getRunningContainers = function (callback) {
+        module.exports.docker.listContainers({all: false}, function (err, containers) {
+            if (err) {
+                return callback(err);
+            }
+
+            callback(null, containers);
+        });
+    };
+
+    module.exports.haveImage = function (name, callback) {
+        module.exports.docker.getImage(name).get(function (err) {
+            callback(null, !err);
+        });
+    };
+
+    module.exports.run = function (dockerOptions, callback) {
+        module.exports.docker.createContainer(dockerOptions, function (err, container) {
+            if (err) {
+                return callback(err);
+            }
+
+            let attach_opts = {stream: true, stdin: true, stdout: true, stderr: true};
+
+            container.attach(attach_opts, function handler(err, stream) {
+                // Show outputs
+                stream.pipe(process.stdout);
+
+                // Connect stdin
+                let isRaw = process.isRaw;
+                process.stdin.resume();
+                process.stdin.setEncoding('utf8');
+                process.stdin.setRawMode(true);
+                process.stdin.pipe(stream);
+
+                function resizeTTY() {
+                    let dimensions = {
+                        h: process.stdout.rows,
+                        w: process.stderr.columns
+                    };
+
+                    if (dimensions.h !== 0 && dimensions.w !== 0) {
+                        container.resize(dimensions, function () {
+                        });
+                    }
                 }
 
-                resizeTTY();
-
-                process.stdout.on('resize', function () {
-                    resizeTTY();
-                });
-
-                container.wait(function (err, data) {
+                container.start(function (err) {
                     if (err) {
                         return exit(stream, isRaw, function () {
                             callback(err);
                         });
                     }
 
-                    process.stdout.removeListener('resize', resizeTTY);
-                    process.stdin.removeAllListeners();
-                    process.stdin.setRawMode(isRaw);
-                    process.stdin.resume();
-                    stream.end();
+                    resizeTTY();
 
-                    container.remove(callback);
+                    process.stdout.on('resize', function () {
+                        resizeTTY();
+                    });
+
+                    container.wait(function (err) {
+                        if (err) {
+                            return exit(stream, isRaw, function () {
+                                callback(err);
+                            });
+                        }
+
+                        process.stdout.removeListener('resize', resizeTTY);
+                        process.stdin.removeAllListeners();
+                        process.stdin.setRawMode(isRaw);
+                        process.stdin.resume();
+                        stream.end();
+
+                        container.remove(callback);
+                    });
                 });
             });
         });
-    });
-};
+    };
 
-function getDockerInstance() {
-    if (settings.dockerSocket) {
-        return new Docker({socketPath: settings.dockerSocket});
-    } else {
-        var dockerObj = settings.dockerHttp;
+    function getDockerInstance() {
+        if (settings.dockerSocket) {
+            return new Docker({socketPath: settings.dockerSocket});
+        } else {
+            let dockerObj = settings.dockerHttp;
 
-        dockerObj.ca = fs.readFileSync(dockerObj.ca);
-        dockerObj.cert = fs.readFileSync(dockerObj.cert);
-        dockerObj.key = fs.readFileSync(dockerObj.key);
+            dockerObj.ca = fs.readFileSync(dockerObj.ca);
+            dockerObj.cert = fs.readFileSync(dockerObj.cert);
+            dockerObj.key = fs.readFileSync(dockerObj.key);
 
-        return new Docker(dockerObj);
+            return new Docker(dockerObj);
+        }
     }
-}
 
-function exit(stream, isRaw, callback) {
-    process.stdin.removeAllListeners();
-    process.stdin.setRawMode(isRaw);
-    process.stdin.resume();
-    stream.end();
-    callback();
-}
+    function exit(stream, isRaw, callback) {
+        process.stdin.removeAllListeners();
+        process.stdin.setRawMode(isRaw);
+        process.stdin.resume();
+        stream.end();
+        callback();
+    }
+})();

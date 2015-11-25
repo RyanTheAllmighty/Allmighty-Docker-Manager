@@ -19,82 +19,85 @@
 /**
  * The clean command will remove all local containers and images.
  */
-"use strict";
 
-var brain = require('../brain');
+(function () {
+    'use strict';
 
-var async = require('async');
-var merge = require('merge');
+    let brain = require('../brain');
 
-/**
- * The options for this command along with their defaults.
- *
- * quiet: If there should be no output from the command (default: false)
- * containers: If all containers should be cleaned up (default: false)
- * images: If all images should be cleaned up (default: false)
- *
- * @type {{quiet: boolean, containers: boolean, images: boolean}}
- */
-var options = {
-    quiet: false,
-    containers: false,
-    images: false
-};
+    let async = require('async');
+    let merge = require('merge');
 
-/**
- * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
- *
- * @param {Object} passedArgs - An object of arguments
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.init = function (passedArgs, callback) {
-    options = merge(options, passedArgs);
+    /**
+     * The options for this command along with their defaults.
+     *
+     * quiet: If there should be no output from the command (default: false)
+     * containers: If all containers should be cleaned up (default: false)
+     * images: If all images should be cleaned up (default: false)
+     *
+     * @type {{quiet: boolean, containers: boolean, images: boolean}}
+     */
+    let options = {
+        quiet: false,
+        containers: false,
+        images: false
+    };
 
-    if (!options.containers && !options.images) {
-        return callback(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
-    }
+    /**
+     * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
+     *
+     * @param {Object} passedArgs - An object of arguments
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
 
-    callback();
-};
-
-/**
- * This runs the command with the given arguments/options set in the init method and returns possibly an error and
- * response in the callback if any.
- *
- * @param {App~commandRunCallback} callback - The callback for when we're done
- */
-module.exports.run = function (callback) {
-    brain.docker.listContainers({all: true}, function (err, containers) {
-        if (err) {
-            return callback(err);
+        if (!options.containers && !options.images) {
+            return callback(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
         }
 
-        if (options.containers) {
-            brain.logger.info('Deleting all containers!');
+        callback();
+    };
 
-            async.each(containers, function (containerInfo, next) {
-                brain.docker.getContainer(containerInfo.Id).stop(function (err) {
-                    if (err && err.statusCode != 304) {
-                        return next(err);
+    /**
+     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
+     * response in the callback if any.
+     *
+     * @param {App~commandRunCallback} callback - The callback for when we're done
+     */
+    module.exports.run = function (callback) {
+        brain.docker.listContainers({all: true}, function (err, containers) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (options.containers) {
+                brain.logger.info('Deleting all containers!');
+
+                async.each(containers, function (containerInfo, next) {
+                    brain.docker.getContainer(containerInfo.Id).stop(function (err) {
+                        if (err && err.statusCode !== 304) {
+                            return next(err);
+                        }
+
+                        brain.docker.getContainer(containerInfo.Id).remove(next);
+                    });
+                }, callback);
+            }
+
+            if (options.images) {
+                brain.docker.listImages(function (err, images) {
+                    if (err) {
+                        return callback(err);
                     }
 
-                    brain.docker.getContainer(containerInfo.Id).remove(next);
+                    brain.logger.info('Deleting all images!');
+
+                    async.each(images, function (imageInfo, next) {
+                        brain.docker.getImage(imageInfo.Id).remove(next);
+                    }, callback);
                 });
-            }, callback);
-        }
-
-        if (options.images) {
-            brain.docker.listImages(function (err, images) {
-                if (err) {
-                    return callback(err);
-                }
-
-                brain.logger.info('Deleting all images!');
-
-                async.each(images, function (imageInfo, next) {
-                    brain.docker.getImage(imageInfo.Id).remove(next);
-                }, callback);
-            });
-        }
-    });
-};
+            }
+        });
+    };
+})();
