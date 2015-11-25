@@ -61,11 +61,11 @@ adm build --async
 ```
 
 ## Getting Started
-To get started simply make a copy of the settings.json.example file and save it as settings.json and fill in the details.
+To get started simply make a copy of the settings.json file in the sample directory and save it to a directory you'll run the application from and fill in the details.
 
 Also make sure you've setup your applications and components as needed.
 
-Then to get setup simply run the below command in the directory this has been cloned to:
+Then to get setup simply run the below command in the directory you saved them to:
 
 ```
 adm setup
