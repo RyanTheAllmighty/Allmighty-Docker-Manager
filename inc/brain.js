@@ -33,7 +33,7 @@
     let logger = require('./logger');
 
     // Now require our settings json file
-    let settings = require('../settings.json');
+    let settings = require(path.join(process.cwd(), 'settings.json'));
 
     // Now our objects to store our components and applications in
     let _components = {};
@@ -163,11 +163,11 @@
     };
 
     module.exports.getBuildsDirectory = function () {
-        return path.resolve(settings.directories.components);
+        return path.join(process.cwd(), 'components');
     };
 
     module.exports.getApplicationsDirectory = function () {
-        return path.resolve(settings.directories.applications);
+        return path.join(process.cwd(), 'applications');
     };
 
     module.exports.getRunningContainerNames = function (callback) {

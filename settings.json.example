@@ -20,8 +20,6 @@
         "8.8.4.4"
     ],
     "directories": {
-        "applications": "applications/",
-        "components": "components/",
         "storage": "/var/lib/adm/"
     },
      "logging": {

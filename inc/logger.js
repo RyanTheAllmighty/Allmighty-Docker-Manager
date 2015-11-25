@@ -19,7 +19,9 @@
 (function () {
     'use strict';
 
-    let settings = require('../settings.json');
+    let path = require('path');
+
+    let settings = require(path.join(process.cwd(), 'settings.json'));
 
     module.exports.debug = function (message) {
         if (settings.logging.level && settings.logging.level === 'debug') {
