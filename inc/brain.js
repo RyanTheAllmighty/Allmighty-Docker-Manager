@@ -41,14 +41,11 @@ var logger = require('./logger');
 // Now require our settings json file
 var settings = require('../settings.json');
 
-// Initialize our Docker socket object
-var docker = new Docker({socketPath: settings.dockerSocket});
-
 // Now our objects to store our components and applications in
 var _components = {};
 var _applications = {};
 
-module.exports.docker = docker;
+module.exports.docker = getDockerInstance();
 
 module.exports.logger = logger;
 
@@ -280,6 +277,20 @@ module.exports.run = function (dockerOptions, callback) {
         });
     });
 };
+
+function getDockerInstance() {
+    if (settings.dockerSocket) {
+        return new Docker({socketPath: settings.dockerSocket});
+    } else {
+        var dockerObj = settings.dockerHttp;
+
+        dockerObj.ca = fs.readFileSync(dockerObj.ca);
+        dockerObj.cert = fs.readFileSync(dockerObj.cert);
+        dockerObj.key = fs.readFileSync(dockerObj.key);
+
+        return new Docker(dockerObj);
+    }
+}
 
 function exit(stream, isRaw, callback) {
     process.stdin.removeAllListeners();
