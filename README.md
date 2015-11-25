@@ -10,7 +10,8 @@ Each application represents a single application (be it a website, monitoring so
 
 Each application contains one or more components which is explained more below.
 
-An application is saved as a json file with the filename being the applications internal name. For instance for a application for a website of 'www.baloonsaredeadly.com' you might have a balloonsaredeadly.json file in the applications folder.
+An application is saved as a json file with the filename being the applications internal name. For instance for a application for a website of 'www.baloonsaredeadly.com' you might have a
+balloonsaredeadly.json file in the applications folder.
 
 For an example of the json file needed by this utility, please see the samples directory.
 
@@ -21,31 +22,28 @@ For instance if you have a component for PHP, simply make a folder in the compon
 
 There are no examples of this, as they're no different than your standard build directories you'd make for Docker.
 
-# Environment
-This application was created, tested and used with NodeJS 4.0.0.
+# Using The Application
 
-This provides access to use ECMAScript 6. While it should work fine on newer versions of NodeJS, older versions may have issues.
-
-# Testing & Linting
-To run this applications tests and linter, simply install Grunt globally with the below command:
+## Installation
+To install this simply run the following in your console:
 
 ```
-npm install -g grunt-cli
+npm install -g allmighty-docker-manager
 ```
 
-Then run the following command in the directory this repository was cloned into:
+Once done it will give access to the 'adm' command. Simply run this command in any folder with your settings file (example provided in the repo) and applications and components.
 
-```
-grunt
-```
+Please note that this application was created using NodeJS version 4.2.2 and may or may not work on any versions of NodeJS earlier. This application uses ES6 features, so turning on harmony for older
+versions may or may not work.
 
-# Note About Commands
+
+## Note About Commands
 All the commands for this are run through NodeJS with the app.js file.
 
 You run the commands like below:
 
 ```
-node app.js <command name> <command option> --<switch> --<argument>=<value>
+adm <command name> <command option> --<switch> --<argument>=<value>
 ```
 
 There can be multiple command names as well as command options. More details will be in the sections below.
@@ -59,10 +57,10 @@ In the cases where more than one application/component is targeted, then the pro
 If you wish to run things asynchronously, then you can add on the --async argument to the command. For instance:
 
 ```
-node app.js build --async
+adm build --async
 ```
 
-# Getting Started
+## Getting Started
 To get started simply make a copy of the settings.json.example file and save it as settings.json and fill in the details.
 
 Also make sure you've setup your applications and components as needed.
@@ -70,60 +68,105 @@ Also make sure you've setup your applications and components as needed.
 Then to get setup simply run the below command in the directory this has been cloned to:
 
 ```
-node app.js setup
+adm setup
 ```
 
 This will create the necessary directories in the directory you've specified in the settings.json to be the storage directory.
 
-# Getting Images
+## Getting Images
 There are multiple ways to get the images needed to run things, you can build them manually by running the command:
 
 ```
-node app.js build
+adm build
 ```
 
 Alternatively you can pull down the images from the set repository (set in the settings.json file) by running:
 
 ```
-node app.js pull
+adm pull
 ```
 
 As with all the above commands, you can add a single applications name to the end of the command to just affect that one application. For instance to build the application called 'test' you'd run:
 
 ```
-node app.js build test
+adm build test
 ```
 
-# Running
+## Running
 To get everything up and running, simply run the below command:
 
 ```
-node app.js up
+adm up
 ```
 
 To stop the containers you can run the following command to stop the containers:
 
 ```
-node app.js down
+adm down
 ```
 
 If you wish to restart the containers, simply run:
 
 ```
-node app.js restart
+adm restart
 ```
 
 As with all the above commands, you can add a single applications name to the end of the command to just affect that one application. For instance to restart the application called 'test' you'd run:
 
 ```
-node app.js restart test
+adm restart test
 ```
 
-# Monitoring
-If you want to see a real time web interface as to what's going on, what processes are consuming the most ram/cpu with alot of details, then you can run the below command, with the optional port to listen for requests on:
+## Monitoring
+If you want to see a real time web interface as to what's going on, what processes are consuming the most ram/cpu with alot of details, then you can run the below command, with the optional port to
+listen for requests on:
 
 ```
-node app.js monitor --port=8000
+adm monitor --port=8000
 ```
 
-The default port for the monitor to run on is 8080 and in the example above we're running it on port 8000. Just pass your web browser to port 8000 of the machine's IP and you'll get into the container's web interface running [cAdvisor](https://github.com/google/cadvisor)
+The default port for the monitor to run on is 8080 and in the example above we're running it on port 8000. Just pass your web browser to port 8000 of the machine's IP and you'll get into the
+container's web interface running [cAdvisor](https://github.com/google/cadvisor)
+
+## Command Line Arguments
+There are very few application specific command line arguments, but they are listed below:
+
+### storagePath
+This allows you to specify where your application and components folders are, as well as your settings.json. This is useful if you're running the tool from a different directory to where those are
+stored.
+
+Example:
+
+```
+adm --storagePath=/path/to/folder status
+```
+
+# Development
+
+## Environment
+This application was created, tested and used with NodeJS 4.2.2.
+
+This provides access to use ECMAScript 6. While it should work fine on newer versions of NodeJS, older versions may have issues.
+
+## Testing & Linting
+To run this applications tests and linter, simply install Gulp globally with the below command:
+
+```
+npm install -g gulp
+```
+
+Then run the following command in the directory this repository was cloned into:
+
+```
+gulp
+```
+
+The gulpfile gives access to a few methods shown below:
+
+- jscs: Runs the JSCS tool to check JS code.
+- jshint: Runs the JSHint tool to check JS code.
+- test: Runs the mocha tests.
+- style: Runs the jscs and jshint tasks to check JS code.
+- watch: Runs all 3 main tasks and then watches for file changes to rerun those tasks constantly as files are changed.
+
+By default Gulp is set to run the jscs, jshint and test tasks when no arguments are provided to it.

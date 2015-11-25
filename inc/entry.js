@@ -26,13 +26,15 @@
     require('colors');
 
     module.exports = function (args) {
-        // Load the brain in for the application
-        let brain = require('../inc/brain');
-        brain.load();
-
         // Parse the arguments passed in
         let passedArgs = require('minimist')(args);
         passedArgs._raw = args;
+
+        global.storagePath = passedArgs.storagePath || process.cwd();
+
+        // Load the brain in for the application
+        let brain = require('../inc/brain');
+        brain.load();
 
         if (passedArgs._.length === 0) {
             brain.logger.error('No arguments were passed in!');

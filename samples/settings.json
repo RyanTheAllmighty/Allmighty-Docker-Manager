@@ -6,7 +6,7 @@
         "port": 2375,
         "ca": "/var/docker/ca.pem",
         "cert": "/var/docker/cert.pem",
-        "key": "/var/docker/key.pem",
+        "key": "/var/docker/key.pem"
     },
     "repositoryURL": "index.docker.io/v1/",
     "repositoryAuth": {

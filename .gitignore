@@ -1,8 +1,3 @@
 node_modules
 .idea
 npm-debug.log*
-
-settings.json
-
-applications
-components

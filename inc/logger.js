@@ -21,7 +21,7 @@
 
     let path = require('path');
 
-    let settings = require(path.join(process.cwd(), 'settings.json'));
+    let settings = require(path.join(global.storagePath, 'settings.json'));
 
     module.exports.debug = function (message) {
         if (settings.logging.level && settings.logging.level === 'debug') {

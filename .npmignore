@@ -1,8 +1,9 @@
-STYLE.md
-settings.json.example
+test/
+samples/
+
 .gitattributes
 .gitignore
 .jscsrc
 .jshintrc
 gulpfile.js
-test/
+STYLE.md
