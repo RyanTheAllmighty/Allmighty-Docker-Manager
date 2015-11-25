@@ -16,58 +16,60 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var expect = require('chai').expect;
+    let expect = require('chai').expect;
 
-var Port = require('../../inc/classes/port');
+    let Port = require('../../inc/classes/port');
 
-describe('Port', function () {
-    var port = new Port({
-        host: 80,
-        container: 8888
-    });
-
-    var portUDP = new Port({
-        host: 80,
-        container: 8888,
-        tcp: false,
-        udp: true
-    });
-
-    it('should create a port', function () {
-        expect(port instanceof Port).to.equal(true);
-    });
-
-    describe('#host', function () {
-        it('should return the hosts port', function () {
-            expect(port.host).to.equal(80);
-        });
-    });
-
-    describe('#container', function () {
-        it('should return the containers port', function () {
-            expect(port.container).to.equal(8888);
-        });
-    });
-
-    describe('#tcp', function () {
-        it('should return true when tcp isn\'t specified', function () {
-            expect(port.tcp).to.equal(true);
+    describe('Port', function () {
+        let port = new Port({
+            host: 80,
+            container: 8888
         });
 
-        it('should return false when tcp is specified as false', function () {
-            expect(portUDP.tcp).to.equal(false);
-        });
-    });
-
-    describe('#udp', function () {
-        it('should return false when udp isn\'t specified', function () {
-            expect(port.udp).to.equal(false);
+        let portUDP = new Port({
+            host: 80,
+            container: 8888,
+            tcp: false,
+            udp: true
         });
 
-        it('should return true when udp is specified as true', function () {
-            expect(portUDP.udp).to.equal(true);
+        it('should create a port', function () {
+            expect(port instanceof Port).to.equal(true);
+        });
+
+        describe('#host', function () {
+            it('should return the hosts port', function () {
+                expect(port.host).to.equal(80);
+            });
+        });
+
+        describe('#container', function () {
+            it('should return the containers port', function () {
+                expect(port.container).to.equal(8888);
+            });
+        });
+
+        describe('#tcp', function () {
+            it('should return true when tcp isn\'t specified', function () {
+                expect(port.tcp).to.equal(true);
+            });
+
+            it('should return false when tcp is specified as false', function () {
+                expect(portUDP.tcp).to.equal(false);
+            });
+        });
+
+        describe('#udp', function () {
+            it('should return false when udp isn\'t specified', function () {
+                expect(port.udp).to.equal(false);
+            });
+
+            it('should return true when udp is specified as true', function () {
+                expect(portUDP.udp).to.equal(true);
+            });
         });
     });
-});
+})();

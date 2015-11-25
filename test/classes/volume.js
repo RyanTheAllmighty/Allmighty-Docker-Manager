@@ -16,84 +16,86 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var expect = require('chai').expect;
+    let expect = require('chai').expect;
 
-var Layer = require('../../inc/classes/layer');
-var Volume = require('../../inc/classes/volume');
-var Application = require('../../inc/classes/application');
+    let Layer = require('../../inc/classes/layer');
+    let Volume = require('../../inc/classes/volume');
+    let Application = require('../../inc/classes/application');
 
-describe('Volume', function () {
-    var readWriteVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
-        host: "/test/readwrite",
-        container: "/mnt/readwrite",
-        readOnly: false
-    });
+    describe('Volume', function () {
+        let readWriteVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
+            host: '/test/readwrite',
+            container: '/mnt/readwrite',
+            readOnly: false
+        });
 
-    var readOnlyVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
-        host: "/test/readonly",
-        container: "/mnt/readonly",
-        readOnly: true
-    });
+        let readOnlyVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
+            host: '/test/readonly',
+            container: '/mnt/readonly',
+            readOnly: true
+        });
 
-    var fileVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
-        host: "/test/file.txt",
-        container: "/mnt/file.txt",
-        directory: false
-    });
+        let fileVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
+            host: '/test/file.txt',
+            container: '/mnt/file.txt',
+            directory: false
+        });
 
-    var variableVolume = new Volume(new Layer(new Application('test', {
-        directories: {
-            test: {
-                "path": "/test/variable",
-                "description": "Testing variable replacements!",
-                "shared": false
+        let variableVolume = new Volume(new Layer(new Application('test', {
+            directories: {
+                test: {
+                    path: '/test/variable',
+                    description: 'Testing vartiable replacements!',
+                    shared: false
+                }
             }
-        }
-    }), 'test', {}), {
-        host: "${test}/hello",
-        container: "/mnt/readonly",
-        readOnly: true
-    });
+        }), 'test', {}), {
+            host: '${test}/hello',
+            container: '/mnt/readonly',
+            readOnly: true
+        });
 
-    it('should create a read only Volume', function () {
-        expect(readOnlyVolume instanceof Volume).to.equal(true);
-        expect(readOnlyVolume.readOnly).to.equal(true);
-    });
-
-    it('should create a read write Volume', function () {
-        expect(readWriteVolume instanceof Volume).to.equal(true);
-        expect(readWriteVolume.readOnly).to.equal(false);
-    });
-
-    describe('#readOnly', function () {
-        it('should return if the volume is read only', function () {
-            expect(readWriteVolume.readOnly).to.equal(false);
+        it('should create a read only Volume', function () {
+            expect(readOnlyVolume instanceof Volume).to.equal(true);
             expect(readOnlyVolume.readOnly).to.equal(true);
         });
-    });
 
-    describe('#host', function () {
-        it('should return the path to the volume on the host without variables', function () {
-            expect(readOnlyVolume.host.indexOf("/test/readonly") > -1).to.equal(true);
+        it('should create a read write Volume', function () {
+            expect(readWriteVolume instanceof Volume).to.equal(true);
+            expect(readWriteVolume.readOnly).to.equal(false);
         });
 
-        it('should return the path to the volume on the host with variables', function () {
-            expect(variableVolume.host.indexOf("/test/variable/hello") > -1).to.equal(true);
+        describe('#readOnly', function () {
+            it('should return if the volume is read only', function () {
+                expect(readWriteVolume.readOnly).to.equal(false);
+                expect(readOnlyVolume.readOnly).to.equal(true);
+            });
         });
-    });
 
-    describe('#container', function () {
-        it('should return the path to the volume within the container', function () {
-            expect(readOnlyVolume.container).to.equal('/mnt/readonly');
-        });
-    });
+        describe('#host', function () {
+            it('should return the path to the volume on the host without variables', function () {
+                expect(readOnlyVolume.host.indexOf('/test/readonly') > -1).to.equal(true);
+            });
 
-    describe('#directory', function () {
-        it('should return if the volume is pointing to a file or not', function () {
-            expect(readOnlyVolume.directory).to.equal(true);
-            expect(fileVolume.directory).to.equal(false);
+            it('should return the path to the volume on the host with variables', function () {
+                expect(variableVolume.host.indexOf('/test/variable/hello') > -1).to.equal(true);
+            });
+        });
+
+        describe('#container', function () {
+            it('should return the path to the volume within the container', function () {
+                expect(readOnlyVolume.container).to.equal('/mnt/readonly');
+            });
+        });
+
+        describe('#directory', function () {
+            it('should return if the volume is pointing to a file or not', function () {
+                expect(readOnlyVolume.directory).to.equal(true);
+                expect(fileVolume.directory).to.equal(false);
+            });
         });
     });
-});
+})();

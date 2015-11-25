@@ -16,31 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var expect = require('chai').expect;
+    let expect = require('chai').expect;
 
-var Label = require('../../inc/classes/label');
+    let Label = require('../../inc/classes/label');
 
-describe('Label', function () {
-    var label = new Label({
-        name: 'test',
-        value: 'value'
-    });
+    describe('Label', function () {
+        let label = new Label({
+            name: 'test',
+            value: 'value'
+        });
 
-    it('should create a port', function () {
-        expect(label instanceof Label).to.equal(true);
-    });
+        it('should create a port', function () {
+            expect(label instanceof Label).to.equal(true);
+        });
 
-    describe('#name', function () {
-        it('should return the labels name', function () {
-            expect(label.name).to.equal('test');
+        describe('#name', function () {
+            it('should return the labels name', function () {
+                expect(label.name).to.equal('test');
+            });
+        });
+
+        describe('#value', function () {
+            it('should return the labels value', function () {
+                expect(label.value).to.equal('value');
+            });
         });
     });
-
-    describe('#value', function () {
-        it('should return the labels value', function () {
-            expect(label.value).to.equal('value');
-        });
-    });
-});
+})();

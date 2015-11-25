@@ -16,43 +16,45 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var expect = require('chai').expect;
+    let expect = require('chai').expect;
 
-var Environment = require('../../inc/classes/environment');
+    let Environment = require('../../inc/classes/environment');
 
-describe('Environment', function () {
-    var environment = new Environment({
-        name: 'TEST',
-        value: 'test'
-    });
-
-    var environmentWithArray = new Environment({
-        name: 'TEST',
-        value: [
-            'test1',
-            'test2'
-        ]
-    });
-
-    it('should create an environment', function () {
-        expect(environment instanceof Environment).to.equal(true);
-    });
-
-    describe('#name', function () {
-        it('should return the name of an environment', function () {
-            expect(environment.name).to.equal('TEST');
-        });
-    });
-
-    describe('#value', function () {
-        it('should return the value of an environment from a string', function () {
-            expect(environment.value).to.equal('test');
+    describe('Environment', function () {
+        let environment = new Environment({
+            name: 'TEST',
+            value: 'test'
         });
 
-        it('should return the value of an environment from an array', function () {
-            expect(environmentWithArray.value).to.equal('test1,test2');
+        let environmentWithArray = new Environment({
+            name: 'TEST',
+            value: [
+                'test1',
+                'test2'
+            ]
+        });
+
+        it('should create an environment', function () {
+            expect(environment instanceof Environment).to.equal(true);
+        });
+
+        describe('#name', function () {
+            it('should return the name of an environment', function () {
+                expect(environment.name).to.equal('TEST');
+            });
+        });
+
+        describe('#value', function () {
+            it('should return the value of an environment from a string', function () {
+                expect(environment.value).to.equal('test');
+            });
+
+            it('should return the value of an environment from an array', function () {
+                expect(environmentWithArray.value).to.equal('test1,test2');
+            });
         });
     });
-});
+})();

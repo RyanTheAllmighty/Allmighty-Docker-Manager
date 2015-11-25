@@ -25,14 +25,14 @@
     let jshint = require('gulp-jshint');
 
     gulp.task('jshint', function () {
-        return gulp.src(['app.js', 'inc/**/*.js'])
+        return gulp.src(['app.js', 'inc/**/*.js', 'test/**/*.js'])
             .pipe(jshint())
             .pipe(jshint.reporter())
             .pipe(jshint.reporter('fail'));
     });
 
     gulp.task('jscs', function () {
-        return gulp.src(['app.js', 'inc/**/*.js'])
+        return gulp.src(['app.js', 'inc/**/*.js', 'test/**/*.js'])
             .pipe(jscs())
             .pipe(jscs.reporter())
             .pipe(jscs.reporter('fail'));

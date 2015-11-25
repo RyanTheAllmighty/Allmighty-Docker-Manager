@@ -16,24 +16,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-"use strict";
+(function () {
+    'use strict';
 
-var expect = require('chai').expect;
+    let expect = require('chai').expect;
 
-var VolumeFrom = require('../../inc/classes/volumeFrom');
+    let VolumeFrom = require('../../inc/classes/volumeFrom');
 
-describe('VolumeFrom', function () {
-    var volume = new VolumeFrom({
-        container: "test"
-    });
+    describe('VolumeFrom', function () {
+        let volume = new VolumeFrom({
+            container: 'test'
+        });
 
-    it('should create a VolumeFrom', function () {
-        expect(volume instanceof VolumeFrom).to.equal(true);
-    });
+        it('should create a VolumeFrom', function () {
+            expect(volume instanceof VolumeFrom).to.equal(true);
+        });
 
-    describe('#container', function () {
-        it('should return the name of the container this volume is from', function () {
-            expect(volume.container).to.equal('test');
+        describe('#container', function () {
+            it('should return the name of the container this volume is from', function () {
+                expect(volume.container).to.equal('test');
+            });
         });
     });
-});
+})();
