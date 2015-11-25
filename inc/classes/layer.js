@@ -30,7 +30,10 @@
 
     let fs = require('fs');
     let _ = require('lodash');
+    let path = require('path');
     let bytes = require('bytes');
+    let touch = require('touch');
+    let mkdirp = require('mkdirp');
     let sprintf = require('sprintf-js').sprintf;
 
     // Symbol for storing the objects properties
@@ -269,11 +272,15 @@
 
                 this.volumes.forEach(function (volume) {
                     if (!fs.existsSync(volume.host)) {
-                        brain.logger.warning('The volume ' + volume.host + ' doesn\'t exist! This may cause issues!');
+                        if (!volume.directory || path.basename(volume.host).indexOf('.') !== -1) {
+                            touch.sync(volume.host);
+                        } else {
+                            mkdirp.sync(volume.host);
+                        }
                     }
 
                     // If it exists on the host and is a directory then we add it to the Volumes, files shouldn't be added there
-                    if (!fs.existsSync(volume.host) && fs.statSync(volume.host).isDirectory()) {
+                    if (fs.existsSync(volume.host) && fs.statSync(volume.host).isDirectory()) {
                         dockerOptions.Volumes[volume.container] = {};
                     }
 

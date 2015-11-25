@@ -54,6 +54,15 @@
         }
 
         /**
+         * Gets if this volume is a directory or not.
+         *
+         * @returns {String}
+         */
+        get directory() {
+            return typeof this[objectSymbol].directory === 'undefined' ? true : this[objectSymbol].directory;
+        }
+
+        /**
          * Gets the path on the host system to mount inside the container.
          *
          * \${([\w]+)}

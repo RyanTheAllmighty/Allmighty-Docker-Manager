@@ -27,6 +27,12 @@
                     "host": "${read_only}",
                     "container": "/mounted/RO",
                     "readOnly": true
+                },
+                {
+                    "host": "${read_only}/file.txt",
+                    "container": "/mounted/RO/file.txt",
+                    "readOnly": true,
+                    "directory": false
                 }
             ]
         },

@@ -37,6 +37,12 @@ describe('Volume', function () {
         readOnly: true
     });
 
+    var fileVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
+        host: "/test/file.txt",
+        container: "/mnt/file.txt",
+        directory: false
+    });
+
     var variableVolume = new Volume(new Layer(new Application('test', {
         directories: {
             test: {
@@ -81,6 +87,13 @@ describe('Volume', function () {
     describe('#container', function () {
         it('should return the path to the volume within the container', function () {
             expect(readOnlyVolume.container).to.equal('/mnt/readonly');
+        });
+    });
+
+    describe('#directory', function () {
+        it('should return if the volume is pointing to a file or not', function () {
+            expect(readOnlyVolume.directory).to.equal(true);
+            expect(fileVolume.directory).to.equal(false);
         });
     });
 });
