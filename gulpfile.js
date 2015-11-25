@@ -52,6 +52,9 @@
         gulp.start('default');
     });
 
+    // The style task which checks styling standards
+    gulp.task('style', ['jshint', 'jscs']);
+
     // The default task (called when you run `gulp` from cli)
     gulp.task('default', ['jshint', 'jscs', 'test']);
 })();
