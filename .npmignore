@@ -1,0 +1,8 @@
+STYLE.md
+settings.json.example
+.gitattributes
+.gitignore
+.jscsrc
+.jshintrc
+gulpfile.js
+test/
