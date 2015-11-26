@@ -1,6 +1,6 @@
 {
     "name": "allmighty-docker-manager",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "Allmighty Docker Manager (ADM) is a small utility written in NodeJS that I use to manage application deployment in docker similar to how docker-compose works.",
     "main": "app.js",
     "bin": {
@@ -40,8 +40,6 @@
         "gulp-jshint": "^1.12.0",
         "gulp-mocha": "^2.2.0",
         "mocha": "^2.3.3",
-        "nw-builder": "^2.0.2",
-        "rimraf": "^2.4.3",
         "sinon": "^1.17.1"
     }
 }
