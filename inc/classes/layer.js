@@ -568,18 +568,22 @@
          * @param {Layer~runCallback} callback - the callback for when we're done
          */
         run(options, callback) {
-            let dOpts = this.dockerOptions;
+            let self = this;
 
-            // Change our specific options for Docker
-            dOpts.Cmd = this.command.concat(options._raw.slice(options._raw.indexOf(this.name) + 1));
-            dOpts.AttachStdin = true;
-            dOpts.AttachStdout = true;
-            dOpts.AttachStderr = true;
-            dOpts.Tty = true;
-            dOpts.OpenStdin = true;
-            dOpts.StdinOnce = false;
+            this.container.remove(function () {
+                let dOpts = self.dockerOptions;
 
-            brain.run(dOpts, callback);
+                // Change our specific options for Docker
+                dOpts.Cmd = self.command.concat(options._raw.slice(options._raw.indexOf(self.name) + 1));
+                dOpts.AttachStdin = true;
+                dOpts.AttachStdout = true;
+                dOpts.AttachStderr = true;
+                dOpts.Tty = true;
+                dOpts.OpenStdin = true;
+                dOpts.StdinOnce = false;
+
+                brain.run(dOpts, callback);
+            });
         }
 
         /**
