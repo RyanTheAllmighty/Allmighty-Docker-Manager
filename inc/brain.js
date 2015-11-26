@@ -51,7 +51,7 @@
     };
 
     module.exports.getBaseDirectory = function () {
-        return path.join(__dirname, '../');
+        return path.join(global.storagePath);
     };
 
     module.exports.getApplications = function () {
@@ -131,8 +131,8 @@
     };
 
     module.exports.loadComponents = function () {
-        let componentNames = fs.readdirSync(this.getBuildsDirectory()).filter(function (file) {
-            return fs.statSync(path.join(this.getBuildsDirectory(), file)).isDirectory();
+        let componentNames = fs.readdirSync(this.getComponentsDirectory()).filter(function (file) {
+            return fs.statSync(path.join(this.getComponentsDirectory(), file)).isDirectory();
         }, this);
 
         let components = {};
@@ -162,7 +162,7 @@
         return applications;
     };
 
-    module.exports.getBuildsDirectory = function () {
+    module.exports.getComponentsDirectory = function () {
         return path.join(global.storagePath, 'components');
     };
 

@@ -47,7 +47,7 @@
          * @returns {String}
          */
         get directory() {
-            return path.join(brain.getBaseDirectory(), brain.settings.directories.components, this.name);
+            return path.join(brain.getComponentsDirectory(), this.name);
         }
 
         /**
