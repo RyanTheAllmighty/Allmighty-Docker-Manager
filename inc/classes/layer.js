@@ -545,7 +545,7 @@
 
             this.isUp(function (isUp) {
                 if (!isUp) {
-                    return self.up(callback);
+                    return self.up(options, callback);
                 }
 
                 brain.logger.info(self.containerName + ' is being restarted!');

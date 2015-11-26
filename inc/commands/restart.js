@@ -64,9 +64,7 @@
                 let applicationName = passedArgs._[i];
 
                 if (!brain.isApplicationSync(applicationName)) {
-                    return callback({
-                        error: 'No application exists called "' + applicationName + '"!'
-                    });
+                    return callback(new Error('No application exists called "' + applicationName + '"!'));
                 }
 
                 toActUpon.push(brain.getApplication(applicationName));
@@ -74,6 +72,8 @@
         } else {
             toActUpon = toActUpon.concat(brain.getApplicationsAsArray());
         }
+
+        callback();
     };
 
     /**

@@ -334,16 +334,10 @@
                 if (err) {
                     return callback(err);
                 }
-
-                let _asyncEachCallback = function (layer, next) {
+                
+                async.eachSeries(layersOrder, function (layer, next) {
                     layer.restart(options, next);
-                };
-
-                if (options.async) {
-                    async.each(layersOrder, _asyncEachCallback, callback);
-                } else {
-                    async.eachSeries(layersOrder, _asyncEachCallback, callback);
-                }
+                }, callback);
             });
         }
 
