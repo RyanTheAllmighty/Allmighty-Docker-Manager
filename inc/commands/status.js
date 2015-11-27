@@ -29,12 +29,33 @@
     let sprintf = require('sprintf-js').sprintf;
 
     /**
+     * The applications we wish to check the status of.
+     *
+     * @type {Application[]}
+     */
+    let toActUpon = [];
+
+    /**
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
      * @param {App~commandRunCallback} callback - The callback for when we're done
      */
     module.exports.init = function (passedArgs, callback) {
+        if (passedArgs._ && passedArgs._.length > 0) {
+            for (let i = 0; i < passedArgs._.length; i++) {
+                let applicationName = passedArgs._[i];
+
+                if (!brain.isApplicationSync(applicationName)) {
+                    return callback(new Error('No application exists called "' + applicationName + '"!'));
+                }
+
+                toActUpon.push(brain.getApplication(applicationName));
+            }
+        } else {
+            toActUpon = brain.getApplicationsAsArray();
+        }
+
         callback();
     };
 
@@ -47,7 +68,7 @@
     module.exports.run = function (callback) {
         let first = true;
 
-        async.eachSeries(brain.getApplicationsAsArray(), function (application, next) {
+        async.eachSeries(toActUpon, function (application, next) {
             if (first) {
                 first = false;
             } else {
