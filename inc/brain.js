@@ -25,6 +25,7 @@
     let path = require('path');
     let Docker = require('dockerode');
     let timediff = require('timediff');
+    let sprintf = require('sprintf-js').sprintf;
 
     // Now our applications specific classes
     let Component = require('./classes/component');
@@ -247,27 +248,27 @@
 
         let diff = timediff(from, to, 'YMWDHmS');
 
-        let diffString = diff.seconds;
-        let diffStringEnd = 'seconds';
-
+        let diffString = '';
+        
         if (diff.years) {
-            diffString = diff.years;
-            diffStringEnd = 'years';
-        } else if (diff.months) {
-            diffString = diff.months;
-            diffStringEnd = 'months';
-        } else if (diff.weeks) {
-            diffString = diff.weeks;
-            diffStringEnd = 'weeks';
-        } else if (diff.hours) {
-            diffString = diff.hours;
-            diffStringEnd = 'hours';
-        } else if (diff.minutes) {
-            diffString = diff.minutes;
-            diffStringEnd = 'minutes';
+            diffString += (diffString.length !== 0 ? ', ' : '') + diff.years + ' year' + (diff.years === 1 ? '' : 's');
         }
 
-        return diffString + ' ' + diffStringEnd;
+        if (diff.months) {
+            diffString += (diffString.length !== 0 ? ', ' : '') + diff.months + ' month' + (diff.months === 1 ? '' : 's');
+        }
+
+        if (diff.weeks) {
+            diffString += (diffString.length !== 0 ? ', ' : '') + diff.weeks + ' week' + (diff.weeks === 1 ? '' : 's');
+        }
+
+        if (diff.days) {
+            diffString += (diffString.length !== 0 ? ', ' : '') + diff.days + ' day' + (diff.days === 1 ? '' : 's');
+        }
+
+        diffString += (diffString.length !== 0 ? ', ' : '') + sprintf('%02d:%02d:%02d', diff.hours, diff.minutes, diff.seconds);
+
+        return diffString;
     };
 
     module.exports.run = function (dockerOptions, callback) {
