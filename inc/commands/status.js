@@ -26,6 +26,7 @@
     let brain = require('../brain');
 
     let async = require('async');
+    let moment = require('moment');
     let sprintf = require('sprintf-js').sprintf;
 
     /**
@@ -83,9 +84,24 @@
                     brain.logger.raw(sprintf('%15s: ', layer.name));
                     layer.isUp(function (isUp) {
                         brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
-                        brain.logger.line();
 
-                        nextt();
+                        if (isUp) {
+                            layer.container.inspect(function (err, data) {
+                                if (err) {
+                                    brain.logger.line();
+                                    return nextt();
+                                }
+
+                                brain.logger.raw(' (ID: ' + data.Config.Hostname + ')');
+                                brain.logger.raw(' (Uptime: ' + brain.parseTimeDifference(moment(data.State.StartedAt).toDate()) + ')');
+
+                                brain.logger.line();
+                                return nextt();
+                            });
+                        } else {
+                            brain.logger.line();
+                            return nextt();
+                        }
                     });
                 } else {
                     nextt();

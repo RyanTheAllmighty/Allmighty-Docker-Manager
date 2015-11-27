@@ -24,6 +24,7 @@
     let _ = require('lodash');
     let path = require('path');
     let Docker = require('dockerode');
+    let timediff = require('timediff');
 
     // Now our applications specific classes
     let Component = require('./classes/component');
@@ -206,6 +207,36 @@
         module.exports.docker.getImage(name).get(function (err) {
             callback(null, !err);
         });
+    };
+
+    module.exports.parseTimeDifference = function (from, to) {
+        if (!to) {
+            to = new Date();
+        }
+
+        let diff = timediff(from, to, 'YMWDHmS');
+
+        let diffString = diff.seconds;
+        let diffStringEnd = 'seconds';
+
+        if (diff.years) {
+            diffString = diff.years;
+            diffStringEnd = 'years';
+        } else if (diff.months) {
+            diffString = diff.months;
+            diffStringEnd = 'months';
+        } else if (diff.weeks) {
+            diffString = diff.weeks;
+            diffStringEnd = 'weeks';
+        } else if (diff.hours) {
+            diffString = diff.hours;
+            diffStringEnd = 'hours';
+        } else if (diff.minutes) {
+            diffString = diff.minutes;
+            diffStringEnd = 'minutes';
+        }
+
+        return diffString + ' ' + diffStringEnd;
     };
 
     module.exports.run = function (dockerOptions, callback) {
