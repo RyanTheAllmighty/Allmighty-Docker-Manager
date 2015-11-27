@@ -77,15 +77,46 @@
         return application;
     };
 
+    module.exports.getApplications = function (name) {
+        let application = _applications[name];
+        let applications = [];
+
+        if (!application) {
+            let star = name.indexOf('*');
+
+            if (star === -1) {
+                application = _.filter(_applications, function (app) {
+                    return app.applicationName.indexOf(name) === 0;
+                });
+            } else {
+                applications = _.filter(_applications, function (app) {
+                    return app.applicationName.indexOf(name.substr(0, star)) === 0;
+                });
+            }
+        }
+
+        return application ? [application] : applications;
+    };
+
     module.exports.isApplicationSync = function (name) {
         let exists = name in _applications;
 
         if (!exists) {
-            let apps = _.filter(_applications, function (app) {
-                return app.applicationName.indexOf(name) === 0;
-            });
+            let star = name.indexOf('*');
 
-            exists = apps.length === 1;
+            if (star === -1) {
+                let apps = _.filter(_applications, function (app) {
+                    return app.applicationName.indexOf(name) === 0;
+                });
+
+                exists = apps.length === 1;
+            } else {
+                let apps = _.filter(_applications, function (app) {
+                    return app.applicationName.indexOf(name.substr(0, star)) === 0;
+                });
+
+                exists = apps.length !== 0;
+            }
         }
 
         return exists;

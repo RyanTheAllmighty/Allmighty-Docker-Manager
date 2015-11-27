@@ -27,6 +27,7 @@
 
     let brain = require('../brain');
 
+    let _ = require('lodash');
     let async = require('async');
     let merge = require('merge');
 
@@ -69,11 +70,17 @@
                     return callback(new Error('No application exists called "' + applicationName + '"!'));
                 }
 
-                toActUpon.push(brain.getApplication(applicationName));
+                if (applicationName.indexOf('*') === -1) {
+                    toActUpon.push(brain.getApplication(applicationName));
+                } else {
+                    toActUpon = toActUpon.concat(brain.getApplications(applicationName));
+                }
             }
         } else {
             toActUpon = brain.getApplicationsAsArray();
         }
+
+        toActUpon = _.uniq(toActUpon);
 
         // Go through and check each application and remove the ones that are already online.
         async.each(toActUpon, function (application, next) {

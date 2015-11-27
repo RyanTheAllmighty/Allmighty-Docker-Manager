@@ -25,6 +25,7 @@
 
     let brain = require('../brain');
 
+    let _ = require('lodash');
     let async = require('async');
     let moment = require('moment');
     let sprintf = require('sprintf-js').sprintf;
@@ -51,11 +52,17 @@
                     return callback(new Error('No application exists called "' + applicationName + '"!'));
                 }
 
-                toActUpon.push(brain.getApplication(applicationName));
+                if (applicationName.indexOf('*') === -1) {
+                    toActUpon.push(brain.getApplication(applicationName));
+                } else {
+                    toActUpon = toActUpon.concat(brain.getApplications(applicationName));
+                }
             }
         } else {
             toActUpon = brain.getApplicationsAsArray();
         }
+
+        toActUpon = _.uniq(toActUpon);
 
         callback();
     };
