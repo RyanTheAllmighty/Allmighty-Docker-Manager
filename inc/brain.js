@@ -56,10 +56,6 @@
         return path.join(global.storagePath);
     };
 
-    module.exports.getApplications = function () {
-        return _applications;
-    };
-
     module.exports.getApplicationsAsArray = function () {
         return Object.keys(_applications).map(function (key) {
             return _applications[key];
@@ -79,6 +75,10 @@
     };
 
     module.exports.getApplications = function (name) {
+        if (!name) {
+            return _applications;
+        }
+
         let application = _applications[name];
         let applications = [];
 
@@ -249,7 +249,7 @@
         let diff = timediff(from, to, 'YMWDHmS');
 
         let diffString = '';
-        
+
         if (diff.years) {
             diffString += (diffString.length !== 0 ? ', ' : '') + diff.years + ' year' + (diff.years === 1 ? '' : 's');
         }
