@@ -28,6 +28,8 @@
     let path = require('path');
     let async = require('async');
     let mkdirp = require('mkdirp');
+    let moment = require('moment');
+    let sprintf = require('sprintf-js').sprintf;
 
     // Symbol for storing the objects properties
     let objectSymbol = Symbol();
@@ -128,6 +130,36 @@
                 });
             }, function (err) {
                 callback(!err);
+            });
+        }
+
+        /**
+         * Checks if any of the layers passed in as names are up/have been created (for dataOnly layers) or not.
+         *
+         * @param {String[]} layers - an array of names of layers
+         * @param {Application~areLayersUpCallback} callback - the callback for when we're done
+         */
+        areAnyLayersUp(layers, callback) {
+            async.each(this.layers, function (layer, next) {
+                if (!layers.some(lName => lName === layer.name)) {
+                    // This layer is irrelevant to us
+                    return next();
+                }
+
+                // Data only containers can be ignored
+                if (layer.dataOnly) {
+                    return next();
+                }
+
+                layer.container.inspect(function (err, data) {
+                    if (!err && data.State.Running === true) {
+                        return next(true);
+                    }
+
+                    next();
+                });
+            }, function (err) {
+                callback(err);
             });
         }
 
@@ -324,6 +356,66 @@
         }
 
         /**
+         * This logs this applications status to the logger.
+         *
+         * @param {Object} options - options passed in from the user
+         * @param {Function} callback
+         */
+        logStatus(options, callback) {
+            let self = this;
+
+            if (options.up) {
+                this.areAnyLayersUp(this.getLayersAsArray().map(layer => layer.name), function (up) {
+                    if (up) {
+                        logIt();
+                    } else {
+                        callback();
+                    }
+                });
+            } else {
+                logIt();
+            }
+
+            function logIt() {
+                brain.logger.raw(self.applicationName.cyan);
+                brain.logger.line();
+
+                async.eachSeries(self.getLayersAsArray(), function (layer, next) {
+                    if (!layer.dataOnly && !layer.runOnly) {
+                        brain.logger.raw(sprintf('%15s: ', layer.name));
+                        layer.isUp(function (isUp) {
+                            brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
+
+                            if (isUp) {
+                                layer.container.inspect(function (err, data) {
+                                    if (err) {
+                                        brain.logger.line();
+                                        return next();
+                                    }
+
+                                    brain.logger.raw(' (ID: ' + data.Config.Hostname + ')');
+                                    brain.logger.raw(' (Uptime: ' + brain.parseTimeDifference(moment(data.State.StartedAt).toDate()) + ')');
+
+                                    brain.logger.line();
+                                    return next();
+                                });
+                            } else {
+                                brain.logger.line();
+                                return next();
+                            }
+                        });
+                    } else {
+                        next();
+                    }
+                }, function () {
+                    brain.logger.line();
+
+                    callback();
+                });
+            }
+        }
+
+        /**
          * Restarts this application by restarting each of it's layers.
          *
          * @param {Object} options - options passed in from the user
@@ -334,7 +426,7 @@
                 if (err) {
                     return callback(err);
                 }
-                
+
                 async.eachSeries(layersOrder, function (layer, next) {
                     layer.restart(options, next);
                 }, callback);

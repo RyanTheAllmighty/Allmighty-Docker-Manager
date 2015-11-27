@@ -27,8 +27,7 @@
 
     let _ = require('lodash');
     let async = require('async');
-    let moment = require('moment');
-    let sprintf = require('sprintf-js').sprintf;
+    let merge = require('merge');
 
     /**
      * The applications we wish to check the status of.
@@ -38,12 +37,25 @@
     let toActUpon = [];
 
     /**
+     * The options for this command along with their defaults.
+     *
+     * up: If we should only show up layers (default: false)
+     *
+     * @type {{up: boolean}}
+     */
+    let options = {
+        up: false
+    };
+
+    /**
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
      * @param {App~commandRunCallback} callback - The callback for when we're done
      */
     module.exports.init = function (passedArgs, callback) {
+        options = merge(options, passedArgs);
+
         if (passedArgs._ && passedArgs._.length > 0) {
             for (let i = 0; i < passedArgs._.length; i++) {
                 let applicationName = passedArgs._[i];
@@ -74,49 +86,8 @@
      * @param {App~commandRunCallback} callback - The callback for when we're done
      */
     module.exports.run = function (callback) {
-        let first = true;
-
         async.eachSeries(toActUpon, function (application, next) {
-            if (first) {
-                first = false;
-            } else {
-                brain.logger.line();
-            }
-
-            brain.logger.raw(application.applicationName.cyan);
-            brain.logger.line();
-
-            async.eachSeries(application.getLayersAsArray(), function (layer, nextt) {
-                if (!layer.dataOnly && !layer.runOnly) {
-                    brain.logger.raw(sprintf('%15s: ', layer.name));
-                    layer.isUp(function (isUp) {
-                        brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
-
-                        if (isUp) {
-                            layer.container.inspect(function (err, data) {
-                                if (err) {
-                                    brain.logger.line();
-                                    return nextt();
-                                }
-
-                                brain.logger.raw(' (ID: ' + data.Config.Hostname + ')');
-                                brain.logger.raw(' (Uptime: ' + brain.parseTimeDifference(moment(data.State.StartedAt).toDate()) + ')');
-
-                                brain.logger.line();
-                                return nextt();
-                            });
-                        } else {
-                            brain.logger.line();
-                            return nextt();
-                        }
-                    });
-                } else {
-                    nextt();
-                }
-            }, function () {
-                next();
-            });
+            application.logStatus(options, next);
         }, callback);
-
     };
 })();
