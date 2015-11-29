@@ -80,6 +80,16 @@ There are multiple ways to get the images needed to run things, you can build th
 adm build
 ```
 
+When building you can optionally provide a version to which if provided will set the tag of the resulting image to the version provided. The version will also be added as a build argument (Docker 1.9)
+so you can access it from your Dockerfile using 'ARG VERSION' if you wish to use it.
+
+```
+adm build component --version=1.0.0
+```
+
+If no version is provided then it will be tagged as 'latest' and no build arguments will be passed into the Docker build process. You also cannot specify a version unless you're building only one
+component.
+
 Alternatively you can pull down the images from the set repository (set in the settings.json file) by running:
 
 ```

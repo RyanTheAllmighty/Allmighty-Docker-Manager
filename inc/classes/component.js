@@ -90,6 +90,12 @@
                 buildOpts.nocache = true;
             }
 
+            if (options.version) {
+                buildOpts.t += `:${options.version}`;
+            } else {
+                buildOpts.t += ':latest';
+            }
+
             let self = this;
 
             tmp.file(function (err, path, fd, cleanupCallback) {
@@ -120,9 +126,9 @@
                             return callback(err);
                         }
 
-                        brain.docker.modem.followProgress(stream, function (err, output) {
+                        brain.docker.modem.followProgress(stream, function (err) {
                             brain.logger.info('Finished build for ' + self.name);
-                            callback(err, output);
+                            callback(err);
                         }, function (progress) {
                             if (progress) {
                                 if (progress.error) {

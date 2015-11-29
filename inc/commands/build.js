@@ -44,13 +44,15 @@
      * quiet: If there should be no output from the command (default: false)
      * noCache: If we should bypass the build cache when building (default: false)
      * async: If we should run all the builds we're doing asynchronously (default: false)
+     * version: The version of this build to tag it with and also passed into the Docker build process [ARG VERSION] (default: null)
      *
-     * @type {{quiet: boolean, noCache: boolean, async: boolean}}
+     * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null}}
      */
     let options = {
         quiet: false,
         noCache: false,
-        async: false
+        async: false,
+        version: null
     };
 
     /**
@@ -67,15 +69,17 @@
                 let componentName = passedArgs._[i];
 
                 if (!brain.isComponent(componentName)) {
-                    return callback({
-                        error: 'No component exists called "' + componentName + '"!'
-                    });
+                    return callback(new Error('No component exists called "' + componentName + '"!'));
                 }
 
                 toBuild.push(brain.getComponent(componentName));
             }
         } else {
             toBuild = toBuild.concat(brain.getComponentsAsArray());
+        }
+
+        if (toBuild.length !== 1 && options.version !== null) {
+            options.version = null;
         }
 
         callback();
