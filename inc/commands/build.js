@@ -28,6 +28,7 @@
 
     let brain = require('../brain');
 
+    let _ = require('lodash');
     let async = require('async');
     let merge = require('merge');
 
@@ -77,6 +78,8 @@
         } else {
             toBuild = toBuild.concat(brain.getComponentsAsArray());
         }
+
+        toBuild = _.uniq(toBuild);
 
         if (toBuild.length !== 1 && options.version !== null) {
             options.version = null;
