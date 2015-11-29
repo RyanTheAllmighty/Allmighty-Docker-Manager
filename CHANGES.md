@@ -5,6 +5,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 ### 0.4.1
 ### Additions
 - Add in --force option to the clean command.
+- Tag newly built images with the latest tag when building with the latest version.
 
 ### 0.4.0
 ### Additions

@@ -139,6 +139,13 @@
                     return callback(err);
                 }
 
+                let latestVersion = false;
+
+                if (buildOpts.usingLatestVersion) {
+                    latestVersion = true;
+                    delete buildOpts.usingLatestVersion;
+                }
+
                 let nameVerString = buildOpts.t.substr(buildOpts.t.lastIndexOf('/') + 1);
 
                 brain.logger.info('Started build for ' + nameVerString);
@@ -172,8 +179,17 @@
                             }
 
                             brain.docker.modem.followProgress(stream, function (err) {
+                                if (err) {
+                                    return callback(err);
+                                }
+
                                 brain.logger.info('Finished build for ' + nameVerString);
-                                callback(err);
+
+                                if (latestVersion) {
+                                    brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest'}, callback);
+                                } else {
+                                    callback();
+                                }
                             }, function (progress) {
                                 if (progress) {
                                     if (progress.error) {
@@ -227,6 +243,7 @@
 
                         buildOpts.t += `:${options.version}`;
                         buildOpts.buildargs = JSON.stringify({VERSION: options.version});
+                        buildOpts.usingLatestVersion = true;
 
                         callback(null, buildOpts);
                     }).catch(callback);
