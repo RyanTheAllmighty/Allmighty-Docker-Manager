@@ -3,6 +3,8 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.3
 ### 0.3.1
+### Additions
+- Show the name of the component and the version when printing out success/error messages to the console while building.
 #### Fixes
 - Fix build command not working.
 

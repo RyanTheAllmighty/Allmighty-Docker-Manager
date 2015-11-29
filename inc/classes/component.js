@@ -93,12 +93,14 @@
         build(options, callback) {
             let self = this;
 
-            brain.logger.info('Started build for ' + this.name);
-
             this.getBuildOptions(options, function (err, buildOpts) {
                 if (err) {
                     return callback(err);
                 }
+
+                let nameVerString = buildOpts.t.substr(buildOpts.t.lastIndexOf('/') + 1);
+
+                brain.logger.info('Started build for ' + nameVerString);
 
                 tmp.file(function (err, path, fd, cleanupCallback) {
                     if (err) {
@@ -124,12 +126,12 @@
 
                         brain.docker.buildImage(path, buildOpts, function (err, stream) {
                             if (err || stream === null) {
-                                brain.logger.error('Error building ' + self.name);
+                                brain.logger.error('Error building ' + nameVerString);
                                 return callback(err);
                             }
 
                             brain.docker.modem.followProgress(stream, function (err) {
-                                brain.logger.info('Finished build for ' + self.name);
+                                brain.logger.info('Finished build for ' + nameVerString);
                                 callback(err);
                             }, function (progress) {
                                 if (progress) {
