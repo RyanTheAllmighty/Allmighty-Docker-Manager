@@ -34,13 +34,15 @@
      * quiet: If there should be no output from the command (default: false)
      * containers: If all containers should be cleaned up (default: false)
      * images: If all images should be cleaned up (default: false)
+     * force: If the cleaning should be forced or not (default: false)
      *
-     * @type {{quiet: boolean, containers: boolean, images: boolean}}
+     * @type {{quiet: boolean, containers: boolean, images: boolean, force: boolean}}
      */
     let options = {
         quiet: false,
         containers: false,
-        images: false
+        images: false,
+        force: false
     };
 
     /**
@@ -75,12 +77,12 @@
                 brain.logger.info('Deleting all containers!');
 
                 async.each(containers, function (containerInfo, next) {
-                    brain.docker.getContainer(containerInfo.Id).stop(function (err) {
+                    brain.docker.getContainer(containerInfo.Id).stop({force: options.force}, function (err) {
                         if (err && err.statusCode !== 304) {
                             return next(err);
                         }
 
-                        brain.docker.getContainer(containerInfo.Id).remove(next);
+                        brain.docker.getContainer(containerInfo.Id).remove({force: options.force}, next);
                     });
                 }, callback);
             }
@@ -94,7 +96,7 @@
                     brain.logger.info('Deleting all images!');
 
                     async.each(images, function (imageInfo, next) {
-                        brain.docker.getImage(imageInfo.Id).remove(next);
+                        brain.docker.getImage(imageInfo.Id).remove({force: options.force}, next);
                     }, callback);
                 });
             }

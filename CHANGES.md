@@ -2,6 +2,10 @@
 This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.4
+### 0.4.1
+### Additions
+- Add in --force option to the clean command.
+
 ### 0.4.0
 ### Additions
 - Show the name of the component and the version when printing out success/error messages to the console while building.
