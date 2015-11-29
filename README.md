@@ -87,8 +87,9 @@ so you can access it from your Dockerfile using 'ARG VERSION' if you wish to use
 adm build component --version=1.0.0
 ```
 
-If no version is provided then it will be tagged as 'latest' and no build arguments will be passed into the Docker build process. You also cannot specify a version unless you're building only one
-component.
+If no version is provided then it will be tagged as 'latest' and no build arguments will be passed into the Docker build process **UNLESS** there is a utility file (see section below for info) in that
+components folder with a method called 'getLatestVersion' which returns a promise which resolves to the version number to use as if you'd passed it in. You also cannot specify a version unless you're
+building only onecomponent.
 
 Alternatively you can pull down the images from the set repository (set in the settings.json file) by running:
 
@@ -149,6 +150,31 @@ Example:
 
 ```
 adm --storagePath=/path/to/folder status
+```
+
+## Component Utility Files
+Component utility files are single JS files named adm-util.js in a components folder. It's job is to provide simple utility commands to use during any interaction with components.
+
+The file should simply export methods you need to be available. A sample is included below with information about the methods.
+
+```js
+(function () {
+    'use strict';
+
+    module.exports = {
+        /**
+         * This gets the latest version of this component for use in the build process as a VERSION build argument and also as the tag.
+         *
+         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @returns {Promise} - Resolves with a String version else will reject with an Error object
+         */
+        getLatestVersion: function (request) {
+            return new Promise(function (resolve, reject) {
+                return resolve('1.2.3');
+            });
+        }
+    };
+})();
 ```
 
 # Development

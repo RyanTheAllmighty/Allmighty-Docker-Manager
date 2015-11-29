@@ -21,6 +21,7 @@
 
     let brain = require('../brain');
 
+    let fs = require('fs');
     let tmp = require('tmp');
     let path = require('path');
     let spawn = require('child_process').spawn;
@@ -75,6 +76,15 @@
         }
 
         /**
+         * Gets the path to the adm-util.js file for this component.
+         *
+         * @returns {String}
+         */
+        get utilFile() {
+            return path.join(this.directory, 'adm-util.js');
+        }
+
+        /**
          * Builds this component into a Docker image.
          *
          * @param {Object} options - options passed in from the user
@@ -82,6 +92,65 @@
          */
         build(options, callback) {
             brain.logger.info('Started build for ' + this.name);
+
+            this.getBuildOptions(options, function (err, buildOpts) {
+                if (err) {
+                    return callback(err);
+                }
+
+                let self = this;
+
+                tmp.file(function (err, path, fd, cleanupCallback) {
+                    if (err) {
+                        cleanupCallback();
+
+                        return callback(err);
+                    }
+
+                    let tarArgs = [
+                        '-cf',
+                        path,
+                        '-C',
+                        self.directory,
+                        '.'
+                    ];
+
+                    let tarPS = spawn('tar', tarArgs);
+
+                    tarPS.on('close', function (code) {
+                        if (code !== 0) {
+                            return callback(new Error('A non 0 exit code! ' + code + ' was returned when trying to tar the folder!'));
+                        }
+
+                        brain.docker.buildImage(path, buildOpts, function (err, stream) {
+                            if (err || stream === null) {
+                                brain.logger.error('Error building ' + self.name);
+                                return callback(err);
+                            }
+
+                            brain.docker.modem.followProgress(stream, function (err) {
+                                brain.logger.info('Finished build for ' + self.name);
+                                callback(err);
+                            }, function (progress) {
+                                if (progress) {
+                                    if (progress.error) {
+                                        return callback(new Error(progress.error.errorDetail.message));
+                                    }
+
+                                    if (!options.quiet) {
+                                        if (progress.stream) {
+                                            process.stdout.write(progress.stream);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+        }
+
+        getBuildOptions(options, callback) {
             let buildOpts = {
                 t: this.tagName
             };
@@ -90,62 +159,33 @@
                 buildOpts.nocache = true;
             }
 
-            if (options.version) {
+            if (!options.version && fs.existsSync(this.utilFile)) {
+                let utils = require(this.utilFile);
+
+                if (typeof utils.getLatestVersion === 'function') {
+                    utils.getLatestVersion(require('request')).then(function (version) {
+                        options.version = version;
+
+                        buildOpts.t += `:${options.version}`;
+                        buildOpts.buildargs = JSON.stringify({VERSION: options.version});
+
+                        callback(null, buildOpts);
+                    }).catch(callback);
+                } else {
+                    buildOpts.t += ':latest';
+
+                    callback(null, buildOpts);
+                }
+            } else if (options.version) {
                 buildOpts.t += `:${options.version}`;
                 buildOpts.buildargs = JSON.stringify({VERSION: options.version});
+
+                callback(null, buildOpts);
             } else {
                 buildOpts.t += ':latest';
+
+                callback(null, buildOpts);
             }
-
-            let self = this;
-
-            tmp.file(function (err, path, fd, cleanupCallback) {
-                if (err) {
-                    cleanupCallback();
-
-                    return callback(err);
-                }
-
-                let tarArgs = [
-                    '-cf',
-                    path,
-                    '-C',
-                    self.directory,
-                    '.'
-                ];
-
-                let tarPS = spawn('tar', tarArgs);
-
-                tarPS.on('close', function (code) {
-                    if (code !== 0) {
-                        return callback(new Error('A non 0 exit code! ' + code + ' was returned when trying to tar the folder!'));
-                    }
-
-                    brain.docker.buildImage(path, buildOpts, function (err, stream) {
-                        if (err || stream === null) {
-                            brain.logger.error('Error building ' + self.name);
-                            return callback(err);
-                        }
-
-                        brain.docker.modem.followProgress(stream, function (err) {
-                            brain.logger.info('Finished build for ' + self.name);
-                            callback(err);
-                        }, function (progress) {
-                            if (progress) {
-                                if (progress.error) {
-                                    return callback(new Error(progress.error.errorDetail.message));
-                                }
-
-                                if (!options.quiet) {
-                                    if (progress.stream) {
-                                        process.stdout.write(progress.stream);
-                                    }
-                                }
-                            }
-                        });
-                    });
-                });
-            });
         }
 
         /**

@@ -1,12 +1,15 @@
 # Changes
 This file marks the changes in each version of ADM starting with 0.2.0.
 
-## 0.2
-
-### 0.2.1
+## 0.3
+### 0.3.0
+### Additions
+- Added in the ability to have a util file for components (adm-util.js in the component folder) which has helper methods including 'getLatestVersion' which should return in a promise the version
+number to use if one isn't passed in via --version. See README.md for more information.
 #### Fixes
 - Fix VERSION not actually being passed into the build process.
 
+## 0.2
 ### 0.2.0
 #### Additions
 - Added in the ability to specify --version when building components. This value is used as the tag name for the resulting image and is also sent to the Docker build process and is available to use
