@@ -89,7 +89,15 @@ adm build component --version=1.0.0
 
 If no version is provided then it will be tagged as 'latest' and no build arguments will be passed into the Docker build process **UNLESS** there is a utility file (see section below for info) in that
 components folder with a method called 'getLatestVersion' which returns a promise which resolves to the version number to use as if you'd passed it in. You also cannot specify a version unless you're
-building only onecomponent.
+building only one component.
+
+If you wish to get a list of versions available for a component you can run the build command with the --versions option as per below:
+
+```
+adm build component --versions
+```
+
+This will list all the versions available for the given component as per what is in the adm-util.js file for the component if it exists.
 
 Alternatively you can pull down the images from the set repository (set in the settings.json file) by running:
 
@@ -172,7 +180,19 @@ The file should simply export methods you need to be available. A sample is incl
             return new Promise(function (resolve, reject) {
                 return resolve('1.2.3');
             });
-        }
+        },
+         /**
+          * This gets the an array of all the available versions of this component.
+          *
+          * @param {Object} options - This is an object of options passed from the command line
+          * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+          * @returns {Promise} - Resolves with a String version else will reject with an Error object
+          */
+         getAvailableVersions: function (options, request) {
+             return new Promise(function (resolve, reject) {
+                return resolve(['1.2.3', '1.2.4']);
+             });
+         }
     };
 })();
 ```

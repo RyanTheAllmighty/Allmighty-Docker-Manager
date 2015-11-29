@@ -1,13 +1,15 @@
 # Changes
 This file marks the changes in each version of ADM starting with 0.2.0.
 
-## 0.3
-### 0.3.1
+## 0.4
+### 0.4.0
 ### Additions
 - Show the name of the component and the version when printing out success/error messages to the console while building.
+- Add in the --versions option to the build command to list all of a components available versions as per the adm-util.js script if available for that component.
 #### Fixes
 - Fix build command not working.
 
+## 0.3
 ### 0.3.0
 ### Additions
 - Added in the ability to have a util file for components (adm-util.js in the component folder) which has helper methods including 'getLatestVersion' which should return in a promise the version

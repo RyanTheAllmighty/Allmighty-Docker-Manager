@@ -24,6 +24,8 @@
     let fs = require('fs');
     let tmp = require('tmp');
     let path = require('path');
+    let async = require('async');
+    let Table = require('cli-table2');
     let spawn = require('child_process').spawn;
     let sprintf = require('sprintf-js').sprintf;
 
@@ -93,6 +95,45 @@
         build(options, callback) {
             let self = this;
 
+            if (options.versions) {
+                return this.getAvailableVersions(options, function (err, versions) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    let table = new Table();
+
+                    let tRow = [];
+
+                    async.eachSeries(versions, function (version, next) {
+                        if (tRow.length === 10) {
+                            table.push(tRow);
+                            tRow = [];
+                        }
+
+                        brain.docker.getImage(self.tagName + ':' + version).inspect(function (err) {
+                            if (err) {
+                                tRow.push(version.red);
+                                return next();
+                            }
+
+                            tRow.push(version.green);
+                            next();
+                        });
+                    }, function () {
+                        if (tRow.length !== 0) {
+                            table.push(tRow);
+                            tRow = [];
+                        }
+
+                        brain.logger.raw(table.toString());
+                        brain.logger.line();
+
+                        callback();
+                    });
+                });
+            }
+
             this.getBuildOptions(options, function (err, buildOpts) {
                 if (err) {
                     return callback(err);
@@ -150,6 +191,22 @@
                     });
                 });
             });
+        }
+
+        getAvailableVersions(options, callback) {
+            if (fs.existsSync(this.utilFile)) {
+                let utils = require(this.utilFile);
+
+                if (typeof utils.getAvailableVersions === 'function') {
+                    utils.getAvailableVersions(options, require('request')).then(function (versions) {
+                        callback(null, versions);
+                    }).catch(callback);
+                } else {
+                    callback(null, ['latest']);
+                }
+            } else {
+                callback(null, ['latest']);
+            }
         }
 
         getBuildOptions(options, callback) {
@@ -273,19 +330,19 @@
  * This is the callback used when building a component.
  *
  * @callback Component~buildCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to build a component
+ * @param {Error|undefined} [err] - the error (if any) that occurred while trying to build a component
  */
 
 /**
  * This is the callback used when pulling a component.
  *
  * @callback Component~pullCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to pull a component
+ * @param {Error|undefined} [err] - the error (if any) that occurred while trying to pull a component
  */
 
 /**
  * This is the callback used when pushing a component.
  *
  * @callback Component~pushCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to push a component
+ * @param {Error|undefined} [err] - the error (if any) that occurred while trying to push a component
  */

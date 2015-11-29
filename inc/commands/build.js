@@ -46,14 +46,18 @@
      * noCache: If we should bypass the build cache when building (default: false)
      * async: If we should run all the builds we're doing asynchronously (default: false)
      * version: The version of this build to tag it with and also passed into the Docker build process [ARG VERSION] (default: null)
+     * versions: If we should list all the available versions of this component we can build (default: false)
+     * n: The number of versions we should show when using the versions option (default: null)
      *
-     * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null}}
+     * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null, version: String|null, versions: boolean, n: Number|null}}
      */
     let options = {
         quiet: false,
         noCache: false,
         async: false,
-        version: null
+        version: null,
+        versions: false,
+        n: null
     };
 
     /**
@@ -65,12 +69,16 @@
     module.exports.init = function (passedArgs, callback) {
         options = merge(options, passedArgs);
 
+        if (options.n) {
+            options.n = isNaN(options.n) ? null : parseInt(options.n);
+        }
+
         if (passedArgs._ && passedArgs._.length > 0) {
             for (let i = 0; i < passedArgs._.length; i++) {
                 let componentName = passedArgs._[i];
 
                 if (!brain.isComponent(componentName)) {
-                    return callback(new Error('No component exists called "' + componentName + '"!'));
+                    return callback(new Error(`No component exists called "${componentName}"!`));
                 }
 
                 toBuild.push(brain.getComponent(componentName));
@@ -83,6 +91,7 @@
 
         if (toBuild.length !== 1 && options.version !== null) {
             options.version = null;
+            options.versions = false;
         }
 
         callback();

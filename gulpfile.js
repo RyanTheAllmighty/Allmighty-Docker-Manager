@@ -26,7 +26,7 @@
     let jshint = require('gulp-jshint');
     let passedArgs = require('minimist')(process.argv.splice(2));
 
-    global.storagePath = passedArgs.storagePath || path.join(process.cwd(), 'samples');
+    global.storagePath = passedArgs.storagePath || path.join(process.cwd(), 'sample');
 
     gulp.task('jshint', function () {
         return gulp.src(['app.js', 'inc/**/*.js', 'test/**/*.js'])
