@@ -92,6 +92,7 @@
 
             if (options.version) {
                 buildOpts.t += `:${options.version}`;
+                buildOpts.buildargs = JSON.stringify({VERSION: options.version});
             } else {
                 buildOpts.t += ':latest';
             }
