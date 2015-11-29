@@ -91,14 +91,14 @@
          * @param {Component~buildCallback} callback - the callback for when we're done
          */
         build(options, callback) {
+            let self = this;
+
             brain.logger.info('Started build for ' + this.name);
 
             this.getBuildOptions(options, function (err, buildOpts) {
                 if (err) {
                     return callback(err);
                 }
-
-                let self = this;
 
                 tmp.file(function (err, path, fd, cleanupCallback) {
                     if (err) {
