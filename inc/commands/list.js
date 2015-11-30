@@ -41,79 +41,82 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        if (passedArgs._ && passedArgs._.length > 0) {
-            for (let i = 0; i < passedArgs._.length; i++) {
-                let applicationName = passedArgs._[i];
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve, reject) {
+            if (passedArgs._ && passedArgs._.length > 0) {
+                for (let i = 0; i < passedArgs._.length; i++) {
+                    let applicationName = passedArgs._[i];
 
-                if (!brain.isApplicationSync(applicationName)) {
-                    return callback(new Error('No application exists called "' + applicationName + '"!'));
-                }
+                    if (!brain.isApplicationSync(applicationName)) {
+                        return reject(new Error('No application exists called "' + applicationName + '"!'));
+                    }
 
-                if (applicationName.indexOf('*') === -1) {
-                    toList.push(brain.getApplication(applicationName));
-                } else {
-                    toList = toList.concat(brain.getApplications(applicationName));
+                    if (applicationName.indexOf('*') === -1) {
+                        toList.push(brain.getApplication(applicationName));
+                    } else {
+                        toList = toList.concat(brain.getApplications(applicationName));
+                    }
                 }
+            } else {
+                toList = brain.getApplicationsAsArray();
             }
-        } else {
-            toList = brain.getApplicationsAsArray();
-        }
 
-        toList = _.uniq(toList);
+            toList = _.uniq(toList);
 
-        // Go through and check each application and remove the ones that are not online.
-        async.each(toList, function (application, next) {
-            application.isAnyUp(function (up) {
-                if (!up) {
-                    toList.splice(toList.indexOf(application), 1);
+            // Go through and check each application and remove the ones that are not online.
+            async.each(toList, function (application, next) {
+                application.isAnyUp(function (up) {
+                    if (!up) {
+                        toList.splice(toList.indexOf(application), 1);
+                    }
+
+                    next();
+                });
+            }, function (err) {
+                if (err) {
+                    return reject(err);
                 }
 
-                next();
+                // If all the applications we want to list are offline, then we don't need to do anything.
+                if (toList.length === 0) {
+                    return reject(new Error('None of the provided applications are online!'));
+                }
+
+                resolve();
             });
-        }, function (err) {
-            if (err) {
-                return callback(err);
-            }
-
-            // If all the applications we want to list are offline, then we don't need to do anything.
-            if (toList.length === 0) {
-                return callback(new Error('None of the provided applications are online!'));
-            }
-
-            callback();
         });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        let list = [];
+    module.exports.run = function () {
+        return new Promise(function (resolve, reject) {
+            let list = [];
 
-        async.each(toList, function (application, next) {
-            async.each(application.layers, function (layer, next1) {
-                layer.isUp(function (isUp) {
-                    if (isUp) {
-                        list.push(layer.containerName);
-                    }
+            async.each(toList, function (application, next) {
+                async.each(application.layers, function (layer, next1) {
+                    layer.isUp(function (isUp) {
+                        if (isUp) {
+                            list.push(layer.containerName);
+                        }
 
-                    next1();
-                });
-            }, next);
-        }, function (err) {
-            if (err) {
-                return callback(err);
-            }
+                        next1();
+                    });
+                }, next);
+            }, function (err) {
+                if (err) {
+                    return reject(err);
+                }
 
-            brain.logger.info(list.join(' '));
+                brain.logger.info(list.join(' '));
 
-            callback();
+                resolve();
+            });
         });
     };
 })();

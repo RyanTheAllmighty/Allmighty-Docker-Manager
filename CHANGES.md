@@ -3,12 +3,14 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.6
 ### 0.6.0
-### Additions
+#### Additions
 - Add in a directories.json file which stores global directories to use by applications with ${name} without having to redeclare it in every application.
+#### Fixes
+- Switched callbacks to promises.
 
 ## 0.5
 ### 0.5.0
-### Additions
+#### Additions
 - Add in --untagged option to the clean command to only remove untagged images (--images --untagged).
 - Add in list command to list all the container names for all or a single application.
 #### Fixes

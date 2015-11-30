@@ -34,7 +34,7 @@
 
         if (!fs.existsSync(path.join(global.storagePath, 'settings.json'))) {
             console.log(('Couldn\'t find a settings.json! Path: ' + global.storagePath).red);
-            process.exit(1);
+            return process.exit(1);
         }
 
         // Load the brain in for the application
@@ -43,7 +43,7 @@
 
         if (passedArgs._.length === 0) {
             brain.logger.error('No arguments were passed in!');
-            process.exit(1);
+            return process.exit(1);
         }
 
         // The action we're taking
@@ -57,7 +57,7 @@
         // Check the action is only letters
         if (!/^[a-zA-z]+$/.test(action)) {
             brain.logger.error('Invalid first argument passed in!');
-            process.exit(1);
+            return process.exit(1);
         }
 
         // The file of the possible command
@@ -66,41 +66,18 @@
         // Check the js file exists in the command directory
         if (!fs.existsSync(commandFile)) {
             brain.logger.error('No command found for ' + action + '!');
-            process.exit(1);
+            return process.exit(1);
         }
 
         // This is the command we want to run
         let command = require(commandFile);
 
         // First we need to initialize it with the arguments passed in to do some sanity checks and processing
-        command.init(passedArgs, function (err) {
-            if (err) {
-                brain.logger.error(err);
-                return process.exit(1);
-            }
-
-            // Then we run it with a callback with the result
-            command.run(function (err, res) {
-                if (err) {
-                    brain.logger.error(err);
-
-                    return process.exit(1);
-                }
-
-                if (res) {
-                    brain.logger.info(res);
-                }
-
-                process.exit(0);
-            });
+        command.init(passedArgs).then(command.run).then(function () {
+            process.exit(0);
+        }).catch(function (err) {
+            brain.logger.error(err);
+            return process.exit(1);
         });
     };
 })();
-
-/**
- * This is a callback for any errors and results from running a command.
- *
- * @callback App~commandRunCallback
- * @param {Object|undefined} [err] - The error (if any) returned from this command
- * @param {String|undefined} [res] - The response (if any) returned from this command
- */

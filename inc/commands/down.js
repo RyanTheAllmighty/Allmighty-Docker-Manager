@@ -57,69 +57,72 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        options = merge(options, passedArgs);
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve, reject) {
+            options = merge(options, passedArgs);
 
-        if (passedArgs._ && passedArgs._.length > 0) {
-            for (let i = 0; i < passedArgs._.length; i++) {
-                let applicationName = passedArgs._[i];
+            if (passedArgs._ && passedArgs._.length > 0) {
+                for (let i = 0; i < passedArgs._.length; i++) {
+                    let applicationName = passedArgs._[i];
 
-                if (!brain.isApplicationSync(applicationName)) {
-                    return callback(new Error('No application exists called "' + applicationName + '"!'));
+                    if (!brain.isApplicationSync(applicationName)) {
+                        return reject(new Error('No application exists called "' + applicationName + '"!'));
+                    }
+
+                    if (applicationName.indexOf('*') === -1) {
+                        toActUpon.push(brain.getApplication(applicationName));
+                    } else {
+                        toActUpon = toActUpon.concat(brain.getApplications(applicationName));
+                    }
                 }
-
-                if (applicationName.indexOf('*') === -1) {
-                    toActUpon.push(brain.getApplication(applicationName));
-                } else {
-                    toActUpon = toActUpon.concat(brain.getApplications(applicationName));
-                }
+            } else {
+                toActUpon = brain.getApplicationsAsArray();
             }
-        } else {
-            toActUpon = brain.getApplicationsAsArray();
-        }
 
-        toActUpon = _.uniq(toActUpon);
+            toActUpon = _.uniq(toActUpon);
 
-        // Go through and check each application and remove the ones that are already online.
-        async.each(toActUpon, function (application, next) {
-            application.isAnyUp(function (up) {
-                if (!up) {
-                    toActUpon.splice(toActUpon.indexOf(application), 1);
+            // Go through and check each application and remove the ones that are already online.
+            async.each(toActUpon, function (application, next) {
+                application.isAnyUp(function (up) {
+                    if (!up) {
+                        toActUpon.splice(toActUpon.indexOf(application), 1);
+                    }
+
+                    next();
+                });
+            }, function (err) {
+                if (err) {
+                    return reject(err);
                 }
 
-                next();
+                // If all the applications we want to start are already offline, then we don't need to do anything.
+                if (toActUpon.length === 0) {
+                    return reject(new Error('All the necessary containers are already down!'));
+                }
+
+                resolve();
             });
-        }, function (err) {
-            if (err) {
-                return callback(err);
-            }
-
-            // If all the applications we want to start are already offline, then we don't need to do anything.
-            if (toActUpon.length === 0) {
-                return callback(new Error('All the necessary containers are already down!'));
-            }
-
-            callback();
         });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        let _asyncEachCallback = function (application, next) {
-            application.down(options, next);
-        };
+    module.exports.run = function () {
+        return new Promise(function (resolve, reject) {
+            let _asyncEachCallback = function (application, next) {
+                application.down(options, next);
+            };
 
-        if (options.async) {
-            async.each(toActUpon, _asyncEachCallback, callback);
-        } else {
-            async.eachSeries(toActUpon, _asyncEachCallback, callback);
-        }
+            if (options.async) {
+                async.each(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+            } else {
+                async.eachSeries(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+            }
+        });
     };
 })();

@@ -45,48 +45,51 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        options = merge(options, passedArgs);
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve, reject) {
+            options = merge(options, passedArgs);
 
-        if (!passedArgs._ || passedArgs._.length < 2) {
-            return callback(new Error('2 arguments must be passed in!'));
-        }
-
-        if (passedArgs.l <= 0) {
-            return callback(new Error('The n option must be a number more than 0!'));
-        }
-
-        let applicationName = passedArgs._[0];
-        let layerName = passedArgs._[1];
-
-        brain.isApplication(applicationName, function (isApp) {
-            if (!isApp) {
-                return callback(new Error('No application with the name of ' + applicationName + ' exists!'));
+            if (!passedArgs._ || passedArgs._.length < 2) {
+                return reject(new Error('2 arguments must be passed in!'));
             }
 
-            let application = brain.getApplication(applicationName);
+            if (passedArgs.l <= 0) {
+                return reject(new Error('The n option must be a number more than 0!'));
+            }
 
-            application.isLayer(layerName, function (isLayer) {
-                if (!isLayer) {
-                    return callback(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+            let applicationName = passedArgs._[0];
+            let layerName = passedArgs._[1];
+
+            brain.isApplication(applicationName, function (isApp) {
+                if (!isApp) {
+                    return reject(new Error('No application with the name of ' + applicationName + ' exists!'));
                 }
 
-                theLayer = application.getLayer(layerName);
+                let application = brain.getApplication(applicationName);
 
-                theLayer.canRun(callback);
+                application.isLayer(layerName, function (isLayer) {
+                    if (!isLayer) {
+                        return reject(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
+                    }
+
+                    theLayer = application.getLayer(layerName);
+
+                    theLayer.canRun(err => err ? reject(err) : resolve());
+                });
             });
         });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        theLayer.run(options, callback);
+    module.exports.run = function () {
+        return new Promise(function (resolve, reject) {
+            theLayer.run(options, (err) => err ? reject(err) : resolve());
+        });
     };
 })();

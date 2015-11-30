@@ -64,54 +64,57 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        options = merge(options, passedArgs);
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve, reject) {
+            options = merge(options, passedArgs);
 
-        if (options.n) {
-            options.n = isNaN(options.n) ? null : parseInt(options.n);
-        }
-
-        if (passedArgs._ && passedArgs._.length > 0) {
-            for (let i = 0; i < passedArgs._.length; i++) {
-                let componentName = passedArgs._[i];
-
-                if (!brain.isComponent(componentName)) {
-                    return callback(new Error(`No component exists called "${componentName}"!`));
-                }
-
-                toBuild.push(brain.getComponent(componentName));
+            if (options.n) {
+                options.n = isNaN(options.n) ? null : parseInt(options.n);
             }
-        } else {
-            toBuild = toBuild.concat(brain.getComponentsAsArray());
-        }
 
-        toBuild = _.uniq(toBuild);
+            if (passedArgs._ && passedArgs._.length > 0) {
+                for (let i = 0; i < passedArgs._.length; i++) {
+                    let componentName = passedArgs._[i];
 
-        if (toBuild.length !== 1 && options.version !== null) {
-            options.version = null;
-            options.versions = false;
-        }
+                    if (!brain.isComponent(componentName)) {
+                        return reject(new Error(`No component exists called "${componentName}"!`));
+                    }
 
-        callback();
+                    toBuild.push(brain.getComponent(componentName));
+                }
+            } else {
+                toBuild = toBuild.concat(brain.getComponentsAsArray());
+            }
+
+            toBuild = _.uniq(toBuild);
+
+            if (toBuild.length !== 1 && options.version !== null) {
+                options.version = null;
+                options.versions = false;
+            }
+
+            resolve();
+        });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        let _asyncEachCallback = function (component, next) {
-            component.build(options, next);
-        };
+    module.exports.run = function () {
+        return new Promise(function (resolve, reject) {
+            let _asyncEachCallback = function (component, next) {
+                component.build(options, next);
+            };
 
-        if (options.async) {
-            async.each(toBuild, _asyncEachCallback, callback);
-        } else {
-            async.eachSeries(toBuild, _asyncEachCallback, callback);
-        }
+            if (options.async) {
+                async.each(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+            } else {
+                async.eachSeries(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+            }
+        });
     };
 })();

@@ -51,67 +51,70 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        options = merge(options, passedArgs);
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve, reject) {
+            options = merge(options, passedArgs);
 
-        if (!options.containers && !options.images) {
-            return callback(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
-        }
+            if (!options.containers && !options.images) {
+                return reject(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
+            }
 
-        callback();
+            resolve();
+        });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        brain.docker.listContainers({all: true}, function (err, containers) {
-            if (err) {
-                return callback(err);
-            }
+    module.exports.run = function () {
+        return new Promise(function (resolve, reject) {
+            brain.docker.listContainers({all: true}, function (err, containers) {
+                if (err) {
+                    return reject(err);
+                }
 
-            if (options.containers) {
-                brain.logger.info('Deleting all containers!');
+                if (options.containers) {
+                    brain.logger.info('Deleting all containers!');
 
-                async.each(containers, function (containerInfo, next) {
-                    brain.docker.getContainer(containerInfo.Id).stop({force: options.force}, function (err) {
-                        if (err && err.statusCode !== 304) {
-                            return next(err);
+                    async.each(containers, function (containerInfo, next) {
+                        brain.docker.getContainer(containerInfo.Id).stop({force: options.force}, function (err) {
+                            if (err && err.statusCode !== 304) {
+                                return next(err);
+                            }
+
+                            brain.docker.getContainer(containerInfo.Id).remove({force: options.force}, next);
+                        });
+                    }, (err) => err ? reject(err) : resolve());
+                }
+
+                if (options.images) {
+                    brain.docker.listImages(function (err, images) {
+                        if (err) {
+                            return reject(err);
                         }
 
-                        brain.docker.getContainer(containerInfo.Id).remove({force: options.force}, next);
+                        brain.logger.info('Deleting all ' + (options.untagged ? 'untagged ' : '') + 'images!');
+
+                        async.each(images, function (imageInfo, next) {
+                            let image = brain.docker.getImage(imageInfo.Id);
+
+                            if (options.untagged) {
+                                image.inspect(function (err, data) {
+                                    if (err || data.RepoTags.length === 0) {
+                                        image.remove({force: options.force}, next);
+                                    }
+                                });
+                            } else {
+                                image.remove({force: options.force}, next);
+                            }
+                        }, (err) => err ? reject(err) : resolve());
                     });
-                }, callback);
-            }
-
-            if (options.images) {
-                brain.docker.listImages(function (err, images) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    brain.logger.info('Deleting all ' + (options.untagged ? 'untagged ' : '') + 'images!');
-
-                    async.each(images, function (imageInfo, next) {
-                        let image = brain.docker.getImage(imageInfo.Id);
-
-                        if (options.untagged) {
-                            image.inspect(function (err, data) {
-                                if (err || data.RepoTags.length === 0) {
-                                    image.remove({force: options.force}, next);
-                                }
-                            });
-                        } else {
-                            image.remove({force: options.force}, next);
-                        }
-                    }, callback);
-                });
-            }
+                }
+            });
         });
     };
 })();

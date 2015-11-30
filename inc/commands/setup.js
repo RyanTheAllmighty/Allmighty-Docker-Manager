@@ -46,29 +46,32 @@
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
      *
      * @param {Object} passedArgs - An object of arguments
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.init = function (passedArgs, callback) {
-        options = merge(options, passedArgs);
+    module.exports.init = function (passedArgs) {
+        return new Promise(function (resolve) {
+            options = merge(options, passedArgs);
 
-        callback();
+            resolve();
+        });
     };
 
     /**
-     * This runs the command with the given arguments/options set in the init method and returns possibly an error and
-     * response in the callback if any.
+     * This runs the command with the given arguments/options set in the init method and returns a promise which will be rejected with an error or resolved.
      *
-     * @param {App~commandRunCallback} callback - The callback for when we're done
+     * @returns {Promise}
      */
-    module.exports.run = function (callback) {
-        if (!options.quiet) {
-            brain.logger.info('Setting up the directories needed!');
-        }
+    module.exports.run = function () {
+        return new Promise(function (resolve) {
+            if (!options.quiet) {
+                brain.logger.info('Setting up the directories needed!');
+            }
 
-        _.forEach(brain.getApplications(), function (application) {
-            application.setupDirectories(options);
+            _.forEach(brain.getApplications(), function (application) {
+                application.setupDirectories(options);
+            });
+
+            resolve();
         });
-
-        callback();
     };
 })();
