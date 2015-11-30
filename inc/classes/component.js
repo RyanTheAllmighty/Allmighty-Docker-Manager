@@ -186,7 +186,7 @@
                                 brain.logger.info('Finished build for ' + nameVerString);
 
                                 if (latestVersion) {
-                                    brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest'}, callback);
+                                    brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest', force: true}, callback);
                                 } else {
                                     callback();
                                 }
