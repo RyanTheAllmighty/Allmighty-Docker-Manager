@@ -41,6 +41,8 @@
     let _components = {};
     let _applications = {};
 
+    module.exports.directories = fs.existsSync(path.join(global.storagePath, 'directories.json')) ? require(path.join(global.storagePath, 'directories.json')) : {};
+
     module.exports.docker = getDockerInstance();
 
     module.exports.logger = logger;

@@ -79,7 +79,15 @@
             }
 
             for (let i = 0; i < matches.length; i += 2) {
-                value = value.replace(matches[i], brain.settings.directories.storage.slice(0, -1) + this.layer.application.directories[matches[i + 1]].path);
+                let path = null;
+
+                if (this.layer.application.directories && this.layer.application.directories[matches[i + 1]]) {
+                    path = this.layer.application.directories[matches[i + 1]].path;
+                } else {
+                    path = brain.directories[matches[i + 1]].path;
+                }
+
+                value = value.replace(matches[i], brain.settings.directories.storage.slice(0, -1) + path);
             }
 
             return value;
