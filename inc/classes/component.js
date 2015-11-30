@@ -239,10 +239,8 @@
 
                 if (typeof utils.getLatestVersion === 'function') {
                     utils.getLatestVersion(require('request')).then(function (version) {
-                        options.version = version;
-
-                        buildOpts.t += `:${options.version}`;
-                        buildOpts.buildargs = JSON.stringify({VERSION: options.version});
+                        buildOpts.t += `:${version}`;
+                        buildOpts.buildargs = JSON.stringify({VERSION: version});
                         buildOpts.usingLatestVersion = true;
 
                         callback(null, buildOpts);

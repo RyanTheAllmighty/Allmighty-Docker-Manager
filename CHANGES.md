@@ -2,6 +2,10 @@
 This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.4
+### 0.4.2
+#### Fixes
+- Fix issue when building multiple components that it wouldn't fetch the latest version.
+
 ### 0.4.1
 ### Additions
 - Add in --force option to the clean command.
