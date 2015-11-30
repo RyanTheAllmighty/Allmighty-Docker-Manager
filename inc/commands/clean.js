@@ -34,6 +34,7 @@
      * quiet: If there should be no output from the command (default: false)
      * containers: If all containers should be cleaned up (default: false)
      * images: If all images should be cleaned up (default: false)
+     * untagged: If we should only removed untagged images (default: false)
      * force: If the cleaning should be forced or not (default: false)
      *
      * @type {{quiet: boolean, containers: boolean, images: boolean, force: boolean}}
@@ -42,6 +43,7 @@
         quiet: false,
         containers: false,
         images: false,
+        untagged: false,
         force: false
     };
 
@@ -93,10 +95,20 @@
                         return callback(err);
                     }
 
-                    brain.logger.info('Deleting all images!');
+                    brain.logger.info('Deleting all ' + (options.untagged ? 'untagged ' : '') + 'images!');
 
                     async.each(images, function (imageInfo, next) {
-                        brain.docker.getImage(imageInfo.Id).remove({force: options.force}, next);
+                        let image = brain.docker.getImage(imageInfo.Id);
+
+                        if (options.untagged) {
+                            image.inspect(function (err, data) {
+                                if (err || data.RepoTags.length === 0) {
+                                    image.remove({force: options.force}, next);
+                                }
+                            });
+                        } else {
+                            image.remove({force: options.force}, next);
+                        }
                     }, callback);
                 });
             }

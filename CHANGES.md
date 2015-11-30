@@ -3,16 +3,18 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.4
 ### 0.4.2
+### Additions
+- Add in --untagged option to the clean command to only remove untagged images (--images --untagged).
 #### Fixes
 - Fix issue when building multiple components that it wouldn't fetch the latest version.
 
 ### 0.4.1
-### Additions
+#### Additions
 - Add in --force option to the clean command.
 - Tag newly built images with the latest tag when building with the latest version.
 
 ### 0.4.0
-### Additions
+#### Additions
 - Show the name of the component and the version when printing out success/error messages to the console while building.
 - Add in the --versions option to the build command to list all of a components available versions as per the adm-util.js script if available for that component.
 #### Fixes
@@ -20,7 +22,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 0.3
 ### 0.3.0
-### Additions
+#### Additions
 - Added in the ability to have a util file for components (adm-util.js in the component folder) which has helper methods including 'getLatestVersion' which should return in a promise the version
 number to use if one isn't passed in via --version. See README.md for more information.
 #### Fixes
