@@ -330,8 +330,12 @@
 
             let address = brain.settings.repositoryAuth.serveraddress;
 
-            if (address.indexOf('://') !== 0) {
+            if (address.indexOf('://') !== -1) {
                 address = address.substr(address.indexOf('://') + 3, address.length);
+            }
+
+            if (imageToGet.indexOf('${repositoryURL}') !== -1) {
+                imageToGet = imageToGet.replace('${repositoryURL}', (address.substr(-1) === '/' ? address.substr(0, address.length - 1) : address));
             }
 
             let fromCustomRepo = imageToGet.indexOf(address) > -1;

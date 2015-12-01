@@ -98,9 +98,19 @@
                 image: 'test/test:test'
             });
 
+            let imageWithoutRepositoryVersion = new Layer(new Application('test', {}), 'test', {
+                image: '${repositoryURL}/test'
+            });
+
+            let imageWithRepositoryVersion = new Layer(new Application('test', {}), 'test', {
+                image: '${repositoryURL}/test:test'
+            });
+
             it('should return the image of a layer', function () {
                 expect(imageWithoutVersion.image).to.equal('test/test:latest');
                 expect(imageWithVersion.image).to.equal('test/test:test');
+                expect(imageWithoutRepositoryVersion.image).to.equal('index.docker.io/v1/test:latest');
+                expect(imageWithRepositoryVersion.image).to.equal('index.docker.io/v1/test:test');
             });
         });
 
