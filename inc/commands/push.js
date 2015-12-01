@@ -33,7 +33,7 @@
      *
      * @type {Component[]}
      */
-    let toBuild = [];
+    let toPush = [];
 
     /**
      * The options for this command along with their defaults.
@@ -66,13 +66,21 @@
                         return reject(new Error('No component exists called "' + componentName + '"!'));
                     }
 
-                    toBuild.push(brain.getComponent(componentName));
+                    toPush.push(brain.getComponent(componentName));
                 }
             } else {
-                toBuild = toBuild.concat(brain.getComponentsAsArray());
+                toPush = toPush.concat(brain.getComponentsAsArray());
             }
 
-            resolve();
+            async.each(toPush, function (component, next) {
+                brain.docker.getImage(component.tagName).inspect(function (err) {
+                    if (err) {
+                        toPush.splice(toPush.indexOf(component), 1);
+                    }
+
+                    next();
+                });
+            }, (err) => err ? reject(err) : resolve());
         });
     };
 
@@ -88,9 +96,9 @@
             };
 
             if (options.async) {
-                async.each(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                async.each(toPush, _asyncEachCallback, (err) => err ? reject(err) : resolve());
             } else {
-                async.eachSeries(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                async.eachSeries(toPush, _asyncEachCallback, (err) => err ? reject(err) : resolve());
             }
         });
     };

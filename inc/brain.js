@@ -279,9 +279,7 @@
                 return callback(err);
             }
 
-            let attach_opts = {stream: true, stdin: true, stdout: true, stderr: true};
-
-            container.attach(attach_opts, function handler(err, stream) {
+            container.attach({stream: true, stdin: true, stdout: true, stderr: true}, function handler(err, stream) {
                 // Show outputs
                 stream.pipe(process.stdout);
 
