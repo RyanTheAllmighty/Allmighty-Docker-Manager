@@ -90,6 +90,23 @@
                     "container": "data"
                 }
             ]
+        },
+        "repoComponent": {
+            "image": "${repositoryURL}/component",
+            "dataOnly": false,
+            "restart": true,
+            "cpuShares": 512,
+            "ports": [
+                {
+                    "host": 7777,
+                    "container": 6984
+                }
+            ],
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
         }
     }
 }
