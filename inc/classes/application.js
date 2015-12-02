@@ -146,7 +146,11 @@
             if (neededModules) {
                 _.forEach(neededModules, function (module) {
                     if (typeof module === 'object') {
-                        modules[Object.keys(module)[0]] = require(module[Object.keys(module)[0]]);
+                        if (module[Object.keys(module)[0]] === '{ADMBrain}') {
+                            modules[Object.keys(module)[0]] = brain;
+                        } else {
+                            modules[Object.keys(module)[0]] = require(module[Object.keys(module)[0]]);
+                        }
                     } else if (typeof module === 'string') {
                         modules[module] = require(module);
                     }
