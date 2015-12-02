@@ -431,7 +431,27 @@
          * @returns {String}
          */
         get workingDirectory() {
-            return this[objectSymbol].workingDirectory;
+            let value = this[objectSymbol].workingDirectory;
+
+            let matches = value.match(/\${([\w]+)}/);
+
+            if (!matches) {
+                return value;
+            }
+
+            for (let i = 0; i < matches.length; i += 2) {
+                let path = null;
+
+                if (this.application.directories && this.application.directories[matches[i + 1]]) {
+                    path = this.application.directories[matches[i + 1]].path;
+                } else {
+                    path = brain.directories[matches[i + 1]].path;
+                }
+
+                value = value.replace(matches[i], path);
+            }
+
+            return value;
         }
 
         /**

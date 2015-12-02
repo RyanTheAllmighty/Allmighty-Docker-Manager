@@ -5,6 +5,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 ### 0.6.1
 #### Additions
 - Add in variable for host volumes on layers for '__adm_application' which points to the folder for the application (where the json is).
+- Add in variable parsing for workingDirectory in layers.
 
 ### 0.6.0
 #### Additions
