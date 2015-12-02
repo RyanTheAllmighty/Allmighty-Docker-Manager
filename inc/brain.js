@@ -183,15 +183,13 @@
         let self = this;
 
         let applicationNames = _.map(fs.readdirSync(this.getApplicationsDirectory()).filter(function (file) {
-            return file.substr(-5) === '.json';
-        }), function (app) {
-            return app.substr(0, app.length - 5);
-        });
+            return fs.statSync(path.join(this.getApplicationsDirectory(), file)).isDirectory() && fs.existsSync(path.join(this.getApplicationsDirectory(), file, 'application.json'));
+        }, this));
 
         let applications = {};
 
         _.forEach(applicationNames, function (name) {
-            applications[name] = new Application(name, require(path.join(self.getApplicationsDirectory(), name + '.json')));
+            applications[name] = new Application(name, require(path.join(self.getApplicationsDirectory(), name, 'application.json')));
         });
 
         return applications;
