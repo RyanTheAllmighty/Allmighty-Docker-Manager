@@ -10,6 +10,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Changes
 - Switched callbacks to promises.
 - Applications are now stored in their own folders rather than all in the applications folder and are now named application.json.
+- When using the 'adm-util.js' files, allow providing an array of modules to require when calling the functions.
 #### Fixes
 - Fix issue with the push command trying to push non existent images.
 

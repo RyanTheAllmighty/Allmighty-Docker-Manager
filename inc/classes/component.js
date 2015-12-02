@@ -23,6 +23,7 @@
 
     let fs = require('fs');
     let tmp = require('tmp');
+    let _ = require('lodash');
     let path = require('path');
     let async = require('async');
     let Table = require('cli-table2');
@@ -84,6 +85,28 @@
          */
         get utilFile() {
             return path.join(this.directory, 'adm-util.js');
+        }
+
+        /**
+         * Gets the modules needed for the util file for this component.
+         *
+         * @returns {Object}
+         */
+        get utilModules() {
+            let neededModules = require(this.utilFile).modules;
+            let modules = {};
+
+            if (neededModules) {
+                _.forEach(neededModules, function (module) {
+                    if (typeof module === 'object') {
+                        modules[Object.keys(module)[0]] = require(module[Object.keys(module)[0]]);
+                    } else if (typeof module === 'string') {
+                        modules[module] = require(module);
+                    }
+                });
+            }
+
+            return modules;
         }
 
         /**
@@ -214,7 +237,7 @@
                 let utils = require(this.utilFile);
 
                 if (typeof utils.getAvailableVersions === 'function') {
-                    utils.getAvailableVersions(options, require('request')).then(function (versions) {
+                    utils.getAvailableVersions(options, this.utilModules).then(function (versions) {
                         callback(null, versions);
                     }).catch(callback);
                 } else {
@@ -238,7 +261,7 @@
                 let utils = require(this.utilFile);
 
                 if (typeof utils.getLatestVersion === 'function') {
-                    utils.getLatestVersion(require('request')).then(function (version) {
+                    utils.getLatestVersion(this.utilFile).then(function (version) {
                         buildOpts.t += `:${version}`;
                         buildOpts.buildargs = JSON.stringify({VERSION: version});
                         buildOpts.usingLatestVersion = true;

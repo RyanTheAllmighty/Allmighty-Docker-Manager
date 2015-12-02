@@ -171,13 +171,19 @@ The file should simply export methods you need to be available. A sample is incl
 
     module.exports = {
         /**
+         * An array of modules we want to be passed. These can take the form of a simple string or an object with the key being the name to export it as.
+         *
+         * For instance {_: 'lodash'} will provide a modules._ with the required module called lodash.
+         */
+        modules: ['request', {_: 'lodash'}],
+        /**
          * This runs before starting the application and is run before any container is created or brung up.
          *
          * @param {Application} application - This is the application that is being brought online
-         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @param {Object} [modules] - This is an object of the requested required in modules (if any)
          * @returns {Promise} - Resolves when done. A reject will stop the application from coming up
          */
-        preUp: function (application, request) {
+        preUp: function (application, modules) {
             return new Promise(function (resolve, reject) {
                 resolve();
             });
@@ -186,10 +192,10 @@ The file should simply export methods you need to be available. A sample is incl
          * This runs before stopping the application and is run before any container is brung down.
          *
          * @param {Application} application - This is the application that is being brought online
-         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @param {Object} [modules] - This is an object of the requested required in modules (if any)
          * @returns {Promise} - Resolves when done. A reject will stop the application from coming down
          */
-        preDown: function (application, request) {
+        preDown: function (application, modules) {
             return new Promise(function (resolve, reject) {
                 resolve();
             });
@@ -209,12 +215,18 @@ The file should simply export methods you need to be available. A sample is incl
 
     module.exports = {
         /**
+         * An array of modules we want to be passed. These can take the form of a simple string or an object with the key being the name to export it as.
+         *
+         * For instance {_: 'lodash'} will provide a modules._ with the required module called lodash.
+         */
+        modules: ['request', {_: 'lodash'}],
+        /**
          * This gets the latest version of this component for use in the build process as a VERSION build argument and also as the tag.
          *
-         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @param {Object} [modules] - This is an object of the requested required in modules (if any)
          * @returns {Promise} - Resolves with a String version else will reject with an Error object
          */
-        getLatestVersion: function (request) {
+        getLatestVersion: function (modules) {
             return new Promise(function (resolve, reject) {
                 return resolve('1.2.3');
             });
@@ -223,10 +235,10 @@ The file should simply export methods you need to be available. A sample is incl
           * This gets the an array of all the available versions of this component.
           *
           * @param {Object} options - This is an object of options passed from the command line
-          * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+          * @param {Object} [modules] - This is an object of the requested required in modules (if any)
           * @returns {Promise} - Resolves with a String version else will reject with an Error object
           */
-         getAvailableVersions: function (options, request) {
+         getAvailableVersions: function (options, modules) {
              return new Promise(function (resolve, reject) {
                 return resolve(['1.2.3', '1.2.4']);
              });

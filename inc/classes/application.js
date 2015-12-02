@@ -126,6 +126,28 @@
         }
 
         /**
+         * Gets the modules needed for the util file for this application.
+         *
+         * @returns {Object}
+         */
+        get utilModules() {
+            let neededModules = require(this.utilFile).modules;
+            let modules = {};
+
+            if (neededModules) {
+                _.forEach(neededModules, function (module) {
+                    if (typeof module === 'object') {
+                        modules[Object.keys(module)[0]] = require(module[Object.keys(module)[0]]);
+                    } else if (typeof module === 'string') {
+                        modules[module] = require(module);
+                    }
+                });
+            }
+
+            return modules;
+        }
+
+        /**
          * Checks if all the layers passed in as names are up/have been created (for dataOnly layers) or not.
          *
          * @param {String[]} layers - an array of names of layers
@@ -194,7 +216,7 @@
                 let utils = require(this.utilFile);
 
                 if (typeof utils.preDown === 'function') {
-                    utils.preDown(this, require('request')).then(bringDown).catch(callback);
+                    utils.preDown(this, this.utilModules).then(bringDown).catch(callback);
                 } else {
                     bringDown();
                 }
@@ -499,7 +521,7 @@
                 let utils = require(this.utilFile);
 
                 if (typeof utils.preUp === 'function') {
-                    utils.preUp(this, require('request')).then(bringUp).catch(callback);
+                    utils.preUp(this, this.utilModules).then(bringUp).catch(callback);
                 } else {
                     bringUp();
                 }
