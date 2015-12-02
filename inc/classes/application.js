@@ -22,6 +22,7 @@
     let brain = require('../brain');
 
     let Layer = require('./layer');
+    let Directory = require('./directory');
 
     let fs = require('fs');
     let _ = require('lodash');
@@ -51,6 +52,14 @@
                 if (originalObject.hasOwnProperty(propName)) {
                     this[objectSymbol][propName] = originalObject[propName];
                 }
+            }
+
+            // Turn the directories in the object into Directory objects
+            this[objectSymbol].directories = {};
+            if (originalObject.directories) {
+                _.forEach(originalObject.directories, function (directory, key) {
+                    this[objectSymbol].directories[key] = new Directory(directory);
+                }, this);
             }
 
             // Turn the layers in the object into Layer objects
@@ -83,10 +92,10 @@
         /**
          * Gets the directories of this application.
          *
-         * @returns {Object}
+         * @returns {Directory[]}
          */
         get directories() {
-            return this[objectSymbol].directories;
+            return this[objectSymbol].directories || {};
         }
 
         /**
@@ -496,14 +505,12 @@
          */
         setupDirectories(options) {
             _.forEach(this.directories, function (directory) {
-                let thisPath = path.join(brain.settings.directories.storage, directory.path);
-
-                if (!fs.existsSync(thisPath)) {
+                if (!fs.existsSync(directory.path)) {
                     if (!options.quiet) {
-                        brain.logger.info('Creating directory ' + thisPath);
+                        brain.logger.info('Creating directory ' + directory.path);
                     }
 
-                    mkdirp.sync(thisPath);
+                    mkdirp.sync(directory.path);
                 }
             });
         }

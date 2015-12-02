@@ -87,7 +87,7 @@
                     path = brain.directories[matches[i + 1]].path;
                 }
 
-                value = value.replace(matches[i], brain.settings.directories.storage.slice(0, -1) + path);
+                value = value.replace(matches[i], path);
             }
 
             return value;

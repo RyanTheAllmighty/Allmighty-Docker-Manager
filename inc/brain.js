@@ -29,6 +29,7 @@
 
     // Now our applications specific classes
     let Component = require('./classes/component');
+    let Directory = require('./classes/directory');
     let Application = require('./classes/application');
 
     // Require our logger
@@ -41,7 +42,7 @@
     let _components = {};
     let _applications = {};
 
-    module.exports.directories = fs.existsSync(path.join(global.storagePath, 'directories.json')) ? require(path.join(global.storagePath, 'directories.json')) : {};
+    module.exports.directories = getDirectories();
 
     module.exports.docker = getDockerInstance();
 
@@ -332,6 +333,18 @@
             });
         });
     };
+
+    function getDirectories() {
+        let directories = {};
+
+        if (fs.existsSync(path.join(global.storagePath, 'directories.json'))) {
+            _.forEach(require(path.join(global.storagePath, 'directories.json')), function (directory, key) {
+                directories[key] = new Directory(directory);
+            });
+        }
+
+        return directories;
+    }
 
     function getDockerInstance() {
         if (settings.dockerSocket) {
