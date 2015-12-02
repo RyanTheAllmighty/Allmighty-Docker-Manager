@@ -83,6 +83,8 @@
 
                 if (this.layer.application.directories && this.layer.application.directories[matches[i + 1]]) {
                     path = this.layer.application.directories[matches[i + 1]].path;
+                } else if (matches[i + 1] === '__adm_application') {
+                    path = this.layer.application.directory.replace(/\\/g,'/');
                 } else {
                     path = brain.directories[matches[i + 1]].path;
                 }

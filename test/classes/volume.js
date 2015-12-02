@@ -72,6 +72,12 @@
             readOnly: true
         });
 
+        let admVariableVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
+            host: '${__adm_application}/hello',
+            container: '/mnt/readonly',
+            readOnly: true
+        });
+
         it('should create a read only Volume', function () {
             expect(readOnlyVolume instanceof Volume).to.equal(true);
             expect(readOnlyVolume.readOnly).to.equal(true);
@@ -98,8 +104,12 @@
                 expect(variableVolume.host.indexOf('/test/variable/hello') > -1).to.equal(true);
             });
 
-            it('should return the path to the volume on the host with variables', function () {
+            it('should return the path to the volume on the host with global variables', function () {
                 expect(variableGlobalVolume.host.indexOf('/test/hello') > -1).to.equal(true);
+            });
+
+            it('should return the path to the volume on the host with ADM specific variables', function () {
+                expect(admVariableVolume.host.indexOf('sample/applications/test/hello') > -1).to.equal(true);
             });
         });
 
