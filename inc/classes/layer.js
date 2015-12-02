@@ -433,6 +433,10 @@
         get workingDirectory() {
             let value = this[objectSymbol].workingDirectory;
 
+            if (!value) {
+                return value;
+            }
+
             let matches = value.match(/\${([\w]+)}/);
 
             if (!matches) {
