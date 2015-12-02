@@ -90,6 +90,15 @@
         }
 
         /**
+         * Gets the path to the folder where this application is stored.
+         *
+         * @returns {String}
+         */
+        get directory() {
+            return path.join(brain.getApplicationsDirectory(), this.applicationName);
+        }
+
+        /**
          * Gets the layers for this application. A layer is a single component (MySQL, nginx, PHP, NodeJS etc) of this whole application.
          *
          * @returns {Layer[]}
@@ -105,6 +114,15 @@
          */
         get name() {
             return this[objectSymbol].name;
+        }
+
+        /**
+         * Gets the path to the adm-util.js file for this application.
+         *
+         * @returns {String}
+         */
+        get utilFile() {
+            return path.join(this.directory, 'adm-util.js');
         }
 
         /**
@@ -170,21 +188,37 @@
          * @param {Application~downCallback} callback - the callback for when we're done
          */
         down(options, callback) {
-            this.getOrderOfLayers(options, function (err, layersOrder) {
-                if (err) {
-                    return callback(err);
-                }
+            let self = this;
 
-                let _asyncEachCallback = function (layer, next) {
-                    layer.down(options, next);
-                };
+            if (fs.existsSync(this.utilFile)) {
+                let utils = require(this.utilFile);
 
-                if (options.async) {
-                    async.each(layersOrder, _asyncEachCallback, callback);
+                if (typeof utils.preDown === 'function') {
+                    utils.preDown(this, require('request')).then(bringDown).catch(callback);
                 } else {
-                    async.eachSeries(layersOrder, _asyncEachCallback, callback);
+                    bringDown();
                 }
-            });
+            } else {
+                bringDown();
+            }
+
+            function bringDown() {
+                self.getOrderOfLayers(options, function (err, layersOrder) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    let _asyncEachCallback = function (layer, next) {
+                        layer.down(options, next);
+                    };
+
+                    if (options.async) {
+                        async.each(layersOrder, _asyncEachCallback, callback);
+                    } else {
+                        async.eachSeries(layersOrder, _asyncEachCallback, callback);
+                    }
+                });
+            }
         }
 
         /**
@@ -459,15 +493,31 @@
          * @param {Application~upCallback} callback - the callback for when we're done
          */
         up(options, callback) {
-            this.getOrderOfLayers(options, function (err, layersOrder) {
-                if (err) {
-                    return callback(err);
-                }
+            let self = this;
 
-                async.eachSeries(layersOrder, function (layer, next) {
-                    layer.up(options, next);
-                }, callback);
-            });
+            if (fs.existsSync(this.utilFile)) {
+                let utils = require(this.utilFile);
+
+                if (typeof utils.preUp === 'function') {
+                    utils.preUp(this, require('request')).then(bringUp).catch(callback);
+                } else {
+                    bringUp();
+                }
+            } else {
+                bringUp();
+            }
+
+            function bringUp() {
+                self.getOrderOfLayers(options, function (err, layersOrder) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    async.eachSeries(layersOrder, function (layer, next) {
+                        layer.up(options, next);
+                    }, callback);
+                });
+            }
         }
     };
 })();

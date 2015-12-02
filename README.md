@@ -160,6 +160,44 @@ Example:
 adm --storagePath=/path/to/folder status
 ```
 
+## Application Utility Files
+Application utility files are single JS files named adm-util.js in a applications folder. It's job is to provide simple utility commands to use during any interaction with applications.
+
+The file should simply export methods you need to be available. A sample is included below with information about the methods.
+
+```js
+(function () {
+    'use strict';
+
+    module.exports = {
+        /**
+         * This runs before starting the application and is run before any container is created or brung up.
+         *
+         * @param {Application} application - This is the application that is being brought online
+         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @returns {Promise} - Resolves when done. A reject will stop the application from coming up
+         */
+        preUp: function (application, request) {
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
+        },
+        /**
+         * This runs before stopping the application and is run before any container is brung down.
+         *
+         * @param {Application} application - This is the application that is being brought online
+         * @param request - This is a required in request module (https://github.com/request/request) which you can use to make HTTP requests if needed
+         * @returns {Promise} - Resolves when done. A reject will stop the application from coming down
+         */
+        preDown: function (application, request) {
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
+        }
+    };
+})();
+```
+
 ## Component Utility Files
 Component utility files are single JS files named adm-util.js in a components folder. It's job is to provide simple utility commands to use during any interaction with components.
 

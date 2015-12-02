@@ -6,6 +6,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Additions
 - Add in a directories.json file which stores global directories to use by applications with ${name} without having to redeclare it in every application.
 - Add in ability to specify a layers image with the string '${repositoryURL}' which is replaced by the repositories name in the settings.
+- Applications now have a 'adm-util.js' file that can be used to run JS before bringing an application up or down.
 #### Changes
 - Switched callbacks to promises.
 - Applications are now stored in their own folders rather than all in the applications folder and are now named application.json.
