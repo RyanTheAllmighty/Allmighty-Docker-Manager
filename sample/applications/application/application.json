@@ -39,6 +39,23 @@
                 }
             ]
         },
+        "setup": {
+            "image": "ubuntu:14.04",
+            "runOnly": true,
+            "runAfter": [
+                {
+                    "layer": "composer",
+                    "command": ["--no-scripts", "install"]
+                }
+            ],
+            "command": "sh setup.sh",
+            "workingDirectory": "/mounted/test",
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        },
         "composer": {
             "image": "composer/composer",
             "runOnly": true,
