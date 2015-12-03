@@ -3,6 +3,9 @@
     "version": "0.6.0",
     "description": "Allmighty Docker Manager (ADM) is a small utility written in NodeJS that I use to manage application deployment in docker similar to how docker-compose works.",
     "main": "app.js",
+    "engines": {
+        "node": ">=4.2.2"
+    },
     "bin": {
         "adm": "./bin/adm.js"
     },

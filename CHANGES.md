@@ -6,6 +6,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Additions
 - Add in variable for host volumes on layers for '__adm_application' which points to the folder for the application (where the json is).
 - Add in variable parsing for workingDirectory in layers.
+- Make NodeJS version 4.2.2 be the minimum required version.
 
 ### 0.6.0
 #### Additions
