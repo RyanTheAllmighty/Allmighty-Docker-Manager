@@ -167,7 +167,7 @@
          * @returns {Promise}
          */
         areLayersUp(layers) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 async.each(this.layers, function (layer, next) {
                     if (!layers.some(lName => lName === layer.name)) {
                         // This layer is irrelevant to us
@@ -182,7 +182,7 @@
 
                         next(new Error('The layer ' + layer.containerName + ' is not online!'));
                     });
-                }, (err) => err ? reject(err) : resolve());
+                }, (err) => resolve(!err));
             }.bind(this));
         }
 

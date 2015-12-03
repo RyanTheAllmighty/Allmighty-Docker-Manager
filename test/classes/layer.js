@@ -70,26 +70,26 @@
             expect(layer instanceof Layer).to.equal(true);
         });
 
-        describe('#application)', function () {
+        describe('#application', function () {
             it('should return the application this layer belongs to', function () {
                 expect(layer.application instanceof Application).to.equal(true);
                 expect(layer.application).to.equal(application);
             });
         });
 
-        describe('#containerName)', function () {
+        describe('#containerName', function () {
             it('should return the name of the container this layer creates', function () {
                 expect(layer.containerName).to.equal('testapp_test');
             });
         });
 
-        describe('#name)', function () {
+        describe('#name', function () {
             it('should return the name of a layer', function () {
                 expect(layer.name).to.equal('test');
             });
         });
 
-        describe('#image)', function () {
+        describe('#image', function () {
             let imageWithoutVersion = new Layer(new Application('test', {}), 'test', {
                 image: 'test/test'
             });
@@ -126,7 +126,7 @@
             });
         });
 
-        describe('#shouldRestart)', function () {
+        describe('#shouldRestart', function () {
             it('should return if the layer should restart or not', function () {
                 expect(layer.shouldRestart).to.equal(true);
             });

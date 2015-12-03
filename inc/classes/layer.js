@@ -25,12 +25,14 @@
     let Port = require('./port');
     let Label = require('./label');
     let Volume = require('./volume');
+    let RunAfter = require('./runAfter');
     let VolumeFrom = require('./volumeFrom');
     let Environment = require('./environment');
 
     let fs = require('fs');
     let _ = require('lodash');
     let path = require('path');
+    let async = require('async');
     let bytes = require('bytes');
     let touch = require('touch');
     let mkdirp = require('mkdirp');
@@ -92,6 +94,14 @@
                 }, this);
             }
 
+            // Turn the runAfters from in the object into RunAfter objects
+            this[objectSymbol].runAfter = [];
+            if (originalObject.runAfter) {
+                _.forEach(originalObject.runAfter, function (runAfter) {
+                    this[objectSymbol].runAfter.push(new RunAfter(this, runAfter));
+                }, this);
+            }
+
             // Turn the volumes from in the object into VolumeFrom objects
             this[objectSymbol].volumesFrom = [];
             if (originalObject.volumesFrom) {
@@ -100,7 +110,7 @@
                 }, this);
             }
 
-            // Tuen the environment variables in the object into Environment objects
+            // Turn the environment variables in the object into Environment objects
             this[objectSymbol].environment = [];
             if (originalObject.environment) {
                 _.forEach(originalObject.environment, function (env) {
@@ -390,6 +400,15 @@
         }
 
         /**
+         * Gets the things to run after this layer is finished (runOnly layers only).
+         *
+         * @returns {RunAfter[]}
+         */
+        get runAfter() {
+            return this[objectSymbol].runAfter;
+        }
+
+        /**
          * Returns if this layer is a run only layer which means it's intended to be run by itself only.
          *
          * @returns {Boolean}
@@ -606,7 +625,7 @@
         /**
          * This runs a layer for the application that's set as runOnly. The stdin is attached and allows interaction with the container.
          *
-         * @param {Object} options - options passed in from the user
+         * @param {Object|Array} options - options passed in from the user
          * @returns {Promise}
          */
         run(options) {
@@ -617,7 +636,7 @@
                     let dOpts = self.dockerOptions;
 
                     // Change our specific options for Docker
-                    dOpts.Cmd = self.command.concat(options._raw.slice(options._raw.indexOf(self.name) + 1));
+                    dOpts.Cmd = self.command.concat(options instanceof Array ? options : options._raw.slice(options._raw.indexOf(self.name) + 1));
                     dOpts.AttachStdin = true;
                     dOpts.AttachStdout = true;
                     dOpts.AttachStderr = true;
@@ -625,7 +644,19 @@
                     dOpts.OpenStdin = true;
                     dOpts.StdinOnce = false;
 
-                    brain.run(dOpts).then((err) => err ? reject(err) : resolve());
+                    brain.run(dOpts).then(function (err) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        if (self.runAfter) {
+                            async.eachSeries(self.runAfter, function (ra, next) {
+                                ra.layer.canRun().then(function () {
+                                    return ra.layer.run(ra.command);
+                                }).then(() => next()).catch(next);
+                            }, (err) => err ? reject(err) : resolve());
+                        }
+                    });
                 });
             }.bind(this));
         }
