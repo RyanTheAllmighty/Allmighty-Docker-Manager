@@ -164,96 +164,94 @@
          * Checks if all the layers passed in as names are up/have been created (for dataOnly layers) or not.
          *
          * @param {String[]} layers - an array of names of layers
-         * @param {Application~areLayersUpCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        areLayersUp(layers, callback) {
-            async.each(this.layers, function (layer, next) {
-                if (!layers.some(lName => lName === layer.name)) {
-                    // This layer is irrelevant to us
-                    return next();
-                }
-
-                layer.container.inspect(function (err, data) {
-                    // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
-                    if (!err && (layer.dataOnly || data.State.Running === true)) {
+        areLayersUp(layers) {
+            return new Promise(function (resolve, reject) {
+                async.each(this.layers, function (layer, next) {
+                    if (!layers.some(lName => lName === layer.name)) {
+                        // This layer is irrelevant to us
                         return next();
                     }
 
-                    next(new Error('The layer ' + layer.containerName + ' is not online!'));
-                });
-            }, function (err) {
-                callback(!err);
-            });
+                    layer.container.inspect(function (err, data) {
+                        // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
+                        if (!err && (layer.dataOnly || data.State.Running === true)) {
+                            return next();
+                        }
+
+                        next(new Error('The layer ' + layer.containerName + ' is not online!'));
+                    });
+                }, (err) => err ? reject(err) : resolve());
+            }.bind(this));
         }
 
         /**
          * Checks if any of the layers passed in as names are up/have been created (for dataOnly layers) or not.
          *
          * @param {String[]} layers - an array of names of layers
-         * @param {Application~areLayersUpCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        areAnyLayersUp(layers, callback) {
-            async.each(this.layers, function (layer, next) {
-                if (!layers.some(lName => lName === layer.name)) {
-                    // This layer is irrelevant to us
-                    return next();
-                }
-
-                // Data only containers can be ignored
-                if (layer.dataOnly) {
-                    return next();
-                }
-
-                layer.container.inspect(function (err, data) {
-                    if (!err && data.State.Running === true) {
-                        return next(true);
+        areAnyLayersUp(layers) {
+            return new Promise(function (resolve) {
+                async.each(this.layers, function (layer, next) {
+                    if (!layers.some(lName => lName === layer.name)) {
+                        // This layer is irrelevant to us
+                        return next();
                     }
 
-                    next();
-                });
-            }, function (err) {
-                callback(err);
-            });
+                    // Data only containers can be ignored
+                    if (layer.dataOnly) {
+                        return next();
+                    }
+
+                    layer.container.inspect(function (err, data) {
+                        if (!err && data.State.Running === true) {
+                            return next(true);
+                        }
+
+                        next();
+                    });
+                }, resolve);
+            }.bind(this));
         }
 
         /**
          * Brings this application down by bringing each of it's layers down.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Application~downCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        down(options, callback) {
+        down(options) {
             let self = this;
 
-            if (fs.existsSync(this.utilFile)) {
-                let utils = require(this.utilFile);
+            return new Promise(function (resolve, reject) {
+                if (fs.existsSync(this.utilFile)) {
+                    let utils = require(this.utilFile);
 
-                if (typeof utils.preDown === 'function') {
-                    utils.preDown(this, this.utilModules).then(bringDown).catch(callback);
+                    if (typeof utils.preDown === 'function') {
+                        utils.preDown(this, this.utilModules).then(bringDown).catch(reject);
+                    } else {
+                        bringDown();
+                    }
                 } else {
                     bringDown();
                 }
-            } else {
-                bringDown();
-            }
 
-            function bringDown() {
-                self.getOrderOfLayers(options, function (err, layersOrder) {
-                    if (err) {
-                        return callback(err);
-                    }
+                function bringDown() {
+                    self.getOrderOfLayers(options).then(function (layersOrder) {
+                        let _asyncEachCallback = function (layer, next) {
+                            layer.down(options).then(() => next()).catch(next);
+                        };
 
-                    let _asyncEachCallback = function (layer, next) {
-                        layer.down(options, next);
-                    };
-
-                    if (options.async) {
-                        async.each(layersOrder, _asyncEachCallback, callback);
-                    } else {
-                        async.eachSeries(layersOrder, _asyncEachCallback, callback);
-                    }
-                });
-            }
+                        if (options.async) {
+                            async.each(layersOrder, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                        } else {
+                            async.eachSeries(layersOrder, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                        }
+                    }).catch(reject);
+                }
+            }.bind(this));
         }
 
         /**
@@ -283,223 +281,221 @@
          * containers.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Application~getOrderOfLayersCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        getOrderOfLayers(options, callback) {
-            let initialLayout = [];
+        getOrderOfLayers() {
+            return new Promise(function (resolve, reject) {
+                let initialLayout = [];
 
-            _.forEach(this.layers, function (layer) {
-                // Run only containers don't need to be bought up so we skip them
-                if (!layer.runOnly) {
-                    let obj = {
-                        layer,
-                        name: layer.name,
-                        after: layer.dependentLayers
-                    };
+                _.forEach(this.layers, function (layer) {
+                    // Run only containers don't need to be bought up so we skip them
+                    if (!layer.runOnly) {
+                        let obj = {
+                            layer,
+                            name: layer.name,
+                            after: layer.dependentLayers
+                        };
 
-                    initialLayout.push(obj);
-                }
-            });
-
-            let finalLayout = _.remove(initialLayout, function (l) {
-                return l.after.length === 0;
-            });
-
-            let attempts = 0;
-
-            function canSort(layer) {
-                return _.every(layer.after, function (l) {
-                    return _.some(finalLayout, function (l1) {
-                        return l1.layer.name === l;
-                    });
+                        initialLayout.push(obj);
+                    }
                 });
-            }
 
-            while (initialLayout.length !== 0 && attempts < 100) {
-                let layer = _.first(initialLayout);
+                let finalLayout = _.remove(initialLayout, function (l) {
+                    return l.after.length === 0;
+                });
 
-                let position = -1;
+                let attempts = 0;
 
-                if (!canSort(layer)) {
+                function canSort(layer) {
+                    return _.every(layer.after, function (l) {
+                        return _.some(finalLayout, function (l1) {
+                            return l1.layer.name === l;
+                        });
+                    });
+                }
+
+                while (initialLayout.length !== 0 && attempts < 100) {
+                    let layer = _.first(initialLayout);
+
+                    let position = -1;
+
+                    if (!canSort(layer)) {
+                        /* jshint -W083 */
+                        _.remove(initialLayout, function (l) {
+                            return layer.layer.name === l.layer.name;
+                        });
+                        /* jshint +W083 */
+
+                        initialLayout.push(layer);
+
+                        attempts++;
+
+                        continue;
+                    }
+
+                    /* jshint -W083 */
+                    layer.after.forEach(function (after) {
+                        let indexOf = -1;
+
+                        for (let i = 0; i < finalLayout.length; i++) {
+                            if (finalLayout[i].layer.name === after) {
+                                indexOf = i;
+                            }
+                        }
+
+                        if (indexOf > position) {
+                            position = indexOf;
+                        }
+                    });
+                    /* jshint +W083 */
+
+                    finalLayout.splice(position + 1, 0, layer);
+
                     /* jshint -W083 */
                     _.remove(initialLayout, function (l) {
                         return layer.layer.name === l.layer.name;
                     });
                     /* jshint +W083 */
-
-                    initialLayout.push(layer);
-
-                    attempts++;
-
-                    continue;
                 }
 
-                /* jshint -W083 */
-                layer.after.forEach(function (after) {
-                    let indexOf = -1;
+                if (attempts === 100) {
+                    reject(new Error(`Cannot start application ${this.name}! Can't determine the correct order to start the machines up! Please check your application json file and try again!`));
+                } else {
+                    let sortedLayers = [];
 
-                    for (let i = 0; i < finalLayout.length; i++) {
-                        if (finalLayout[i].layer.name === after) {
-                            indexOf = i;
+                    finalLayout.forEach(function (l) {
+                        sortedLayers.push(l.layer);
+                    });
+
+                    resolve(sortedLayers);
+                }
+            }.bind(this));
+        }
+
+        /**
+         * Checks to see if this application and all of it's necessary layers are up.
+         *
+         * @returns {Promise}
+         */
+        isAnyUp() {
+            return new Promise(function (resolve) {
+                async.each(this.layers, function (layer, next) {
+                    layer.container.inspect(function (err, data) {
+                        // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
+                        if (!err && (data.State.Running === true)) {
+                            return next(true);
                         }
-                    }
 
-                    if (indexOf > position) {
-                        position = indexOf;
-                    }
-                });
-                /* jshint +W083 */
-
-                finalLayout.splice(position + 1, 0, layer);
-
-                /* jshint -W083 */
-                _.remove(initialLayout, function (l) {
-                    return layer.layer.name === l.layer.name;
-                });
-                /* jshint +W083 */
-            }
-
-            if (attempts === 100) {
-                callback(new Error('Cannot start application ' + this.name + '! Can\'t determine the correct order to start the machines up! Please check your application json file and try again!'));
-            } else {
-                let sortedLayers = [];
-
-                finalLayout.forEach(function (l) {
-                    sortedLayers.push(l.layer);
-                });
-
-                callback(null, sortedLayers);
-            }
+                        next();
+                    });
+                }, (err) => resolve(err));
+            }.bind(this));
         }
 
         /**
          * Checks to see if this application and all of it's necessary layers are up.
          *
-         * @param {Application~isUpCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        isAnyUp(callback) {
-            async.each(this.layers, function (layer, next) {
-                layer.container.inspect(function (err, data) {
-                    // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
-                    if (!err && (data.State.Running === true)) {
-                        return next(new Error('The layer ' + layer.containerName + ' is online!'));
-                    }
+        isAllUp() {
+            return new Promise(function (resolve) {
+                async.each(this.layers, function (layer, next) {
+                    layer.container.inspect(function (err, data) {
+                        // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
+                        if (!err && (layer.dataOnly || data.State.Running === true)) {
+                            return next();
+                        }
 
-                    next();
-                });
-            }, function (err) {
-                callback(err);
-            });
-        }
-
-        /**
-         * Checks to see if this application and all of it's necessary layers are up.
-         *
-         * @param {Application~isUpCallback} callback - the callback for when we're done
-         */
-        isAllUp(callback) {
-            async.each(this.layers, function (layer, next) {
-                layer.container.inspect(function (err, data) {
-                    // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
-                    if (!err && (layer.dataOnly || data.State.Running === true)) {
-                        return next();
-                    }
-
-                    next(new Error('The layer ' + layer.containerName + ' is not online!'));
-                });
-            }, function (err) {
-                callback(!err);
-            });
+                        next(false);
+                    });
+                }, (err) => resolve(typeof err === 'undefined'));
+            }.bind(this));
         }
 
         /**
          * Checks to see if this application has a layer with the given name.
          *
          * @param {String} layerName - the name of the layer
-         * @param {Application~isLayerCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        isLayer(layerName, callback) {
-            callback(_.some(this.layers, function (layer) {
-                return layer.name === layerName;
-            }));
+        isLayer(layerName) {
+            return new Promise(function (resolve) {
+                resolve(_.some(this.layers, function (layer) {
+                    return layer.name === layerName;
+                }));
+            }.bind(this));
         }
 
         /**
          * This logs this applications status to the logger.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Function} callback
+         * @returns {Promise}
          */
-        logStatus(options, callback) {
+        logStatus(options) {
             let self = this;
 
-            if (options.up) {
-                this.areAnyLayersUp(this.getLayersAsArray().map(layer => layer.name), function (up) {
-                    if (up) {
-                        logIt();
-                    } else {
-                        callback();
-                    }
-                });
-            } else {
-                logIt();
-            }
+            return new Promise(function (resolve) {
+                if (options.up) {
+                    this.areAnyLayersUp(this.getLayersAsArray().map(layer => layer.name)).then((anyUp) => anyUp ? logIt() : resolve());
+                } else {
+                    logIt();
+                }
 
-            function logIt() {
-                brain.logger.raw(self.applicationName.cyan);
-                brain.logger.line();
-
-                async.eachSeries(self.getLayersAsArray(), function (layer, next) {
-                    if (!layer.dataOnly && !layer.runOnly) {
-                        brain.logger.raw(sprintf('%15s: ', layer.name));
-                        layer.isUp(function (isUp) {
-                            brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
-
-                            if (isUp) {
-                                layer.container.inspect(function (err, data) {
-                                    if (err) {
-                                        brain.logger.line();
-                                        return next();
-                                    }
-
-                                    brain.logger.raw(' (ID: ' + data.Config.Hostname + ')');
-                                    brain.logger.raw(' (Uptime: ' + brain.parseTimeDifference(moment(data.State.StartedAt).toDate()) + ')');
-
-                                    brain.logger.line();
-                                    return next();
-                                });
-                            } else {
-                                brain.logger.line();
-                                return next();
-                            }
-                        });
-                    } else {
-                        next();
-                    }
-                }, function () {
+                function logIt() {
+                    brain.logger.raw(self.applicationName.cyan);
                     brain.logger.line();
 
-                    callback();
-                });
-            }
+                    async.eachSeries(self.getLayersAsArray(), function (layer, next) {
+                        if (!layer.dataOnly && !layer.runOnly) {
+                            brain.logger.raw(sprintf('%15s: ', layer.name));
+                            layer.isUp().then(function (isUp) {
+                                brain.logger.raw(isUp ? 'Online'.green : 'Offline'.red);
+
+                                if (isUp) {
+                                    layer.container.inspect(function (err, data) {
+                                        if (err) {
+                                            brain.logger.line();
+                                            return next();
+                                        }
+
+                                        brain.logger.raw(' (ID: ' + data.Config.Hostname + ')');
+                                        brain.logger.raw(' (Uptime: ' + brain.parseTimeDifference(moment(data.State.StartedAt).toDate()) + ')');
+
+                                        brain.logger.line();
+                                        return next();
+                                    });
+                                } else {
+                                    brain.logger.line();
+                                    return next();
+                                }
+                            }).catch(next);
+                        } else {
+                            next();
+                        }
+                    }, function () {
+                        brain.logger.line();
+
+                        resolve();
+                    });
+                }
+            }.bind(this));
         }
 
         /**
          * Restarts this application by restarting each of it's layers.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Application~restartCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        restart(options, callback) {
-            this.getOrderOfLayers(options, function (err, layersOrder) {
-                if (err) {
-                    return callback(err);
-                }
-
-                async.eachSeries(layersOrder, function (layer, next) {
-                    layer.restart(options, next);
-                }, callback);
-            });
+        restart(options) {
+            return new Promise(function (resolve, reject) {
+                this.getOrderOfLayers(options).then(function (layersOrder) {
+                    async.eachSeries(layersOrder, function (layer, next) {
+                        layer.restart(options, next);
+                    }, (err) => err ? reject(err) : resolve());
+                }).catch(reject);
+            }.bind(this));
         }
 
         /**
@@ -523,84 +519,32 @@
          * Brings this application up by bringing each of it's layers up.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Application~upCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        up(options, callback) {
+        up(options) {
             let self = this;
 
-            if (fs.existsSync(this.utilFile)) {
-                let utils = require(this.utilFile);
+            return new Promise(function (resolve, reject) {
+                if (fs.existsSync(this.utilFile)) {
+                    let utils = require(this.utilFile);
 
-                if (typeof utils.preUp === 'function') {
-                    utils.preUp(this, this.utilModules).then(bringUp).catch(callback);
+                    if (typeof utils.preUp === 'function') {
+                        utils.preUp(this, this.utilModules).then(bringUp).catch(reject);
+                    } else {
+                        bringUp();
+                    }
                 } else {
                     bringUp();
                 }
-            } else {
-                bringUp();
-            }
 
-            function bringUp() {
-                self.getOrderOfLayers(options, function (err, layersOrder) {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    async.eachSeries(layersOrder, function (layer, next) {
-                        layer.up(options, next);
-                    }, callback);
-                });
-            }
+                function bringUp() {
+                    self.getOrderOfLayers(options).then(function (layersOrder) {
+                        async.eachSeries(layersOrder, function (layer, next) {
+                            layer.up(options).then(() => next()).catch(next);
+                        }, (err) => err ? reject(err) : resolve());
+                    }).catch(reject);
+                }
+            }.bind(this));
         }
     };
 })();
-
-/**
- * This is the callback used when checking to see if given layers are up/created or not.
- *
- * @callback Application~areLayersUpCallback
- * @param {Boolean} areUp - if all the layers specified are up/created
- */
-
-/**
- * This is the callback used when bringing an application down.
- *
- * @callback Application~downCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this application down
- */
-
-/**
- * This is the callback used when bringing an application down.
- *
- * @callback Application~getOrderOfLayersCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this application down
- * @param {Layer[]} layers - an array of each of the layers in the order the should be started
- */
-
-/**
- * This is the callback used when checking to see if an application is up or not.
- *
- * @callback Application~isUpCallback
- * @param {Boolean} up - if this application is up or not
- */
-
-/**
- * This is the callback used when checking to see if this application has a layer with the given name.
- *
- * @callback Application~isLayerCallback
- * @param {Boolean} up - if there is a layer with this name
- */
-
-/**
- * This is the callback used when restarting an application.
- *
- * @callback Application~restartCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to restart this application
- */
-
-/**
- * This is the callback used when we attempt to bring an application up.
- *
- * @callback Application~upCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this application up
- */

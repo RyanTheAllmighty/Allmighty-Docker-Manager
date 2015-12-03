@@ -461,279 +461,241 @@
         /**
          * See's if this layer can be run or not.
          *
-         * @param {Layer~canRunCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        canRun(callback) {
-            if (!this.runOnly) {
-                return callback(new Error('Cannot run this layer because it\'s not set as runOnly!'), false);
-            }
-
-            this.application.areLayersUp(this.dependentLayers, function (areUp) {
-                if (!areUp) {
-                    return callback(new Error('All The necessary layers to run this layer aren\'t up! Please bring them up and try again!'), false);
+        canRun() {
+            return new Promise(function (resolve, reject) {
+                if (!this.runOnly) {
+                    return reject(new Error('Cannot run this layer because it\'s not set as runOnly!'));
                 }
 
-                callback(null, true);
-            });
+                this.application.areLayersUp(this.dependentLayers).then(function (areUp) {
+                    if (!areUp) {
+                        return reject(new Error('All The necessary layers to run this layer aren\'t up! Please bring them up and try again!'));
+                    }
+
+                    resolve(true);
+                }).catch(reject);
+            }.bind(this));
         }
 
         /**
          * Brings this layer down.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Layer~downCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        down(options, callback) {
-            let self = this;
+        down(options) {
+            return new Promise(function (resolve, reject) {
+                let self = this;
 
-            this.isUp(function (isUp) {
-                if (!isUp) {
-                    return callback();
-                }
-
-                self.container.stop(function (err) {
-                    if (err) {
-                        return callback(err);
+                this.isUp().then(function (isUp) {
+                    if (!isUp) {
+                        return resolve();
                     }
 
-                    brain.logger.info(self.containerName + ' is now down!');
+                    self.container.stop(function (err) {
+                        if (err) {
+                            return reject(err);
+                        }
 
-                    if (options.rm) {
-                        self.container.remove(callback);
-                    } else {
-                        callback();
-                    }
-                });
-            });
+                        brain.logger.info(`${self.containerName} is now down!`);
+
+                        if (options.rm) {
+                            self.container.remove((err) => err ? reject(err) : resolve());
+                        } else {
+                            resolve();
+                        }
+                    });
+                }).catch(reject);
+            }.bind(this));
         }
 
         /**
          * Checks to see if this layer is up.
          *
-         * @param {Layer~isUpCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        isUp(callback) {
-            this.container.inspect(function (err, data) {
-                // If there is an error returned then the container hasn't been created
-                if (err) {
-                    return callback(false);
-                }
+        isUp() {
+            return new Promise(function (resolve) {
+                this.container.inspect(function (err, data) {
+                    // If there is an error returned then the container hasn't been created
+                    if (err) {
+                        return resolve(false);
+                    }
 
-                // Else it has been created so we check if it's running based on what the inspect command tells us
-                callback(data.State.Running || false);
-            });
+                    // Else it has been created so we check if it's running based on what the inspect command tells us
+                    resolve(data.State.Running || false);
+                });
+            }.bind(this));
         }
 
         /**
          * Pulls the image needed for this layer.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Layer~pullCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        pull(options, callback) {
-            let address = brain.settings.repositoryAuth.serveraddress;
+        pull() {
+            return new Promise(function (resolve, reject) {
+                let address = brain.settings.repositoryAuth.serveraddress;
 
-            if (address.indexOf('://') !== 0) {
-                address = address.substr(address.indexOf('://') + 3, address.length);
-            }
-
-            let fromCustomRepo = this.image.indexOf(address) > -1;
-
-            if (fromCustomRepo && !brain.settings.repositoryAuth) {
-                return callback(new Error('No repository auth is set in the settings.json file!'));
-            }
-
-            brain.logger.info('Started pull for ' + this.name + ' (' + this.image + ')');
-
-            let pullOpts = fromCustomRepo ? {authconfig: brain.settings.repositoryAuth} : {};
-
-            let self = this;
-
-            brain.docker.pull(this.image, pullOpts, function (err, stream) {
-                if (err || stream === null) {
-                    brain.logger.error('Error pulling ' + self.name + ' (' + self.image + ')');
-                    return callback(err);
+                if (address.indexOf('://') !== 0) {
+                    address = address.substr(address.indexOf('://') + 3, address.length);
                 }
 
-                brain.docker.modem.followProgress(stream, function (err, output) {
-                    brain.logger.info('Finished pull for ' + self.name + ' (' + self.image + ')');
-                    callback(err, output);
+                let fromCustomRepo = this.image.indexOf(address) > -1;
+
+                if (fromCustomRepo && !brain.settings.repositoryAuth) {
+                    return reject(new Error('No repository auth is set in the settings.json file!'));
+                }
+
+                brain.logger.info(`Started pull for ${this.name} (${this.image})`);
+
+                let pullOpts = fromCustomRepo ? {authconfig: brain.settings.repositoryAuth} : {};
+
+                let self = this;
+
+                brain.docker.pull(this.image, pullOpts, function (err, stream) {
+                    if (err || stream === null) {
+                        brain.logger.error('Error pulling ' + self.name + ' (' + self.image + ')');
+                        return reject(err);
+                    }
+
+                    brain.docker.modem.followProgress(stream, function (err, output) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        brain.logger.info('Finished pull for ' + self.name + ' (' + self.image + ')');
+                        resolve(output);
+                    });
                 });
-            });
+            }.bind(this));
         }
 
         /**
          * Restarts this layer.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Layer~restartCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        restart(options, callback) {
+        restart(options) {
             let self = this;
 
-            this.isUp(function (isUp) {
-                if (!isUp) {
-                    return self.up(options, callback);
-                }
-
-                brain.logger.info(self.containerName + ' is being restarted!');
-
-                self.container.restart(function (err) {
-                    if (err) {
-                        return callback(err);
+            return new Promise(function (resolve, reject) {
+                this.isUp().then(function (isUp) {
+                    if (!isUp) {
+                        return self.up(options).then(resolve).catch(reject);
                     }
 
-                    brain.logger.info(self.containerName + ' has been restarted!');
-                    callback();
-                });
-            });
+                    brain.logger.info(`${self.containerName} is being restarted!`);
+
+                    self.container.restart(function (err) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        brain.logger.info(`${self.containerName} has been restarted!`);
+                        resolve();
+                    });
+                }).catch(reject);
+            }.bind(this));
         }
 
         /**
          * This runs a layer for the application that's set as runOnly. The stdin is attached and allows interaction with the container.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Layer~runCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        run(options, callback) {
+        run(options) {
             let self = this;
 
-            this.container.remove(function () {
-                let dOpts = self.dockerOptions;
+            return new Promise(function (resolve, reject) {
+                this.container.remove(function () {
+                    let dOpts = self.dockerOptions;
 
-                // Change our specific options for Docker
-                dOpts.Cmd = self.command.concat(options._raw.slice(options._raw.indexOf(self.name) + 1));
-                dOpts.AttachStdin = true;
-                dOpts.AttachStdout = true;
-                dOpts.AttachStderr = true;
-                dOpts.Tty = true;
-                dOpts.OpenStdin = true;
-                dOpts.StdinOnce = false;
+                    // Change our specific options for Docker
+                    dOpts.Cmd = self.command.concat(options._raw.slice(options._raw.indexOf(self.name) + 1));
+                    dOpts.AttachStdin = true;
+                    dOpts.AttachStdout = true;
+                    dOpts.AttachStderr = true;
+                    dOpts.Tty = true;
+                    dOpts.OpenStdin = true;
+                    dOpts.StdinOnce = false;
 
-                brain.run(dOpts, callback);
-            });
+                    brain.run(dOpts).then((err) => err ? reject(err) : resolve());
+                });
+            }.bind(this));
         }
 
         /**
          * This brings this layer up if it needs to be brought up.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Layer~upCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        up(options, callback) {
+        up(options) {
             let self = this;
 
-            if (self.dataOnly) {
-                brain.logger.info('Creating data only container for ' + self.containerName + '!');
-            } else {
-                brain.logger.info(self.containerName + ' is starting up!');
-            }
-
-            this.isUp(function (isUp) {
-                if (isUp) {
-                    // This layer is already up, so there is no need to bring it up again
-                    return callback();
+            return new Promise(function (resolve, reject) {
+                if (self.dataOnly) {
+                    brain.logger.info(`Creating data only container for ${self.containerName}!`);
+                } else {
+                    brain.logger.info(`${self.containerName} is starting up!`);
                 }
 
-                let bringUp = function () {
-                    self.container.remove(function () {
-                        brain.docker.createContainer(self.dockerOptions, function (err, container) {
-                            if (err) {
-                                return callback(err);
-                            }
+                this.isUp().then(function (isUp) {
+                    if (isUp) {
+                        // This layer is already up, so there is no need to bring it up again
+                        return resolve();
+                    }
 
-                            // This is a data only container, so we don't need to run it
-                            if (self.dataOnly) {
-                                brain.logger.info(self.containerName + ' data container has been created!');
-                                return callback();
-                            }
-
-                            container.start(function (err) {
+                    let bringUp = function () {
+                        self.container.remove(function () {
+                            brain.docker.createContainer(self.dockerOptions, function (err, container) {
                                 if (err) {
-                                    return callback(err);
+                                    return reject(err);
                                 }
 
-                                brain.logger.info(self.containerName + ' is now up!');
+                                // This is a data only container, so we don't need to run it
+                                if (self.dataOnly) {
+                                    brain.logger.info(`${self.containerName} data container has been created!`);
+                                    return resolve();
+                                }
 
-                                callback();
+                                container.start(function (err) {
+                                    if (err) {
+                                        return reject(err);
+                                    }
+
+                                    brain.logger.info(`${self.containerName} is now up!`);
+
+                                    resolve();
+                                });
                             });
                         });
-                    });
-                };
+                    };
 
-                let pullAndUp = function () {
-                    self.pull(options, function (err) {
-                        if (err) {
-                            return callback(err);
-                        }
+                    let pullAndUp = function () {
+                        self.pull(options).then(bringUp).catch(reject);
+                    };
 
-                        bringUp();
-                    });
-                };
-
-                // Pull the layers image so we make sure we're up to date
-                if (!options.pull) {
-                    brain.docker.getImage(self.image).get(function (err) {
-                        if (err) {
-                            pullAndUp();
-                        } else {
-                            bringUp();
-                        }
-                    });
-                } else {
-                    pullAndUp();
-                }
-            });
+                    // Pull the layers image so we make sure we're up to date
+                    if (!options.pull) {
+                        brain.docker.getImage(self.image).get(function (err) {
+                            if (err) {
+                                pullAndUp();
+                            } else {
+                                bringUp();
+                            }
+                        });
+                    } else {
+                        pullAndUp();
+                    }
+                });
+            }.bind(this));
         }
     };
 })();
-
-/**
- * This is the callback used when checking to see if a layer can be run.
- *
- * @callback Layer~canRunCallback
- * @param {Error} err - the error (if any) of why this layer cannot be run
- * @param {Boolean} canRun - if this layer can be run or not
- */
-
-/**
- * This is the callback used when bringing a layer down.
- *
- * @callback Layer~downCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this layer down
- */
-
-/**
- * This is the callback used when checking to see if a layer is up or not.
- *
- * @callback Layer~isUpCallback
- * @param {Boolean} up - if this layer is up or not
- */
-
-/**
- * This is the callback used when pulling the image for a layer.
- *
- * @callback Layer~pullCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to pull the image for this layer
- */
-
-/**
- * This is the callback used when restarting a layer.
- *
- * @callback Layer~restartCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to restart this layer
- */
-
-/**
- * This is the callback used when running a runOnly layer.
- *
- * @callback Layer~runCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to run the layer
- */
-
-/**
- * This is the callback used when we attempt to bring a layer up.
- *
- * @callback Layer~upCallback
- * @param {Error|undefined} err - the error (if any) that occurred while trying to bring this layer up
- */

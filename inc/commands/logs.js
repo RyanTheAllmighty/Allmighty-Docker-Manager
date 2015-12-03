@@ -68,21 +68,21 @@
             let applicationName = passedArgs._[0];
             let layerName = passedArgs._[1];
 
-            brain.isApplication(applicationName, function (isApp) {
+            brain.isApplication(applicationName).then(function (isApp) {
                 if (!isApp) {
                     return reject(new Error('No application with the name of ' + applicationName + ' exists!'));
                 }
 
                 let application = brain.getApplication(applicationName);
 
-                application.isLayer(layerName, function (isLayer) {
+                application.isLayer(layerName).then(function (isLayer) {
                     if (!isLayer) {
                         return reject(new Error('No layer with the name of ' + layerName + ' exists for the application ' + applicationName + '!'));
                     }
 
                     layer = application.getLayer(layerName);
 
-                    layer.isUp(function (isUp) {
+                    layer.isUp().then(function (isUp) {
                         if (!isUp) {
                             return reject(new Error('That layer is not up! Please start it before trying to get the logs from it!'));
                         }
@@ -90,7 +90,7 @@
                         resolve();
                     });
                 });
-            });
+            }).catch(reject);
         });
     };
 

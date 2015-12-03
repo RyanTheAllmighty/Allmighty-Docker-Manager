@@ -117,274 +117,275 @@
          * Builds this component into a Docker image.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Component~buildCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        build(options, callback) {
+        build(options) {
             let self = this;
 
-            if (options.versions) {
-                return this.getAvailableVersions(options, function (err, versions) {
-                    if (err) {
-                        return callback(err);
-                    }
+            return new Promise(function (resolve, reject) {
+                if (options.versions) {
+                    return this.getAvailableVersions(options).then(function (versions) {
+                        let table = new Table();
 
-                    let table = new Table();
+                        let tRow = [];
 
-                    let tRow = [];
-
-                    async.eachSeries(versions, function (version, next) {
-                        if (tRow.length === 10) {
-                            table.push(tRow);
-                            tRow = [];
-                        }
-
-                        brain.docker.getImage(self.tagName + ':' + version).inspect(function (err) {
-                            if (err) {
-                                tRow.push(version.red);
-                                return next();
+                        async.eachSeries(versions, function (version, next) {
+                            if (tRow.length === 10) {
+                                table.push(tRow);
+                                tRow = [];
                             }
 
-                            tRow.push(version.green);
-                            next();
-                        });
-                    }, function () {
-                        if (tRow.length !== 0) {
-                            table.push(tRow);
-                            tRow = [];
-                        }
-
-                        brain.logger.raw(table.toString());
-                        brain.logger.line();
-
-                        callback();
-                    });
-                });
-            }
-
-            this.getBuildOptions(options, function (err, buildOpts) {
-                if (err) {
-                    return callback(err);
-                }
-
-                let latestVersion = false;
-
-                if (buildOpts.usingLatestVersion) {
-                    latestVersion = true;
-                    delete buildOpts.usingLatestVersion;
-                }
-
-                let nameVerString = buildOpts.t.substr(buildOpts.t.lastIndexOf('/') + 1);
-
-                brain.logger.info('Started build for ' + nameVerString);
-
-                tmp.file(function (err, path, fd, cleanupCallback) {
-                    if (err) {
-                        cleanupCallback();
-
-                        return callback(err);
-                    }
-
-                    let tarArgs = [
-                        '-cf',
-                        path,
-                        '-C',
-                        self.directory,
-                        '.'
-                    ];
-
-                    let tarPS = spawn('tar', tarArgs);
-
-                    tarPS.on('close', function (code) {
-                        if (code !== 0) {
-                            return callback(new Error('A non 0 exit code! ' + code + ' was returned when trying to tar the folder!'));
-                        }
-
-                        brain.docker.buildImage(path, buildOpts, function (err, stream) {
-                            if (err || stream === null) {
-                                brain.logger.error('Error building ' + nameVerString);
-                                return callback(err);
-                            }
-
-                            brain.docker.modem.followProgress(stream, function (err) {
+                            brain.docker.getImage(self.tagName + ':' + version).inspect(function (err) {
                                 if (err) {
-                                    return callback(err);
+                                    tRow.push(version.red);
+                                    return next();
                                 }
 
-                                brain.logger.info('Finished build for ' + nameVerString);
+                                tRow.push(version.green);
+                                next();
+                            });
+                        }, function () {
+                            if (tRow.length !== 0) {
+                                table.push(tRow);
+                                tRow = [];
+                            }
 
-                                if (latestVersion) {
-                                    brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest', force: true}, callback);
-                                } else {
-                                    callback();
+                            brain.logger.raw(table.toString());
+                            brain.logger.line();
+
+                            resolve();
+                        });
+                    }).catch(reject);
+                }
+
+                this.getBuildOptions(options).then(function (buildOpts) {
+                    let latestVersion = false;
+
+                    if (buildOpts.usingLatestVersion) {
+                        latestVersion = true;
+                        delete buildOpts.usingLatestVersion;
+                    }
+
+                    let nameVerString = buildOpts.t.substr(buildOpts.t.lastIndexOf('/') + 1);
+
+                    brain.logger.info('Started build for ' + nameVerString);
+
+                    tmp.file(function (err, path, fd, cleanupCallback) {
+                        if (err) {
+                            cleanupCallback();
+
+                            return reject(err);
+                        }
+
+                        let tarArgs = [
+                            '-cf',
+                            path,
+                            '-C',
+                            self.directory,
+                            '.'
+                        ];
+
+                        let tarPS = spawn('tar', tarArgs);
+
+                        tarPS.on('close', function (code) {
+                            if (code !== 0) {
+                                return reject(new Error(`A non 0 exit code! ${code} was returned when trying to tar the folder!`));
+                            }
+
+                            brain.docker.buildImage(path, buildOpts, function (err, stream) {
+                                if (err || stream === null) {
+                                    brain.logger.error('Error building ' + nameVerString);
+                                    return reject(err);
                                 }
-                            }, function (progress) {
-                                if (progress) {
-                                    if (progress.error) {
-                                        return callback(new Error(progress.error.errorDetail.message));
+
+                                brain.docker.modem.followProgress(stream, function (err) {
+                                    if (err) {
+                                        return reject(err);
                                     }
 
-                                    if (!options.quiet) {
-                                        if (progress.stream) {
-                                            process.stdout.write(progress.stream);
+                                    brain.logger.info('Finished build for ' + nameVerString);
+
+                                    if (latestVersion) {
+                                        brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest', force: true}, (err) => err ? reject(err) : resolve());
+                                    } else {
+                                        resolve();
+                                    }
+                                }, function (progress) {
+                                    if (progress) {
+                                        if (progress.error) {
+                                            return reject(new Error(progress.error.errorDetail.message));
+                                        }
+
+                                        if (!options.quiet) {
+                                            if (progress.stream) {
+                                                process.stdout.write(progress.stream);
+                                            }
                                         }
                                     }
-                                }
+                                });
                             });
                         });
                     });
-                });
-            });
+                }).catch(reject);
+            }.bind(this));
         }
 
-        getAvailableVersions(options, callback) {
-            if (fs.existsSync(this.utilFile)) {
-                let utils = require(this.utilFile);
+        /**
+         * This gets the available versions for this component if a 'adm-util.js' file is provided with the component with the 'getAvailableVersions' method in it.
+         *
+         * @param {Object} options - options passed in from the user
+         * @returns {Promise}
+         */
+        getAvailableVersions(options) {
+            return new Promise(function (resolve, reject) {
+                if (fs.existsSync(this.utilFile)) {
+                    let utils = require(this.utilFile);
 
-                if (typeof utils.getAvailableVersions === 'function') {
-                    utils.getAvailableVersions(options, this.utilModules).then(function (versions) {
-                        callback(null, versions);
-                    }).catch(callback);
+                    if (typeof utils.getAvailableVersions === 'function') {
+                        utils.getAvailableVersions(options, this.utilModules).then(function (versions) {
+                            resolve(versions);
+                        }).catch(reject);
+                    } else {
+                        resolve(['latest']);
+                    }
                 } else {
-                    callback(null, ['latest']);
+                    resolve(['latest']);
                 }
-            } else {
-                callback(null, ['latest']);
-            }
+            }.bind(this));
         }
 
-        getBuildOptions(options, callback) {
-            let buildOpts = {
-                t: this.tagName
-            };
+        /**
+         * This gets the build options for this component.
+         *
+         * @param {Object} options - options passed in from the user
+         * @returns {Promise}
+         */
+        getBuildOptions(options) {
+            return new Promise(function (resolve, reject) {
+                let buildOpts = {
+                    t: this.tagName
+                };
 
-            if (options.noCache) {
-                buildOpts.nocache = true;
-            }
+                if (options.noCache) {
+                    buildOpts.nocache = true;
+                }
 
-            if (!options.version && fs.existsSync(this.utilFile)) {
-                let utils = require(this.utilFile);
+                if (!options.version && fs.existsSync(this.utilFile)) {
+                    let utils = require(this.utilFile);
 
-                if (typeof utils.getLatestVersion === 'function') {
-                    utils.getLatestVersion(this.utilFile).then(function (version) {
-                        buildOpts.t += `:${version}`;
-                        buildOpts.buildargs = JSON.stringify({VERSION: version});
-                        buildOpts.usingLatestVersion = true;
+                    if (typeof utils.getLatestVersion === 'function') {
+                        utils.getLatestVersion(this.utilFile).then(function (version) {
+                            buildOpts.t += `:${version}`;
+                            buildOpts.buildargs = JSON.stringify({VERSION: version});
+                            buildOpts.usingLatestVersion = true;
 
-                        callback(null, buildOpts);
-                    }).catch(callback);
+                            resolve(buildOpts);
+                        }).catch(reject);
+                    } else {
+                        buildOpts.t += ':latest';
+
+                        resolve(buildOpts);
+                    }
+                } else if (options.version) {
+                    buildOpts.t += `:${options.version}`;
+                    buildOpts.buildargs = JSON.stringify({VERSION: options.version});
+
+                    resolve(buildOpts);
                 } else {
                     buildOpts.t += ':latest';
 
-                    callback(null, buildOpts);
+                    resolve(buildOpts);
                 }
-            } else if (options.version) {
-                buildOpts.t += `:${options.version}`;
-                buildOpts.buildargs = JSON.stringify({VERSION: options.version});
-
-                callback(null, buildOpts);
-            } else {
-                buildOpts.t += ':latest';
-
-                callback(null, buildOpts);
-            }
+            }.bind(this));
         }
 
         /**
          * Pulls this component from the repository defined in the settings.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Component~pullCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        pull(options, callback) {
-            if (!brain.settings.repositoryAuth) {
-                return callback(new Error('No repository auth is set in the settings.json file!'));
-            }
-
-            brain.logger.info('Started pull for ' + this.name);
-
-            let self = this;
-            brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
-                if (err || stream === null) {
-                    brain.logger.error('Error pulling ' + self.name);
-                    return callback(err);
+        pull(options) {
+            return new Promise(function (resolve, reject) {
+                if (!brain.settings.repositoryAuth) {
+                    return reject(new Error('No repository auth is set in the settings.json file!'));
                 }
-                brain.docker.modem.followProgress(stream, function (err, output) {
-                    brain.logger.info('Finished pull for ' + self.name);
-                    callback(err, output);
-                }, function (progress) {
-                    if (progress) {
-                        if (progress.error) {
-                            return callback(new Error(progress.error.errorDetail.message));
+
+                brain.logger.info('Started pull for ' + this.name);
+
+                let self = this;
+                brain.docker.pull(this.tagName, {authconfig: brain.settings.repositoryAuth}, function (err, stream) {
+                    if (err || stream === null) {
+                        brain.logger.error('Error pulling ' + self.name);
+                        return reject(err);
+                    }
+                    brain.docker.modem.followProgress(stream, function (err, output) {
+                        if (err) {
+                            return reject(err);
                         }
 
-                        if (!options.quiet) {
-                            if (progress.stream) {
-                                process.stdout.write(progress.stream);
+                        brain.logger.info('Finished pull for ' + self.name);
+                        resolve(output);
+                    }, function (progress) {
+                        if (progress) {
+                            if (progress.error) {
+                                return reject(new Error(progress.error.errorDetail.message));
+                            }
+
+                            if (!options.quiet) {
+                                if (progress.stream) {
+                                    process.stdout.write(progress.stream);
+                                }
                             }
                         }
-                    }
+                    });
                 });
-            });
+            }.bind(this));
         }
 
         /**
          * Pushes this built component to the repository defined in the settings.
          *
          * @param {Object} options - options passed in from the user
-         * @param {Component~pushCallback} callback - the callback for when we're done
+         * @returns {Promise}
          */
-        push(options, callback) {
-            if (!brain.settings.repositoryAuth) {
-                return callback(new Error('No repository auth is set in the settings.json file!'));
-            }
-
-            brain.logger.info('Started push for ' + this.name);
-
-            let self = this;
-            brain.docker.getImage(this.tagName).push({authconfig: brain.settings.repositoryAuth}, function (err, stream) {
-                if (err || stream === null) {
-                    brain.logger.error('Error pushing ' + self.name);
-                    return callback(err);
+        push(options) {
+            return new Promise(function (resolve, reject) {
+                if (!brain.settings.repositoryAuth) {
+                    return reject(new Error('No repository auth is set in the settings.json file!'));
                 }
 
-                brain.docker.modem.followProgress(stream, function (err, output) {
-                    brain.logger.info('Finished push for ' + self.name);
-                    callback(err, output);
-                }, function (progress) {
-                    if (progress) {
-                        if (progress.error) {
-                            return callback(new Error(progress.error.errorDetail.message));
+                brain.logger.info('Started push for ' + this.name);
+
+                let self = this;
+                brain.docker.getImage(this.tagName).push({authconfig: brain.settings.repositoryAuth}, function (err, stream) {
+                    if (err || stream === null) {
+                        brain.logger.error('Error pushing ' + self.name);
+                        return reject(err);
+                    }
+
+                    brain.docker.modem.followProgress(stream, function (err, output) {
+                        if (err) {
+                            return reject(err);
                         }
 
-                        if (!options.quiet) {
-                            if (progress.stream) {
-                                process.stdout.write(progress.stream);
+                        brain.logger.info('Finished push for ' + self.name);
+                        resolve(output);
+                    }, function (progress) {
+                        if (progress) {
+                            if (progress.error) {
+                                return reject(new Error(progress.error.errorDetail.message));
+                            }
+
+                            if (!options.quiet) {
+                                if (progress.stream) {
+                                    process.stdout.write(progress.stream);
+                                }
                             }
                         }
-                    }
+                    });
                 });
-            });
+            }.bind(this));
         }
     };
 })();
-
-/**
- * This is the callback used when building a component.
- *
- * @callback Component~buildCallback
- * @param {Error|undefined} [err] - the error (if any) that occurred while trying to build a component
- */
-
-/**
- * This is the callback used when pulling a component.
- *
- * @callback Component~pullCallback
- * @param {Error|undefined} [err] - the error (if any) that occurred while trying to pull a component
- */
-
-/**
- * This is the callback used when pushing a component.
- *
- * @callback Component~pushCallback
- * @param {Error|undefined} [err] - the error (if any) that occurred while trying to push a component
- */

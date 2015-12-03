@@ -51,17 +51,13 @@
         return new Promise(function (resolve, reject) {
             options = merge(options, passedArgs);
 
-            brain.getRunningContainerNames(function (err, containers) {
-                if (err) {
-                    return reject(err);
-                }
-
+            brain.getRunningContainerNames().then(function (containers) {
                 if (containers.length === 0) {
                     return reject(new Error('There are no containers currently running!'));
                 }
 
                 resolve();
-            });
+            }).catch(reject);
         });
     };
 
@@ -109,15 +105,11 @@
                 function onFinished() {
                     brain.logger.info('Running monitoring now. Access the web UI via port ' + options.port + '!');
 
-                    brain.run(dockerOptions, function (err) {
+                    brain.run(dockerOptions).then(function () {
                         brain.logger.info('The monitoring has stopped and is no longer available!');
 
-                        if (err) {
-                            return reject(err);
-                        }
-
                         resolve();
-                    });
+                    }).catch(reject);
                 }
 
                 function onProgress(progress) {

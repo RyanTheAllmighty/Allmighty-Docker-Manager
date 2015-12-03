@@ -89,7 +89,7 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             async.eachSeries(toActUpon, function (application, next) {
-                application.logStatus(options, next);
+                application.logStatus(options).then(() => next()).catch(next);
             }, (err) => err ? reject(err) : resolve());
         });
     };

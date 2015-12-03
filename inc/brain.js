@@ -126,8 +126,10 @@
         return exists;
     };
 
-    module.exports.isApplication = function (name, callback) {
-        callback(this.isApplicationSync(name));
+    module.exports.isApplication = function (name) {
+        return new Promise(function (resolve) {
+            resolve(this.isApplicationSync(name));
+        }.bind(this));
     };
 
     module.exports.getComponents = function () {
@@ -204,41 +206,45 @@
         return path.join(global.storagePath, 'applications');
     };
 
-    module.exports.getRunningContainerNames = function (callback) {
-        module.exports.docker.listContainers({all: false}, function (err, containers) {
-            if (err) {
-                return callback(err);
-            }
+    module.exports.getRunningContainerNames = function () {
+        return new Promise(function (resolve, reject) {
+            module.exports.docker.listContainers({all: false}, function (err, containers) {
+                if (err) {
+                    return reject(err);
+                }
 
-            let names = _.reduceRight(_.map(containers, 'Names'), function (flattened, other) {
-                return flattened.concat(other);
+                let names = _.reduceRight(_.map(containers, 'Names'), function (flattened, other) {
+                    return flattened.concat(other);
+                });
+
+                names = _.map(names, function (name) {
+                    return name.substring(1);
+                });
+
+                names = _.filter(names, function (name) {
+                    return !name.match(/\//g);
+                });
+
+                resolve(names);
             });
-
-            names = _.map(names, function (name) {
-                return name.substring(1);
-            });
-
-            names = _.filter(names, function (name) {
-                return !name.match(/\//g);
-            });
-
-            callback(null, names);
         });
     };
 
-    module.exports.getRunningContainers = function (callback) {
-        module.exports.docker.listContainers({all: false}, function (err, containers) {
-            if (err) {
-                return callback(err);
-            }
+    module.exports.getRunningContainers = function () {
+        return new Promise(function (resolve, reject) {
+            module.exports.docker.listContainers({all: false}, function (err, containers) {
+                if (err) {
+                    return reject(err);
+                }
 
-            callback(null, containers);
+                resolve(containers);
+            });
         });
     };
 
-    module.exports.haveImage = function (name, callback) {
-        module.exports.docker.getImage(name).get(function (err) {
-            callback(null, !err);
+    module.exports.haveImage = function (name) {
+        return new Promise(function (resolve) {
+            module.exports.docker.getImage(name).inspect((err) => resolve(!err));
         });
     };
 
@@ -272,62 +278,64 @@
         return diffString;
     };
 
-    module.exports.run = function (dockerOptions, callback) {
-        module.exports.docker.createContainer(dockerOptions, function (err, container) {
-            if (err) {
-                return callback(err);
-            }
-
-            container.attach({stream: true, stdin: true, stdout: true, stderr: true}, function handler(err, stream) {
-                // Show outputs
-                stream.pipe(process.stdout);
-
-                // Connect stdin
-                let isRaw = process.isRaw;
-                process.stdin.resume();
-                process.stdin.setEncoding('utf8');
-                process.stdin.setRawMode(true);
-                process.stdin.pipe(stream);
-
-                function resizeTTY() {
-                    let dimensions = {
-                        h: process.stdout.rows,
-                        w: process.stderr.columns
-                    };
-
-                    if (dimensions.h !== 0 && dimensions.w !== 0) {
-                        container.resize(dimensions, function () {
-                        });
-                    }
+    module.exports.run = function (dockerOptions) {
+        return new Promise(function (resolve, reject) {
+            module.exports.docker.createContainer(dockerOptions, function (err, container) {
+                if (err) {
+                    return reject(err);
                 }
 
-                container.start(function (err) {
-                    if (err) {
-                        return exit(stream, isRaw, function () {
-                            callback(err);
-                        });
+                container.attach({stream: true, stdin: true, stdout: true, stderr: true}, function handler(err, stream) {
+                    // Show outputs
+                    stream.pipe(process.stdout);
+
+                    // Connect stdin
+                    let isRaw = process.isRaw;
+                    process.stdin.resume();
+                    process.stdin.setEncoding('utf8');
+                    process.stdin.setRawMode(true);
+                    process.stdin.pipe(stream);
+
+                    function resizeTTY() {
+                        let dimensions = {
+                            h: process.stdout.rows,
+                            w: process.stderr.columns
+                        };
+
+                        if (dimensions.h !== 0 && dimensions.w !== 0) {
+                            container.resize(dimensions, function () {
+                            });
+                        }
                     }
 
-                    resizeTTY();
-
-                    process.stdout.on('resize', function () {
-                        resizeTTY();
-                    });
-
-                    container.wait(function (err) {
+                    container.start(function (err) {
                         if (err) {
                             return exit(stream, isRaw, function () {
-                                callback(err);
+                                reject(err);
                             });
                         }
 
-                        process.stdout.removeListener('resize', resizeTTY);
-                        process.stdin.removeAllListeners();
-                        process.stdin.setRawMode(isRaw);
-                        process.stdin.resume();
-                        stream.end();
+                        resizeTTY();
 
-                        container.remove(callback);
+                        process.stdout.on('resize', function () {
+                            resizeTTY();
+                        });
+
+                        container.wait(function (err) {
+                            if (err) {
+                                return exit(stream, isRaw, function () {
+                                    reject(err);
+                                });
+                            }
+
+                            process.stdout.removeListener('resize', resizeTTY);
+                            process.stdin.removeAllListeners();
+                            process.stdin.setRawMode(isRaw);
+                            process.stdin.resume();
+                            stream.end();
+
+                            container.remove((err) => err ? reject(err) : resolve());
+                        });
                     });
                 });
             });

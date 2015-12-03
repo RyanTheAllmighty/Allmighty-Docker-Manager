@@ -93,7 +93,7 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             let _asyncEachCallback = function (application, next) {
-                application.restart(options, next);
+                application.restart(options).then(() => next()).catch(next);
             };
 
             if (options.async) {

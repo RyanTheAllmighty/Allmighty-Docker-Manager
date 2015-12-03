@@ -100,13 +100,13 @@
 
             async.each(toList, function (application, next) {
                 async.each(application.layers, function (layer, next1) {
-                    layer.isUp(function (isUp) {
+                    layer.isUp().then(function (isUp) {
                         if (isUp) {
                             list.push(layer.containerName);
                         }
 
                         next1();
-                    });
+                    }).catch(next);
                 }, next);
             }, function (err) {
                 if (err) {

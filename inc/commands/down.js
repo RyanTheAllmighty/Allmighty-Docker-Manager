@@ -85,7 +85,7 @@
 
             // Go through and check each application and remove the ones that are already online.
             async.each(toActUpon, function (application, next) {
-                application.isAnyUp(function (up) {
+                application.isAnyUp().then(function (up) {
                     if (!up) {
                         toActUpon.splice(toActUpon.indexOf(application), 1);
                     }
@@ -115,7 +115,7 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             let _asyncEachCallback = function (application, next) {
-                application.down(options, next);
+                application.down(options).then(() => next()).catch(next);
             };
 
             if (options.async) {
