@@ -5,6 +5,8 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 ### 0.7.1
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.
+#### Fixes
+- Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 
 ### 0.7.0
 #### Additions

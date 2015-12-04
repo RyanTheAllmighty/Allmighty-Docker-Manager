@@ -274,7 +274,7 @@
                     let utils = require(this.utilFile);
 
                     if (typeof utils.getLatestVersion === 'function') {
-                        utils.getLatestVersion(this.utilFile).then(function (version) {
+                        utils.getLatestVersion(this.utilModules).then(function (version) {
                             buildOpts.t += `:${version}`;
                             buildOpts.buildargs = JSON.stringify({VERSION: version});
                             buildOpts.usingLatestVersion = true;
