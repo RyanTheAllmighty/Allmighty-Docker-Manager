@@ -67,13 +67,13 @@
 
             // Go through and check each application and remove the ones that are not online.
             async.each(toList, function (application, next) {
-                application.isAnyUp(function (up) {
+                application.isAnyUp().then(function (up) {
                     if (!up) {
                         toList.splice(toList.indexOf(application), 1);
                     }
 
                     next();
-                });
+                }).catch(next);
             }, function (err) {
                 if (err) {
                     return reject(err);
