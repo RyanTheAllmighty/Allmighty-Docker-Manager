@@ -147,17 +147,17 @@ adm monitor --port=8000
 The default port for the monitor to run on is 8080 and in the example above we're running it on port 8000. Just pass your web browser to port 8000 of the machine's IP and you'll get into the
 container's web interface running [cAdvisor](https://github.com/google/cadvisor)
 
-## Command Line Arguments
-There are very few application specific command line arguments, but they are listed below:
+## Environment Variables
+There are very few environment variables that ADM takes into consideration, but they are listed below:
 
-### storagePath
+### ADM_STORAGE_PATH
 This allows you to specify where your application and components folders are, as well as your settings.json. This is useful if you're running the tool from a different directory to where those are
 stored.
 
 Example:
 
 ```
-adm --storagePath=/path/to/folder status
+export ADM_STORAGE_PATH=/path/to/folder
 ```
 
 ## Application Utility Files

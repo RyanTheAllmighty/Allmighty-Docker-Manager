@@ -1,14 +1,17 @@
 # Changes
 This file marks the changes in each version of ADM starting with 0.2.0.
 
-## 0.7
-### 0.7.1
+## 1.0
+### 1.0.0
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.
+#### Changes
+- Move the --storagePath command line argument to se the storage path to the 'ADM_STORAGE_PATH' environment variable.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.
 
+## 0.7
 ### 0.7.0
 #### Additions
 - Add in variable for host volumes on layers for '__adm_application' which points to the folder for the application (where the json is).

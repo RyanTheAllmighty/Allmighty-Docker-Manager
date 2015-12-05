@@ -30,7 +30,7 @@
         let passedArgs = require('minimist')(args);
         passedArgs._raw = args;
 
-        global.storagePath = passedArgs.storagePath || process.cwd();
+        global.storagePath = process.env.ADM_STORAGE_PATH || process.cwd();
 
         if (!fs.existsSync(path.join(global.storagePath, 'settings.json'))) {
             console.log(('Couldn\'t find a settings.json! Path: ' + global.storagePath).red);
