@@ -107,7 +107,7 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             let _asyncEachCallback = function (component, next) {
-                component.build(options).then(() => next()).catch(next);
+                component.build(module.exports.options).then(() => next()).catch(next);
             };
 
             if (module.exports.options.async) {
