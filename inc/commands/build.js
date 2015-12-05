@@ -51,7 +51,7 @@
      *
      * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null, version: String|null, versions: boolean, n: Number|null}}
      */
-    let options = {
+    module.exports.options = {
         quiet: false,
         noCache: false,
         async: false,
@@ -68,10 +68,10 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
-            if (options.n) {
-                options.n = isNaN(options.n) ? null : parseInt(options.n);
+            if (module.exports.options.n) {
+                module.exports.options.n = isNaN(module.exports.options.n) ? null : parseInt(module.exports.options.n);
             }
 
             if (passedArgs._ && passedArgs._.length > 0) {
@@ -90,9 +90,9 @@
 
             toBuild = _.uniq(toBuild);
 
-            if (toBuild.length !== 1 && options.version !== null) {
-                options.version = null;
-                options.versions = false;
+            if (toBuild.length !== 1 && module.exports.options.version !== null) {
+                module.exports.options.version = null;
+                module.exports.options.versions = false;
             }
 
             resolve();
@@ -110,7 +110,7 @@
                 component.build(options).then(() => next()).catch(next);
             };
 
-            if (options.async) {
+            if (module.exports.options.async) {
                 async.each(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());
             } else {
                 async.eachSeries(toBuild, _asyncEachCallback, (err) => err ? reject(err) : resolve());

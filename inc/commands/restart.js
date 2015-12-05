@@ -46,7 +46,7 @@
      *
      * @type {{quiet: boolean, async: boolean}}
      */
-    let options = {
+    module.exports.options = {
         quiet: false,
         async: false
     };
@@ -59,7 +59,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             if (passedArgs._ && passedArgs._.length > 0) {
                 for (let i = 0; i < passedArgs._.length; i++) {
@@ -93,10 +93,10 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             let _asyncEachCallback = function (application, next) {
-                application.restart(options).then(() => next()).catch(next);
+                application.restart(module.exports.options).then(() => next()).catch(next);
             };
 
-            if (options.async) {
+            if (module.exports.options.async) {
                 async.each(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
             } else {
                 async.eachSeries(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());

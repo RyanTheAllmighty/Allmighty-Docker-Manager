@@ -5,8 +5,9 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 ### 1.0.0
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.
+- Add in command line completion for bash/zsh. Read the README for more information.
 #### Changes
-- Move the --storagePath command line argument to se the storage path to the 'ADM_STORAGE_PATH' environment variable.
+- Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.

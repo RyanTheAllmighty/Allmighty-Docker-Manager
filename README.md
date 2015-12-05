@@ -160,6 +160,26 @@ Example:
 export ADM_STORAGE_PATH=/path/to/folder
 ```
 
+## Command Line Completion
+ADM provides command line completion built into the application.
+
+The command line completion only works with Bash or zsh unix shell's.
+
+To activate command line completion simply type the following:
+
+```
+. <(adm completion)
+```
+
+If you want to install it so it's always available then you can run one of the following:
+
+```
+adm completion >> ~/.bashrc
+adm completion >> ~/.zshrc
+```
+
+This will add the completion to your .bashrc or .zshrc files.
+
 ## Application Utility Files
 Application utility files are single JS files named adm-util.js in a applications folder. It's job is to provide simple utility commands to use during any interaction with applications.
 

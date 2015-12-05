@@ -36,7 +36,7 @@
      *
      * @type {{quiet: boolean, port: number}}
      */
-    let options = {
+    module.exports.options = {
         quiet: false,
         port: 8080
     };
@@ -49,7 +49,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             brain.getRunningContainerNames().then(function (containers) {
                 if (containers.length === 0) {
@@ -86,7 +86,7 @@
                 PortBindings: {
                     '8080/tcp': [
                         {
-                            HostPort: options.port.toString()
+                            HostPort: module.exports.options.port.toString()
                         }
                     ]
                 },
@@ -103,7 +103,7 @@
                 brain.docker.modem.followProgress(stream, onFinished, onProgress);
 
                 function onFinished() {
-                    brain.logger.info('Running monitoring now. Access the web UI via port ' + options.port + '!');
+                    brain.logger.info('Running monitoring now. Access the web UI via port ' + module.exports.options.port + '!');
 
                     brain.run(dockerOptions).then(function () {
                         brain.logger.info('The monitoring has stopped and is no longer available!');
@@ -113,7 +113,7 @@
                 }
 
                 function onProgress(progress) {
-                    if (!options.quiet && progress.stream) {
+                    if (!module.exports.options.quiet && progress.stream) {
                         process.stdout.write(progress.stream);
                     }
                 }

@@ -38,7 +38,7 @@
      *
      * @type {{quiet: boolean}}
      */
-    let options = {
+    module.exports.options = {
         quiet: false
     };
 
@@ -50,7 +50,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             resolve();
         });
@@ -63,12 +63,12 @@
      */
     module.exports.run = function () {
         return new Promise(function (resolve) {
-            if (!options.quiet) {
+            if (!module.exports.options.quiet) {
                 brain.logger.info('Setting up the directories needed!');
             }
 
             _.forEach(brain.getApplications(), function (application) {
-                application.setupDirectories(options);
+                application.setupDirectories(module.exports.options);
             });
 
             resolve();

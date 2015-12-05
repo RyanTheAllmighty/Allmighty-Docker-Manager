@@ -39,7 +39,7 @@
      *
      * @type {{quiet: boolean, containers: boolean, images: boolean, force: boolean}}
      */
-    let options = {
+    module.exports.options = {
         quiet: false,
         containers: false,
         images: false,
@@ -55,9 +55,9 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
-            if (!options.containers && !options.images) {
+            if (!module.exports.options.containers && !module.exports.options.images) {
                 return reject(new Error('You must specify if you want to clean containers, images or both with the --containers and --images flags!'));
             }
 
@@ -77,39 +77,39 @@
                     return reject(err);
                 }
 
-                if (options.containers) {
+                if (module.exports.options.containers) {
                     brain.logger.info('Deleting all containers!');
 
                     async.each(containers, function (containerInfo, next) {
-                        brain.docker.getContainer(containerInfo.Id).stop({force: options.force}, function (err) {
+                        brain.docker.getContainer(containerInfo.Id).stop({force: module.exports.options.force}, function (err) {
                             if (err && err.statusCode !== 304) {
                                 return next(err);
                             }
 
-                            brain.docker.getContainer(containerInfo.Id).remove({force: options.force}, next);
+                            brain.docker.getContainer(containerInfo.Id).remove({force: module.exports.options.force}, next);
                         });
                     }, (err) => err ? reject(err) : resolve());
                 }
 
-                if (options.images) {
+                if (module.exports.options.images) {
                     brain.docker.listImages(function (err, images) {
                         if (err) {
                             return reject(err);
                         }
 
-                        brain.logger.info('Deleting all ' + (options.untagged ? 'untagged ' : '') + 'images!');
+                        brain.logger.info('Deleting all ' + (module.exports.options.untagged ? 'untagged ' : '') + 'images!');
 
                         async.each(images, function (imageInfo, next) {
                             let image = brain.docker.getImage(imageInfo.Id);
 
-                            if (options.untagged) {
+                            if (module.exports.options.untagged) {
                                 image.inspect(function (err, data) {
                                     if (err || data.RepoTags.length === 0) {
-                                        image.remove({force: options.force}, next);
+                                        image.remove({force: module.exports.options.force}, next);
                                     }
                                 });
                             } else {
-                                image.remove({force: options.force}, next);
+                                image.remove({force: module.exports.options.force}, next);
                             }
                         }, (err) => err ? reject(err) : resolve());
                     });

@@ -43,7 +43,7 @@
      *
      * @type {{up: boolean}}
      */
-    let options = {
+    module.exports.options = {
         up: false
     };
 
@@ -55,7 +55,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             if (passedArgs._ && passedArgs._.length > 0) {
                 for (let i = 0; i < passedArgs._.length; i++) {
@@ -89,7 +89,7 @@
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
             async.eachSeries(toActUpon, function (application, next) {
-                application.logStatus(options).then(() => next()).catch(next);
+                application.logStatus(module.exports.options).then(() => next()).catch(next);
             }, (err) => err ? reject(err) : resolve());
         });
     };

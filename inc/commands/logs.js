@@ -43,7 +43,7 @@
      *
      * @type {{l: Number}}
      */
-    let options = {
+    module.exports.options = {
         l: 50
     };
 
@@ -55,7 +55,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             if (!passedArgs._ || passedArgs._.length < 2) {
                 return reject(new Error('2 arguments must be passed in!'));
@@ -105,7 +105,7 @@
                 stdout: true,
                 stderr: true,
                 timestamps: true,
-                tail: options.l
+                tail: module.exports.options.l
             }, function (err, stream) {
                 if (err) {
                     return reject(err);

@@ -39,7 +39,7 @@
     /**
      * The options for this command along with their defaults.
      */
-    let options = {};
+    module.exports.options = {};
 
     /**
      * Initializes this command with the given arguments and does some error checking to make sure we can actually run.
@@ -49,7 +49,7 @@
      */
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
-            options = merge(options, passedArgs);
+            module.exports.options = merge(module.exports.options, passedArgs);
 
             if (!passedArgs._ || passedArgs._.length < 2) {
                 return reject(new Error('2 arguments must be passed in!'));
@@ -88,6 +88,6 @@
      * @returns {Promise}
      */
     module.exports.run = function () {
-        return theLayer.run(options);
+        return theLayer.run(module.exports.options);
     };
 })();
