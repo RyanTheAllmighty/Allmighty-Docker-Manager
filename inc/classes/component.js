@@ -163,13 +163,6 @@
                 }
 
                 this.getBuildOptions(options).then(function (buildOpts) {
-                    let latestVersion = false;
-
-                    if (buildOpts.usingLatestVersion) {
-                        latestVersion = true;
-                        delete buildOpts.usingLatestVersion;
-                    }
-
                     let nameVerString = buildOpts.t.substr(buildOpts.t.lastIndexOf('/') + 1);
 
                     brain.logger.info('Started build for ' + nameVerString);
@@ -285,7 +278,6 @@
                         utils.getLatestVersion(this.utilModules).then(function (version) {
                             buildOpts.t += `:${version}`;
                             buildOpts.buildargs = JSON.stringify({VERSION: version});
-                            buildOpts.usingLatestVersion = true;
 
                             resolve(buildOpts);
                         }).catch(reject);
