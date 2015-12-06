@@ -6,6 +6,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.
 - Add in command line completion for bash/zsh. Read the README for more information.
+- Add in the ability to specify if you're working with the Docker Hub for your components and your username on there.
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 #### Fixes

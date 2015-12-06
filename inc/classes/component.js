@@ -69,13 +69,17 @@
          * @returns {String}
          */
         get tagName() {
-            let address = brain.settings.repositoryAuth.serveraddress;
+            if (brain.settings.usingDockerHub) {
+                return sprintf('%s/%s', brain.settings.dockerHubUsername, this.name);
+            } else {
+                let address = brain.settings.repositoryAuth.serveraddress;
 
-            if (address.indexOf('://') !== 0) {
-                address = address.substr(address.indexOf('://') + 3, address.length);
+                if (address.indexOf('://') !== 0) {
+                    address = address.substr(address.indexOf('://') + 3, address.length);
+                }
+
+                return sprintf('%s/%s', address, this.name);
             }
-
-            return sprintf('%s/%s', address, this.name);
         }
 
         /**
