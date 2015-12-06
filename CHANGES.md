@@ -7,12 +7,15 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add example of the 'runAfter' functionality to the sample folder.
 - Add in command line completion for bash/zsh. Read the README for more information.
 - Add in the ability to specify if you're working with the Docker Hub for your components and your username on there.
+- Allow adding in multiple tags to a build process using --tag one or more times (`adm build component --version 3.2.2 --tag stable --tag 3.2`).
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.
 - Fix the push and pull commands not showing any output.
+#### Removed
+- Removed auto adding of the latest tag. This should be done via the --tag option of the build command.
 
 ## 0.7
 ### 0.7.0

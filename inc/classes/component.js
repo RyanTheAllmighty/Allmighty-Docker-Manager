@@ -209,8 +209,12 @@
 
                                     brain.logger.info('Finished build for ' + nameVerString);
 
-                                    if (latestVersion) {
-                                        brain.docker.getImage(buildOpts.t).tag({repo: self.tagName, tag: 'latest', force: true}, (err) => err ? reject(err) : resolve());
+                                    let image = brain.docker.getImage(buildOpts.t);
+
+                                    if (options.tags && options.tags.length !== 0) {
+                                        async.eachSeries(options.tags, function (tag, next) {
+                                            image.tag({repo: self.tagName, tag: tag, force: true}, next);
+                                        }, (err) => err ? reject(err) : resolve());
                                     } else {
                                         resolve();
                                     }

@@ -99,6 +99,12 @@ adm build component --versions
 
 This will list all the versions available for the given component as per what is in the adm-util.js file for the component if it exists.
 
+You can also specify additional tags to give the resulting image with the tag command:
+
+```
+adm build component --version 1.2.3 --tag latest --tag 1.2 --tag 1
+```
+
 Alternatively you can pull down the images from the set repository (set in the settings.json file) by running:
 
 ```

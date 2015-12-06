@@ -48,8 +48,9 @@
      * version: The version of this build to tag it with and also passed into the Docker build process [ARG VERSION] (default: null)
      * versions: If we should list all the available versions of this component we can build (default: false)
      * n: The number of versions we should show when using the versions option (default: null)
+     * tags: The tags we should give this build (default: [])
      *
-     * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null, version: String|null, versions: boolean, n: Number|null}}
+     * @type {{quiet: boolean, noCache: boolean, async: boolean, async: String|null, version: String|null, versions: boolean, n: Number|null, tags: String[]}}
      */
     module.exports.options = {
         quiet: false,
@@ -57,7 +58,8 @@
         async: false,
         version: null,
         versions: false,
-        n: null
+        n: null,
+        tags: []
     };
 
     /**
@@ -69,6 +71,18 @@
     module.exports.init = function (passedArgs) {
         return new Promise(function (resolve, reject) {
             module.exports.options = merge(module.exports.options, passedArgs);
+
+            if (module.exports.options.tag) {
+                if (module.exports.options.tag instanceof Array) {
+                    module.exports.options.tags = module.exports.options.tag.map(function (val) {
+                        return val + '';
+                    });
+                } else {
+                    module.exports.options.tags.push(module.exports.options.tag + '');
+                }
+
+                delete module.exports.options.tag;
+            }
 
             if (module.exports.options.n) {
                 module.exports.options.n = isNaN(module.exports.options.n) ? null : parseInt(module.exports.options.n);
