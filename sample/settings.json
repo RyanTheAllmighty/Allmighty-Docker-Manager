@@ -11,11 +11,8 @@
     "repositoryAuth": {
         "username": "Username",
         "password": "Password",
-        "email": "my@email.com",
-        "serveraddress": "https://index.docker.io/v1/"
+        "email": "my@email.com"
     },
-    "usingDockerhub": true,
-    "dockerHubUsername": "myusername",
     "dns": [
         "8.8.8.8",
         "8.8.4.4"

@@ -69,8 +69,8 @@
          * @returns {String}
          */
         get tagName() {
-            if (brain.settings.usingDockerHub) {
-                return sprintf('%s/%s', brain.settings.dockerHubUsername, this.name);
+            if (!brain.settings.repositoryAuth.serveraddress || brain.settings.repositoryAuth.serveraddress.indexOf('https://index.docker.io') === 0) {
+                return sprintf('%s/%s', brain.settings.repositoryAuth.username, this.name);
             } else {
                 let address = brain.settings.repositoryAuth.serveraddress;
 
