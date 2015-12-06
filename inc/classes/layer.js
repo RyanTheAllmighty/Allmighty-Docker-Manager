@@ -345,7 +345,13 @@
             }
 
             if (imageToGet.indexOf('${repositoryURL}') !== -1) {
-                imageToGet = imageToGet.replace('${repositoryURL}', (address.substr(-1) === '/' ? address.substr(0, address.length - 1) : address));
+                let replacement = (address.substr(-1) === '/' ? address.substr(0, address.length - 1) : address);
+
+                if (!brain.settings.repositoryAuth.serveraddress || brain.settings.repositoryAuth.serveraddress.indexOf('https://index.docker.io') === 0) {
+                    replacement = brain.settings.repositoryAuth.username;
+                }
+
+                imageToGet = imageToGet.replace('${repositoryURL}', replacement);
             }
 
             let fromCustomRepo = imageToGet.indexOf(address) > -1;
