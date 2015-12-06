@@ -650,19 +650,33 @@
                     dOpts.OpenStdin = true;
                     dOpts.StdinOnce = false;
 
-                    brain.run(dOpts).then(function (err) {
+                    brain.docker.getImage(self.image).get(function (err) {
                         if (err) {
-                            return reject(err);
-                        }
-
-                        if (self.runAfter) {
-                            async.eachSeries(self.runAfter, function (ra, next) {
-                                ra.layer.canRun().then(function () {
-                                    return ra.layer.run(ra.command);
-                                }).then(() => next()).catch(next);
-                            }, (err) => err ? reject(err) : resolve());
+                            pullAndUp();
+                        } else {
+                            runIt();
                         }
                     });
+
+                    function pullAndUp() {
+                        self.pull().then(runIt).catch(reject);
+                    }
+
+                    function runIt() {
+                        brain.run(dOpts).then(function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            if (self.runAfter) {
+                                async.eachSeries(self.runAfter, function (ra, next) {
+                                    ra.layer.canRun().then(function () {
+                                        return ra.layer.run(ra.command);
+                                    }).then(() => next()).catch(next);
+                                }, (err) => err ? reject(err) : resolve());
+                            }
+                        }).catch(reject);
+                    }
                 });
             }.bind(this));
         }
