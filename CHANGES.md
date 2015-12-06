@@ -12,6 +12,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.
+- Fix the push and pull commands not showing any output.
 
 ## 0.7
 ### 0.7.0

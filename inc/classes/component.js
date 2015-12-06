@@ -337,8 +337,13 @@
                             }
 
                             if (!options.quiet) {
-                                if (progress.stream) {
-                                    process.stdout.write(progress.stream);
+                                if (progress.status && !progress.progress) {
+                                    if (progress.id) {
+                                        process.stdout.write(progress.id + ': ');
+                                    }
+
+                                    process.stdout.write(progress.status);
+                                    process.stdout.write('\n');
                                 }
                             }
                         }
@@ -382,8 +387,13 @@
                             }
 
                             if (!options.quiet) {
-                                if (progress.stream) {
-                                    process.stdout.write(progress.stream);
+                                if (progress.status && !progress.progress) {
+                                    if (progress.id) {
+                                        process.stdout.write(progress.id + ': ');
+                                    }
+
+                                    process.stdout.write(progress.status);
+                                    process.stdout.write('\n');
                                 }
                             }
                         }
