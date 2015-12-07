@@ -496,7 +496,7 @@
 
                 this.application.areLayersUp(this.dependentLayers).then(function (areUp) {
                     if (!areUp) {
-                        return reject(new Error('All The necessary layers to run this layer aren\'t up! Please bring them up and try again!'));
+                        return resolve(false);
                     }
 
                     resolve(true);
@@ -519,19 +519,28 @@
                         return resolve();
                     }
 
-                    self.container.stop(function (err) {
-                        if (err) {
-                            return reject(err);
-                        }
-
-                        brain.logger.info(`${self.containerName} is now down!`);
-
+                    if (self.dataOnly) {
                         if (options.rm) {
+                            brain.logger.info(`Removing data only container for ${self.containerName}!`);
                             self.container.remove((err) => err ? reject(err) : resolve());
                         } else {
                             resolve();
                         }
-                    });
+                    } else {
+                        self.container.stop(function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            brain.logger.info(`${self.containerName} is now down!`);
+
+                            if (options.rm) {
+                                self.container.remove((err) => err ? reject(err) : resolve());
+                            } else {
+                                resolve();
+                            }
+                        });
+                    }
                 }).catch(reject);
             }.bind(this));
         }
@@ -543,6 +552,8 @@
          */
         isUp() {
             return new Promise(function (resolve) {
+                let self = this;
+
                 this.container.inspect(function (err, data) {
                     // If there is an error returned then the container hasn't been created
                     if (err) {
@@ -550,7 +561,7 @@
                     }
 
                     // Else it has been created so we check if it's running based on what the inspect command tells us
-                    resolve(data.State.Running || false);
+                    resolve(self.dataOnly || data.State.Running || false);
                 });
             }.bind(this));
         }
@@ -650,16 +661,50 @@
                     dOpts.OpenStdin = true;
                     dOpts.StdinOnce = false;
 
-                    brain.docker.getImage(self.image).get(function (err) {
+                    brain.docker.getImage(self.image).inspect(function (err) {
                         if (err) {
                             pullAndUp();
                         } else {
-                            runIt();
+                            checkLayers();
                         }
                     });
 
+                    let layersNeeded = [];
+
                     function pullAndUp() {
-                        self.pull().then(runIt).catch(reject);
+                        self.pull().then(checkLayers).catch(reject);
+                    }
+
+                    function checkLayers() {
+                        self.canRun().then(function (canRun) {
+                            if (canRun) {
+                                return runIt();
+                            }
+
+                            async.eachSeries(self.dependentLayers, function (layerName, next) {
+                                let layer = self.application.getLayer(layerName);
+
+                                if (!layer) {
+                                    return next(new Error(`There is no layer called ${layerName} for this application!`));
+                                }
+
+                                layer.isUp().then(function (isUp) {
+                                    if (!isUp) {
+                                        layersNeeded.push(layer);
+                                    }
+
+                                    next();
+                                }).catch(reject);
+                            }, function (err) {
+                                if (err) {
+                                    return reject(err);
+                                }
+
+                                async.eachSeries(layersNeeded, function (layer, next) {
+                                    layer.up(options).then(() => next()).catch(next);
+                                }, (err) => err ? reject(err) : runIt());
+                            });
+                        }).catch(reject);
                     }
 
                     function runIt() {
@@ -668,13 +713,22 @@
                                 return reject(err);
                             }
 
-                            if (self.runAfter) {
-                                async.eachSeries(self.runAfter, function (ra, next) {
-                                    ra.layer.canRun().then(function () {
-                                        return ra.layer.run(ra.command);
-                                    }).then(() => next()).catch(next);
-                                }, (err) => err ? reject(err) : resolve());
-                            }
+                            async.eachSeries(layersNeeded, function (layer, next) {
+                                options.rm = true;
+                                layer.down(options).then(() => next()).catch(next);
+                            }, function (err) {
+                                if (err) {
+                                    return reject(err);
+                                }
+
+                                if (self.runAfter) {
+                                    async.eachSeries(self.runAfter, function (ra, next) {
+                                        ra.layer.run(ra.command).then(() => next()).catch(next);
+                                    }, (err) => err ? reject(err) : resolve());
+                                } else {
+                                    resolve();
+                                }
+                            });
                         }).catch(reject);
                     }
                 });

@@ -10,6 +10,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Allow adding in multiple tags to a build process using --tag one or more times (`adm build component --version 3.2.2 --tag stable --tag 3.2`).
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
+- The run command will now bring up the necessary containers needed to run and then bring them down and remove them once finished.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.

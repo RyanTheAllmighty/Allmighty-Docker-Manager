@@ -76,7 +76,7 @@
 
                     theLayer = application.getLayer(layerName);
 
-                    theLayer.canRun().then(resolve).catch(reject);
+                    resolve();
                 });
             }).catch(reject);
         });
