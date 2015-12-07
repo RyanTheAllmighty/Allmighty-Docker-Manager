@@ -492,6 +492,10 @@
             return new Promise(function (resolve, reject) {
                 this.getOrderOfLayers(options).then(function (layersOrder) {
                     async.eachSeries(layersOrder, function (layer, next) {
+                        if (layer.dataOnly) {
+                            return next();
+                        }
+
                         layer.restart(options, next);
                     }, (err) => err ? reject(err) : resolve());
                 }).catch(reject);
