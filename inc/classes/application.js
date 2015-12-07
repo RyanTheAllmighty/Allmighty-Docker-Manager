@@ -496,7 +496,7 @@
                             return next();
                         }
 
-                        layer.restart(options, next);
+                        layer.restart(options).then(() => next()).catch(next);
                     }, (err) => err ? reject(err) : resolve());
                 }).catch(reject);
             }.bind(this));
