@@ -617,23 +617,34 @@
          * @returns {Promise}
          */
         restart(options) {
-            let self = this;
-
             return new Promise(function (resolve, reject) {
+                let self = this;
+
                 this.isUp().then(function (isUp) {
                     if (!isUp) {
                         return self.up(options).then(resolve).catch(reject);
                     }
 
-                    brain.logger.info(`${self.containerName} is being restarted!`);
+                    if (self.dataOnly) {
+                        brain.logger.info(`Data only container ${self.containerName} is being recreated!`);
+                    } else {
+                        brain.logger.info(`${self.containerName} is being restarted!`);
+                    }
 
-                    self.container.restart(function (err) {
+                    self.container.remove({force: true}, function (err) {
                         if (err) {
                             return reject(err);
                         }
 
-                        brain.logger.info(`${self.containerName} has been restarted!`);
-                        resolve();
+                        self.up({quiet: true}).then(function () {
+                            if (self.dataOnly) {
+                                brain.logger.info(`Data only container ${self.containerName} has been recreated!`);
+                            } else {
+                                brain.logger.info(`${self.containerName} has been restarted!`);
+                            }
+
+                            resolve();
+                        }).catch(reject);
                     });
                 }).catch(reject);
             }.bind(this));
@@ -745,10 +756,12 @@
             let self = this;
 
             return new Promise(function (resolve, reject) {
-                if (self.dataOnly) {
-                    brain.logger.info(`Creating data only container for ${self.containerName}!`);
-                } else {
-                    brain.logger.info(`${self.containerName} is starting up!`);
+                if (!options.quiet) {
+                    if (self.dataOnly) {
+                        brain.logger.info(`Creating data only container for ${self.containerName}!`);
+                    } else {
+                        brain.logger.info(`${self.containerName} is starting up!`);
+                    }
                 }
 
                 this.isUp().then(function (isUp) {
@@ -766,7 +779,10 @@
 
                                 // This is a data only container, so we don't need to run it
                                 if (self.dataOnly) {
-                                    brain.logger.info(`${self.containerName} data container has been created!`);
+                                    if (!options.quiet) {
+                                        brain.logger.info(`${self.containerName} data container has been created!`);
+                                    }
+
                                     return resolve();
                                 }
 
@@ -775,7 +791,9 @@
                                         return reject(err);
                                     }
 
-                                    brain.logger.info(`${self.containerName} is now up!`);
+                                    if (!options.quiet) {
+                                        brain.logger.info(`${self.containerName} is now up!`);
+                                    }
 
                                     resolve();
                                 });
