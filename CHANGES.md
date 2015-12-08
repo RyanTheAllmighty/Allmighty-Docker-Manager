@@ -19,7 +19,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Fix the push and pull commands not showing any output.
 - Fix issue with the run command not pulling missing images.
 - Restarting an application will actually bring down and remove the containers and spin them up fresh.
-- Fix the setup command not creating directories in the directories.json file.
+- Fix the setup command not creating directories in the directories.json file or for any of the volumes in the layers.
 #### Removed
 - Removed auto adding of the latest tag. This should be done via the --tag option of the build command.
 

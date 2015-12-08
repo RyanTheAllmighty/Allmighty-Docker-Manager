@@ -513,6 +513,21 @@
                     mkdirp.sync(directory.path);
                 }
             });
+
+            _.forEach(this.layers, function (layer) {
+                _.forEach(layer.volumes, function (volume) {
+                    if (volume.directory) {
+
+                        if (!fs.existsSync(volume.host)) {
+                            if (!options.quiet) {
+                                brain.logger.info('Creating directory ' + volume.host);
+                            }
+
+                            mkdirp.sync(volume.host);
+                        }
+                    }
+                });
+            });
         }
 
         /**
