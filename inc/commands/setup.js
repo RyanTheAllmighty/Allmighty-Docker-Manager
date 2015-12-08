@@ -28,8 +28,10 @@
 
     let brain = require('../brain');
 
+    let fs = require('fs');
     let _ = require('lodash');
     let merge = require('merge');
+    let mkdirp = require('mkdirp');
 
     /**
      * The options for this command along with their defaults.
@@ -66,6 +68,16 @@
             if (!module.exports.options.quiet) {
                 brain.logger.info('Setting up the directories needed!');
             }
+
+            _.forEach(brain.directories, function (directory) {
+                if (!fs.existsSync(directory.path)) {
+                    if (!module.exports.options.quiet) {
+                        brain.logger.info('Creating directory ' + directory.path);
+                    }
+
+                    mkdirp.sync(directory.path);
+                }
+            });
 
             _.forEach(brain.getApplications(), function (application) {
                 application.setupDirectories(module.exports.options);
