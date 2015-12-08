@@ -34,16 +34,18 @@
      * quiet: If there should be no output from the command (default: false)
      * containers: If all containers should be cleaned up (default: false)
      * images: If all images should be cleaned up (default: false)
-     * untagged: If we should only removed untagged images (default: false)
+     * untagged: If we should only remove untagged images (default: false)
+     * stopped: If we should only remove stopped containers (default: false)
      * force: If the cleaning should be forced or not (default: false)
      *
-     * @type {{quiet: boolean, containers: boolean, images: boolean, force: boolean}}
+     * @type {{quiet: boolean, containers: boolean, images: boolean, untagged: boolean, stopped: boolean, force: boolean}}
      */
     module.exports.options = {
         quiet: false,
         containers: false,
         images: false,
         untagged: false,
+        stopped: false,
         force: false
     };
 
@@ -78,16 +80,32 @@
                 }
 
                 if (module.exports.options.containers) {
-                    brain.logger.info('Deleting all containers!');
+                    brain.logger.info('Deleting all ' + (module.exports.options.stopped ? 'stopped ' : '') + 'containers!');
 
                     async.each(containers, function (containerInfo, next) {
-                        brain.docker.getContainer(containerInfo.Id).stop({force: module.exports.options.force}, function (err) {
-                            if (err && err.statusCode !== 304) {
-                                return next(err);
-                            }
+                        let container = brain.docker.getContainer(containerInfo.Id);
 
-                            brain.docker.getContainer(containerInfo.Id).remove({force: module.exports.options.force}, next);
-                        });
+                        if (module.exports.options.stopped) {
+                            container.inspect(function (err, data) {
+                                if (err || !data.State.Running) {
+                                    removeContainer();
+                                } else {
+                                    next();
+                                }
+                            });
+                        } else {
+                            removeContainer();
+                        }
+
+                        function removeContainer() {
+                            container.stop({force: module.exports.options.force}, function (err) {
+                                if (err && err.statusCode !== 304) {
+                                    return next(err);
+                                }
+
+                                brain.docker.getContainer(containerInfo.Id).remove({force: module.exports.options.force}, next);
+                            });
+                        }
                     }, (err) => err ? reject(err) : resolve());
                 }
 
@@ -106,6 +124,8 @@
                                 image.inspect(function (err, data) {
                                     if (err || data.RepoTags.length === 0) {
                                         image.remove({force: module.exports.options.force}, next);
+                                    } else {
+                                        next();
                                     }
                                 });
                             } else {

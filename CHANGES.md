@@ -8,6 +8,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add in command line completion for bash/zsh. Read the README for more information.
 - Add in the ability to specify if you're working with the Docker Hub for your components and your username on there.
 - Allow adding in multiple tags to a build process using --tag one or more times (`adm build component --version 3.2.2 --tag stable --tag 3.2`).
+- Add in `--stopped` option to the clean command, in conjunction with the `--containers` option, to remove stopped containers only.
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 - The run command will now bring up the necessary containers needed to run and then bring them down and remove them once finished.
