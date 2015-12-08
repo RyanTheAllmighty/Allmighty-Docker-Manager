@@ -1,0 +1,174 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/ADM/Application/Root",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "directories": {
+            "type": "object",
+            "patternProperties": {
+                "^(.*?)$": {
+                    "id": "/ADM/Shared/Directory",
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "path",
+                        "description"
+                    ]
+                }
+            }
+        },
+        "layers": {
+            "type": "object",
+            "patternProperties": {
+                "^(.*?)$": {
+                    "type": "object",
+                    "properties": {
+                        "image": {
+                            "type": "string"
+                        },
+                        "restart": {
+                            "type": "boolean"
+                        },
+                        "dataOnly": {
+                            "type": "boolean"
+                        },
+                        "runOnly": {
+                            "type": "boolean"
+                        },
+                        "command": {
+                            "type": "array"
+                        },
+                        "workingDirectory": {
+                            "type": "string"
+                        },
+                        "memLimit": {
+                            "type": "string"
+                        },
+                        "environment": {
+                            "type": "array",
+                            "items": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": ["string", "array"]
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "links": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "container": {
+                                        "type": "string"
+                                    },
+                                    "host": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "container"
+                                ]
+                            }
+                        },
+                        "ports": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "container": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 65535
+                                    },
+                                    "host": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 65535
+                                    },
+                                    "tcp": {
+                                        "type": "boolean"
+                                    },
+                                    "udp": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "container"
+                                ]
+                            }
+                        },
+                        "volumes": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "host": {
+                                        "type": "string"
+                                    },
+                                    "container": {
+                                        "type": "string"
+                                    },
+                                    "readOnly": {
+                                        "type": "boolean"
+                                    },
+                                    "directory": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "host",
+                                    "container"
+                                ]
+                            }
+                        },
+                        "volumesFrom": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "container": {
+                                        "type": "string"
+                                    },
+                                    "required": [
+                                        "container"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "image"
+                    ]
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "description",
+        "layers"
+    ]
+}

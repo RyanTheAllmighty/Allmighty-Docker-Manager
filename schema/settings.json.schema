@@ -1,0 +1,96 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/ADM/Settings/Root",
+    "type": "object",
+    "properties": {
+        "dockerSocket": {
+            "type": "string"
+        },
+        "dockerLocation": {
+            "type": "string"
+        },
+        "dockerHttp": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "ca": {
+                    "type": "string"
+                },
+                "cert": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "host",
+                "port",
+                "ca",
+                "cert",
+                "key"
+            ]
+        },
+        "repositoryAuth": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "serveraddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "dns": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "directories": {
+            "type": "object",
+            "properties": {
+                "storage": {
+                    "type": "string"
+                }
+            }
+        },
+        "logging": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [ "info", "debug" ]
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "oneOf": [
+        {"required": ["dockerSocket"]},
+        {"required": ["dockerHttp"]}
+    ],
+    "required": [
+        "dockerLocation",
+        "repositoryAuth",
+        "dns",
+        "directories"
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/ADM/Directories/Root",
+    "type": "object",
+    "patternProperties": {
+        "^(.*?)$": {
+            "id": "/ADM/Shared/Directory",
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "path",
+                "description"
+            ]
+        }
+    }
+}
