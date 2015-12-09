@@ -36,8 +36,6 @@
 
         let layer = new Layer(application, 'test', {
             image: 'test/test',
-            dataOnly: false,
-            runOnly: false,
             restart: true,
             memLimit: '1GB',
             cpuShares: 512,
@@ -109,19 +107,19 @@
             it('should return the image of a layer', function () {
                 expect(imageWithoutVersion.image).to.equal('test/test:latest');
                 expect(imageWithVersion.image).to.equal('test/test:test');
-                expect(imageWithoutRepositoryVersion.image).to.equal('index.docker.io/v1/test:latest');
-                expect(imageWithRepositoryVersion.image).to.equal('index.docker.io/v1/test:test');
+                expect(imageWithoutRepositoryVersion.image).to.equal('Username/test:latest');
+                expect(imageWithRepositoryVersion.image).to.equal('Username/test:test');
             });
         });
 
         describe('#dataOnly', function () {
-            it('should return if the layer is a data only layer that shouldn\'t be run', function () {
+            it('should return false for being a dataOnly layer', function () {
                 expect(layer.dataOnly).to.equal(false);
             });
         });
 
         describe('#runOnly', function () {
-            it('should return if the layer is a run only layer that should only be run as a single application', function () {
+            it('should return false for being a runOnly layer', function () {
                 expect(layer.runOnly).to.equal(false);
             });
         });

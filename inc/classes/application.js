@@ -22,6 +22,8 @@
     let brain = require('../brain');
 
     let Layer = require('./layer');
+    let RunLayer = require('./runLayer');
+    let DataLayer = require('./dataLayer');
     let Directory = require('./directory');
 
     let fs = require('fs');
@@ -62,8 +64,20 @@
                 }, this);
             }
 
-            // Turn the layers in the object into Layer objects
+            // Turn the data, run and layers in the object into Layer objects
             this[objectSymbol].layers = {};
+            if (originalObject.data) {
+                _.forEach(originalObject.data, function (layer, key) {
+                    this[objectSymbol].layers[key] = new DataLayer(this, key, layer);
+                }, this);
+            }
+
+            if (originalObject.run) {
+                _.forEach(originalObject.run, function (layer, key) {
+                    this[objectSymbol].layers[key] = new RunLayer(this, key, layer);
+                }, this);
+            }
+
             if (originalObject.layers) {
                 _.forEach(originalObject.layers, function (layer, key) {
                     this[objectSymbol].layers[key] = new Layer(this, key, layer);

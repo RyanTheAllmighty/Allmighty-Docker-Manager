@@ -258,7 +258,7 @@ The file should simply export methods you need to be available. A sample is incl
             });
         },
          /**
-          * This gets the an array of all the available versions of this component.
+          * This gets an array of all the available versions of this component.
           *
           * @param {Object} options - This is an object of options passed from the command line
           * @param {Object} [modules] - This is an object of the requested required in modules (if any)

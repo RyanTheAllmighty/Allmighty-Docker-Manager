@@ -13,6 +13,8 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 - The run command will now bring up the necessary containers needed to run and then bring them down and remove them once finished.
+- dataOnly layers are now stored within a data object above the layers object in an application.json.
+- runOnly layers are now stored within a run object above the layers object in an application.json.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.

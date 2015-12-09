@@ -11,10 +11,9 @@
             "description": "Some more test data. This one is shared by other containers. Also note this is not an absolute path, it's appended to the directories.storage value in the settings.json."
         }
     },
-    "layers": {
+    "data": {
         "data": {
             "image": "ubuntu:14.04",
-            "dataOnly": true,
             "volumes": [
                 {
                     "host": "${test}",
@@ -38,10 +37,11 @@
                     "directory": false
                 }
             ]
-        },
+        }
+    },
+    "run": {
         "setup": {
             "image": "ubuntu:14.04",
-            "runOnly": true,
             "runAfter": [
                 {
                     "layer": "composer",
@@ -58,7 +58,6 @@
         },
         "composer": {
             "image": "composer/composer",
-            "runOnly": true,
             "command": "composer --ansi",
             "workingDirectory": "/mounted/test",
             "volumesFrom": [
@@ -66,10 +65,11 @@
                     "container": "data"
                 }
             ]
-        },
+        }
+    },
+    "layers": {
         "test": {
             "image": "ubuntu:14.04",
-            "dataOnly": false,
             "restart": true,
             "cpuShares": 512,
             "command": "sleep 365d",
@@ -93,7 +93,6 @@
         },
         "component": {
             "image": "component",
-            "dataOnly": false,
             "restart": true,
             "cpuShares": 512,
             "ports": [
@@ -110,7 +109,6 @@
         },
         "repoComponent": {
             "image": "${repositoryURL}/component",
-            "dataOnly": false,
             "restart": true,
             "cpuShares": 512,
             "ports": [
