@@ -32,9 +32,9 @@
     let merge = require('merge');
 
     /**
-     * The applications we wish to restart.
+     * The applications/layer we wish to restart.
      *
-     * @type {Application[]}
+     * @type {Application[]|Layer}
      */
     let toActUpon = [];
 
@@ -62,24 +62,28 @@
             module.exports.options = merge(module.exports.options, passedArgs);
 
             if (passedArgs._ && passedArgs._.length > 0) {
-                for (let i = 0; i < passedArgs._.length; i++) {
-                    let applicationName = passedArgs._[i];
+                if (passedArgs._.length === 2 && brain.isApplication(passedArgs._[0]) && brain.getApplication(passedArgs._[0]).getLayer(passedArgs._[1])) {
+                    toActUpon = brain.getApplication(passedArgs._[0]).getLayer(passedArgs._[1]);
+                } else {
+                    for (let i = 0; i < passedArgs._.length; i++) {
+                        let applicationName = passedArgs._[i];
 
-                    if (!brain.isApplicationSync(applicationName)) {
-                        return reject(new Error('No application exists called "' + applicationName + '"!'));
+                        if (!brain.isApplicationSync(applicationName)) {
+                            return reject(new Error(`No application exists called '${applicationName}'!`));
+                        }
+
+                        if (applicationName.indexOf('*') === -1) {
+                            toActUpon.push(brain.getApplication(applicationName));
+                        } else {
+                            toActUpon = toActUpon.concat(brain.getApplications(applicationName));
+                        }
                     }
 
-                    if (applicationName.indexOf('*') === -1) {
-                        toActUpon.push(brain.getApplication(applicationName));
-                    } else {
-                        toActUpon = toActUpon.concat(brain.getApplications(applicationName));
-                    }
+                    toActUpon = _.uniq(toActUpon);
                 }
             } else {
                 toActUpon = toActUpon.concat(brain.getApplicationsAsArray());
             }
-
-            toActUpon = _.uniq(toActUpon);
 
             resolve();
         });
@@ -92,14 +96,18 @@
      */
     module.exports.run = function () {
         return new Promise(function (resolve, reject) {
-            let _asyncEachCallback = function (application, next) {
-                application.restart(module.exports.options).then(() => next()).catch(next);
-            };
-
-            if (module.exports.options.async) {
-                async.each(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+            if (!toActUpon.hasOwnProperty('length')) {
+                toActUpon.restart(module.exports.options).then(() => resolve()).catch(reject);
             } else {
-                async.eachSeries(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                let _asyncEachCallback = function (application, next) {
+                    application.restart(module.exports.options).then(() => next()).catch(next);
+                };
+
+                if (module.exports.options.async) {
+                    async.each(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                } else {
+                    async.eachSeries(toActUpon, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                }
             }
         });
     };
