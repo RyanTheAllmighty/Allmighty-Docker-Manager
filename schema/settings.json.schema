@@ -6,9 +6,6 @@
         "dockerSocket": {
             "type": "string"
         },
-        "dockerLocation": {
-            "type": "string"
-        },
         "dockerHttp": {
             "type": "object",
             "properties": {
@@ -88,7 +85,6 @@
         {"required": ["dockerHttp"]}
     ],
     "required": [
-        "dockerLocation",
         "repositoryAuth",
         "dns",
         "directories"
