@@ -11,27 +11,30 @@
             "description": "Some more test data. This one is shared by other containers. Also note this is not an absolute path, it's appended to the directories.storage value in the settings.json."
         }
     },
+    "variables": {
+        "testVaraible": "hello"
+    },
     "data": {
         "data": {
             "image": "ubuntu:14.04",
             "volumes": [
                 {
-                    "host": "${test}",
+                    "host": "${d:test}",
                     "container": "/mounted/test",
                     "readOnly": false
                 },
                 {
-                    "host": "${test_global}",
+                    "host": "${d:test_global}",
                     "container": "/mounted/test_global",
                     "readOnly": false
                 },
                 {
-                    "host": "${read_only}",
+                    "host": "${d:read_only}",
                     "container": "/mounted/RO",
                     "readOnly": true
                 },
                 {
-                    "host": "${read_only}/file.txt",
+                    "host": "${d:read_only}/file.txt",
                     "container": "/mounted/RO/file.txt",
                     "readOnly": true,
                     "directory": false
@@ -108,7 +111,7 @@
             ]
         },
         "repoComponent": {
-            "image": "${repositoryURL}/component",
+            "image": "${v:repositoryURL}/component",
             "restart": true,
             "cpuShares": 512,
             "ports": [
@@ -120,6 +123,16 @@
             "volumesFrom": [
                 {
                     "container": "data"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "FROM_VARIABLE",
+                    "value": "${v:testVaraible}"
+                },
+                {
+                    "name": "FROM_HOST_ENVIRONMENT_VARIABLE",
+                    "value": "${e:VARIABLE_ON_HOST}"
                 }
             ]
         }

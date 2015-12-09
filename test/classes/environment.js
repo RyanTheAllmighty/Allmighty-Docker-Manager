@@ -24,12 +24,12 @@
     let Environment = require('../../inc/classes/environment');
 
     describe('Environment', function () {
-        let environment = new Environment({
+        let environment = new Environment({}, {
             name: 'TEST',
             value: 'test'
         });
 
-        let environmentWithArray = new Environment({
+        let environmentWithArray = new Environment({}, {
             name: 'TEST',
             value: [
                 'test1',

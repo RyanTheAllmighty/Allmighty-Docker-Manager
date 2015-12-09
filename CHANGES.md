@@ -10,11 +10,13 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Allow adding in multiple tags to a build process using --tag one or more times (`adm build component --version 3.2.2 --tag stable --tag 3.2`).
 - Add in `--stopped` option to the clean command, in conjunction with the `--containers` option, to remove stopped containers only.
 - Added lint command to check the user defined json files to make sure they're valid according to our set schema.
+- Added in variables which can be specified in an application.json or a separate variables.json file and can be provided in other parts of the application.json as `${v:varaible}`.
 #### Changes
 - Move the --storagePath command line argument to set the storage path to the 'ADM_STORAGE_PATH' environment variable.
 - The run command will now bring up the necessary containers needed to run and then bring them down and remove them once finished.
 - dataOnly layers are now stored within a data object above the layers object in an application.json.
 - runOnly layers are now stored within a run object above the layers object in an application.json.
+- Variables used in different places (`${directory}`) have been replaced with the new variable syntax (`${d:varaible}`).
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.

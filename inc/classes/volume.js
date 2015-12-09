@@ -65,34 +65,10 @@
         /**
          * Gets the path on the host system to mount inside the container.
          *
-         * \${([\w]+)}
-         *
          * @returns {String}
          */
         get host() {
-            let value = this[objectSymbol].host;
-
-            let matches = value.match(/\${([\w]+)}/);
-
-            if (!matches) {
-                return value;
-            }
-
-            for (let i = 0; i < matches.length; i += 2) {
-                let path = null;
-
-                if (this.layer.application.directories && this.layer.application.directories[matches[i + 1]]) {
-                    path = this.layer.application.directories[matches[i + 1]].path;
-                } else if (matches[i + 1] === '__adm_application') {
-                    path = this.layer.application.directory.replace(/\\/g,'/');
-                } else {
-                    path = brain.directories[matches[i + 1]].path;
-                }
-
-                value = value.replace(matches[i], path);
-            }
-
-            return value;
+            return brain.parseVariables(this.layer.application, this[objectSymbol].host);
         }
 
         /**

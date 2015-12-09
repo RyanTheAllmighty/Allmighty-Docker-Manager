@@ -28,6 +28,7 @@
         let application = new Application('testapplication', {
             name: 'Test Application',
             description: 'This is a test application!',
+            variables: {test: 'Test Variable'},
             layers: {
                 test: {}
             }
@@ -46,6 +47,12 @@
         describe('#name', function () {
             it('should return the name of the application', function () {
                 expect(application.name).to.equal('Test Application');
+            });
+        });
+
+        describe('#variables', function () {
+            it('should return the variables of the application', function () {
+                expect(application.variables.test).to.equal('Test Variable');
             });
         });
 

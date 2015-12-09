@@ -175,6 +175,15 @@
         }
 
         /**
+         * Gets the variables for this application.
+         *
+         * @returns {String}
+         */
+        get variables() {
+            return this[objectSymbol].variables || {};
+        }
+
+        /**
          * Checks if all the layers passed in as names are up/have been created (for dataOnly layers) or not.
          *
          * @param {String[]} layers - an array of names of layers

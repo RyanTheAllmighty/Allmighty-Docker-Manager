@@ -19,6 +19,8 @@
 (function () {
     'use strict';
 
+    let brain = require('../brain');
+
     // Symbol for storing the objects properties
     let objectSymbol = Symbol();
 
@@ -26,10 +28,13 @@
         /**
          * Constructor to create a new Environment.
          *
+         * @param {Layer} layer - the layer than this environment object belongs to
          * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
          */
-        constructor(originalObject) {
+        constructor(layer, originalObject) {
             this[objectSymbol] = {};
+
+            this[objectSymbol]._layer = layer;
 
             // Copy over the original objects properties to this objects private Symbol
             for (let propName in originalObject) {
@@ -37,6 +42,15 @@
                     this[objectSymbol][propName] = originalObject[propName];
                 }
             }
+        }
+
+        /**
+         * Gets the layer of this environment variable.
+         *
+         * @returns {Layer}
+         */
+        get layer() {
+            return this[objectSymbol]._layer;
         }
 
         /**
@@ -54,7 +68,7 @@
          * @returns {String}
          */
         get value() {
-            return this[objectSymbol].value instanceof Array ? this[objectSymbol].value.join(',') : this[objectSymbol].value;
+            return brain.parseVariables(this.layer.application, this[objectSymbol].value instanceof Array ? this[objectSymbol].value.join(',') : this[objectSymbol].value);
         }
     };
 })();

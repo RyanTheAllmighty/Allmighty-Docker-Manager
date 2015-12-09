@@ -50,6 +50,8 @@
 
     module.exports.settings = settings;
 
+    module.exports.variables = fs.existsSync(path.join(global.storagePath, 'variables.json')) ? require(path.join(global.storagePath, 'variables.json')) : {};
+
     module.exports.load = function () {
         _applications = this.loadApplications();
         _components = this.loadComponents();
@@ -340,6 +342,62 @@
                 });
             });
         });
+    };
+
+    /**
+     * This parses variables in strings and replaces placeholders with their correct values for the given application.
+     *
+     * ${d:variable} will be replaced with a directory defined in the application.json or via the main directories.json file.
+     * ${e:variable} will be replaced with a environment variable.
+     * ${v:variable} will be replaced with a variable defined in the application.json or via the main variables.json file.
+     *
+     * @param {Application} application
+     * @param {String} string
+     * @returns {*}
+     */
+    module.exports.parseVariables = function (application, string) {
+        let returnValue = string;
+
+        let re = /\${([dev]):([a-zA-Z\-_0-9]+)}/g;
+        let m;
+
+        while ((m = re.exec(string)) !== null) {
+            switch (m[1]) {
+                case 'd':
+                    let path;
+
+                    if (application.directories && typeof application.directories[m[2]] !== 'undefined') {
+                        path = application.directories[m[2]].path;
+                    } else if (m[2] === '__adm_application') {
+                        path = application.directory.replace(/\\/g, '/');
+                    } else if (typeof module.exports.directories[m[2]] !== 'undefined') {
+                        path = module.exports.directories[m[2]].path;
+                    }
+
+                    if (typeof path !== 'undefined') {
+                        returnValue = returnValue.replace(m[0], path);
+                    }
+                    break;
+                case 'e':
+                    if (typeof process.env[m[2]] !== 'undefined') {
+                        returnValue = returnValue.replace(m[0], process.env[m[2]]);
+                    }
+                    break;
+                case 'v':
+                    if (application.variables && application.variables.hasOwnProperty(m[2])) {
+                        returnValue = returnValue.replace(m[0], application.variables[m[2]]);
+                    } else if (module.exports.variables.hasOwnProperty(m[2])) {
+                        returnValue = returnValue.replace(m[0], module.exports.variables[m[2]]);
+                    }
+                    break;
+            }
+        }
+
+        if (returnValue.indexOf('${') !== -1) {
+            throw new Error(`Unconverted variable found in '${returnValue}' for application '${application.applicationName}'!`);
+        }
+
+        return returnValue;
     };
 
     function getDirectories() {

@@ -97,11 +97,11 @@
             });
 
             let imageWithoutRepositoryVersion = new Layer(new Application('test', {}), 'test', {
-                image: '${repositoryURL}/test'
+                image: '${v:repositoryURL}/test'
             });
 
             let imageWithRepositoryVersion = new Layer(new Application('test', {}), 'test', {
-                image: '${repositoryURL}/test:test'
+                image: '${v:repositoryURL}/test:test'
             });
 
             it('should return the image of a layer', function () {

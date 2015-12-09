@@ -31,6 +31,14 @@
                 }
             }
         },
+        "variables": {
+            "type": "object",
+            "patternProperties": {
+                "^(.*?)$": {
+                    "type": "string"
+                }
+            }
+        },
         "data": {
             "type": "object",
             "patternProperties": {

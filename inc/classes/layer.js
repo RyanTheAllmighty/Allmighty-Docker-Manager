@@ -104,7 +104,7 @@
             this[objectSymbol].environment = [];
             if (originalObject.environment) {
                 _.forEach(originalObject.environment, function (env) {
-                    this[objectSymbol].environment.push(new Environment(env));
+                    this[objectSymbol].environment.push(new Environment(this, env));
                 }, this);
             }
         }
@@ -334,15 +334,7 @@
                 address = address.substr(address.indexOf('://') + 3, address.length);
             }
 
-            if (imageToGet.indexOf('${repositoryURL}') !== -1) {
-                let replacement = (address.substr(-1) === '/' ? address.substr(0, address.length - 1) : address);
-
-                if (!brain.settings.repositoryAuth.serveraddress || brain.settings.repositoryAuth.serveraddress.indexOf('https://index.docker.io') === 0) {
-                    replacement = brain.settings.repositoryAuth.username;
-                }
-
-                imageToGet = imageToGet.replace('${repositoryURL}', replacement);
-            }
+            imageToGet = brain.parseVariables(this.application, imageToGet);
 
             let fromCustomRepo = imageToGet.indexOf(address) > -1;
             let hasVersion = fromCustomRepo ? (address.indexOf(':') === -1 ? imageToGet.indexOf(':') > -1 : address.indexOf(':') !== imageToGet.lastIndexOf(':')) : imageToGet.indexOf(':') > -1;

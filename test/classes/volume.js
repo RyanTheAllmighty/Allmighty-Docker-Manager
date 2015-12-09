@@ -53,7 +53,7 @@
                 }
             }
         }), 'test', {}), {
-            host: '${test}/hello',
+            host: '${d:test}/hello',
             container: '/mnt/readonly',
             readOnly: true
         });
@@ -67,13 +67,13 @@
                 }
             }
         }), 'test', {}), {
-            host: '${test_global}/hello',
+            host: '${d:test_global}/hello',
             container: '/mnt/readonly',
             readOnly: true
         });
 
         let admVariableVolume = new Volume(new Layer(new Application('test', {}), 'test', {}), {
-            host: '${__adm_application}/hello',
+            host: '${d:__adm_application}/hello',
             container: '/mnt/readonly',
             readOnly: true
         });
