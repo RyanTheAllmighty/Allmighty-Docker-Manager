@@ -8,7 +8,7 @@
 Allmighty Docker Manager (ADM for short) is a command line application written in NodeJS which manages Docker containers for a set of applications defined by the user.
 
 ## Install
-This package is meant to be installed globally on your system with NPM. Once installed
+This package is meant to be installed globally on your system with NPM:
 
 ```
 npm install -g allmighty-docker-manager
