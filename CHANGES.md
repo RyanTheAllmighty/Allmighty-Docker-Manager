@@ -18,6 +18,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - runOnly layers are now stored within a run object above the layers object in an application.json.
 - Variables used in different places (`${directory}`) have been replaced with the new variable syntax (`${d:varaible}`).
 - Allow restarting a single layer of an application with the restart command.
+- Make the component utility getLatestVersion function pass in the options.
 #### Fixes
 - Fix issue with building images that use the 'adm-util.js' file to provide the latest version not getting their required modules.
 - Fix list command not working.
