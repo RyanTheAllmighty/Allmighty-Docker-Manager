@@ -253,7 +253,7 @@
                     let utils = require(this.utilFile);
 
                     if (typeof utils.preDown === 'function') {
-                        utils.preDown(this, this.utilModules).then(bringDown).catch(reject);
+                        utils.preDown(options, this, this.utilModules).then(bringDown).catch(reject);
                     } else {
                         bringDown();
                     }
@@ -567,7 +567,7 @@
                     let utils = require(this.utilFile);
 
                     if (typeof utils.preUp === 'function') {
-                        utils.preUp(this, this.utilModules).then(bringUp).catch(reject);
+                        utils.preUp(options, this, this.utilModules).then(bringUp).catch(reject);
                     } else {
                         bringUp();
                     }
