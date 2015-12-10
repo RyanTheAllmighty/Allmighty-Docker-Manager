@@ -21,6 +21,9 @@
 
     let Layer = require('./layer');
 
+    // Symbol for storing the objects properties
+    let objectSymbol = Symbol();
+
     module.exports = class DataLayer extends Layer {
         /**
          * Constructor to create a new Data layer.
@@ -31,6 +34,21 @@
          */
         constructor(application, name, originalObject) {
             super(application, name, originalObject);
+
+            this[objectSymbol] = {};
+
+            if (originalObject.hasOwnProperty('autoMount')) {
+                this[objectSymbol].autoMount = originalObject.autoMount;
+            }
+        }
+
+        /**
+         * Returns if this data layer should auto mount itself into every non data layer of the application or not.
+         *
+         * @returns {Boolean}
+         */
+        get autoMount() {
+            return this[objectSymbol].autoMount;
         }
 
         /**

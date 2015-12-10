@@ -86,6 +86,15 @@
         }
 
         /**
+         * Gets the auto mounted DataLayers for this application if any.
+         *
+         * @returns {DataLayer[]}
+         */
+        get autoMounts() {
+            return _.where(_.where(this.layers, {dataOnly: true}), {autoMount: true}) || [];
+        }
+
+        /**
          * Gets the internal name of this application, the one it's defined with and used in commands. It must be alphanumeric only.
          *
          * @returns {String}

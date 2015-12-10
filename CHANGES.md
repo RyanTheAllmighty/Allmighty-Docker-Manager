@@ -2,6 +2,10 @@
 This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 1.0
+### 1.0.1
+#### Additions
+- Add in the ability to set a data layer as 'autoMount' which auto mounts it as if it were in the volumesFrom section.
+
 ### 1.0.0
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.

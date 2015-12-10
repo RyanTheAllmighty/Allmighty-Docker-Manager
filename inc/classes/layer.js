@@ -193,6 +193,13 @@
                 });
             }
 
+            if (!this.dataOnly && this.application.autoMounts.length > 0) {
+                // There is one or more auto mounting layers, so we need to figure out what we need to startup before this layer
+                _.forEach(this.application.autoMounts, function (layer) {
+                    layers.push(layer.name);
+                });
+            }
+
             return layers;
         }
 
@@ -293,6 +300,16 @@
 
                 this.volumesFrom.forEach(function (container) {
                     dockerOptions.HostConfig.VolumesFrom.push(sprintf('%s_%s', self.application.applicationName, container.container));
+                });
+            }
+
+            if (!this.dataOnly && this.application.autoMounts.length !== 0) {
+                if (!dockerOptions.HostConfig.VolumesFrom) {
+                    dockerOptions.HostConfig.VolumesFrom = [];
+                }
+
+                this.application.autoMounts.forEach(function (layer) {
+                    dockerOptions.HostConfig.VolumesFrom.push(sprintf('%s_%s', self.application.applicationName, layer.name));
                 });
             }
 
