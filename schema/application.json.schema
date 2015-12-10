@@ -45,6 +45,9 @@
                 "^(.*?)$": {
                     "type": "object",
                     "properties": {
+                        "autoMount": {
+                            "type": "boolean"
+                        },
                         "image": {
                             "type": "string"
                         },
