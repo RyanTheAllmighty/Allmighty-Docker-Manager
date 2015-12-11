@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/ADM/Environment/Root",
+    "type": "array",
+    "items": [
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": ["string", "array"]
+                }
+            }
+        }
+    ]
+}

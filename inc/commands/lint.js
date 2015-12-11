@@ -54,6 +54,7 @@
 
             results.push(validateFile(path.join(global.storagePath, 'settings.json')));
             results.push(validateFile(path.join(global.storagePath, 'directories.json')));
+            results.push(validateFile(path.join(global.storagePath, 'environment.json')));
 
             let applicationNames = _.map(fs.readdirSync(brain.getApplicationsDirectory()).filter(function (file) {
                 return fs.statSync(path.join(brain.getApplicationsDirectory(), file)).isDirectory() && fs.existsSync(path.join(brain.getApplicationsDirectory(), file, 'application.json'));

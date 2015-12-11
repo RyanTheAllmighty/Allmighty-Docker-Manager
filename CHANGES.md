@@ -5,6 +5,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 ### 1.1.0
 #### Additions
 - Add in the ability to set a data layer as 'autoMount' which auto mounts it as if it were in the volumesFrom section.
+- Added in the environment.json file which will allow you to pass environment variables defined in this file (same format as in the application.json) to all containers.
 #### Changes
 - When an environment variable that uses the `${e:}` syntax to read from an environment variable doesn't exist, it will simply not include that when running the container.
 

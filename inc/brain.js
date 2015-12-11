@@ -50,6 +50,8 @@
 
     module.exports.settings = settings;
 
+    module.exports.environment = fs.existsSync(path.join(global.storagePath, 'environment.json')) ? require(path.join(global.storagePath, 'environment.json')) : [];
+
     module.exports.variables = fs.existsSync(path.join(global.storagePath, 'variables.json')) ? require(path.join(global.storagePath, 'variables.json')) : {};
 
     module.exports.load = function () {

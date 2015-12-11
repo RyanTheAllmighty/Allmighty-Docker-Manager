@@ -265,10 +265,18 @@
                 });
             }
 
-            if (this.environment && this.environment.length > 0) {
+            if ((this.environment && this.environment.length > 0) || (brain.environment && brain.environment.length > 0)) {
                 dockerOptions.Env = [];
 
                 this.environment.forEach(function (env) {
+                    try {
+                        dockerOptions.Env.push(sprintf('%s=%s', env.name, env.value));
+                    } catch (ignored) {
+                        brain.logger.error(`Couldn't parse the environment variable for '${env.name}'!`);
+                    }
+                });
+
+                brain.environment.forEach(function (env) {
                     try {
                         dockerOptions.Env.push(sprintf('%s=%s', env.name, env.value));
                     } catch (ignored) {
