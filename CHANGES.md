@@ -1,11 +1,14 @@
 # Changes
 This file marks the changes in each version of ADM starting with 0.2.0.
 
-## 1.0
-### 1.0.1
+## 1.1
+### 1.1.0
 #### Additions
 - Add in the ability to set a data layer as 'autoMount' which auto mounts it as if it were in the volumesFrom section.
+#### Changes
+- When an environment variable that uses the `${e:}` syntax to read from an environment variable doesn't exist, it will simply not include that when running the container.
 
+## 1.0
 ### 1.0.0
 #### Additions
 - Add example of the 'runAfter' functionality to the sample folder.

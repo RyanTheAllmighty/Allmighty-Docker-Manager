@@ -269,7 +269,11 @@
                 dockerOptions.Env = [];
 
                 this.environment.forEach(function (env) {
-                    dockerOptions.Env.push(sprintf('%s=%s', env.name, env.value));
+                    try {
+                        dockerOptions.Env.push(sprintf('%s=%s', env.name, env.value));
+                    } catch (ignored) {
+                        brain.logger.error(`Couldn't parse the environment variable for '${env.name}'!`);
+                    }
                 });
             }
 
