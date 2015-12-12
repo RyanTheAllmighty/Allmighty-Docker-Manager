@@ -1,6 +1,11 @@
 # Changes
 This file marks the changes in each version of ADM starting with 0.2.0.
 
+## 1.2
+### 1.2.0
+#### Removed
+- Removed the monitor command since that's not within the scope of the application.
+
 ## 1.1
 ### 1.1.0
 #### Additions
