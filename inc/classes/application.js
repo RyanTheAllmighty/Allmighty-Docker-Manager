@@ -432,15 +432,20 @@
         isAllUp() {
             return new Promise(function (resolve) {
                 async.each(this.layers, function (layer, next) {
+                    // Run only containers can be ignored
+                    if (layer.runOnly) {
+                        return next();
+                    }
+
                     layer.container.inspect(function (err, data) {
                         // Data only containers don't need to be running, but they must be created, so vars check that, else we see if inspect says it's running
                         if (!err && (layer.dataOnly || data.State.Running === true)) {
                             return next();
                         }
 
-                        next(false);
+                        next(new Error());
                     });
-                }, (err) => resolve(typeof err === 'undefined'));
+                }, (err) => resolve(!err));
             }.bind(this));
         }
 

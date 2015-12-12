@@ -7,6 +7,8 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add in the `logging.debugLevel` setting to allow setting the level of debug to log ([more information](https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager/wiki/developers#debug-logging)).
 #### Changes
 - Massively speed up the `up` command.
+#### Fixes
+- Fix issue with the `up` command still attempting to bring an application up when it's all up already.
 #### Removed
 - Removed the monitor command since that's not within the scope of the application.
 
