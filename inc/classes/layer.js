@@ -651,6 +651,7 @@
 
                 this.isUp().then(function (isUp) {
                     if (isUp) {
+                        brain.logger.info(`${self.containerName} is already up!`);
                         // This layer is already up, so there is no need to bring it up again
                         return resolve();
                     }
@@ -692,7 +693,7 @@
 
                     // Pull the layers image so we make sure we're up to date
                     if (!options.pull) {
-                        brain.docker.getImage(self.image).get(function (err) {
+                        brain.docker.getImage(self.image).inspect(function (err) {
                             if (err) {
                                 pullAndUp();
                             } else {
