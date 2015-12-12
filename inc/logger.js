@@ -23,8 +23,33 @@
 
     let settings = require(path.join(global.storagePath, 'settings.json'));
 
-    module.exports.debug = function (message) {
-        if (settings.logging.level && settings.logging.level === 'debug') {
+    let usersDebugLevel = settings.logging.debugLevel || 1;
+
+    let benchmarkValues = {};
+
+    module.exports.benchmark = {
+        start: function (name) {
+            benchmarkValues[name] = process.hrtime();
+        },
+        stop: function (name) {
+            if (benchmarkValues.hasOwnProperty(name)) {
+                let diff = process.hrtime(benchmarkValues[name]);
+
+                delete benchmarkValues[name];
+
+                if (settings.logging.level && settings.logging.level === 'debug' && usersDebugLevel === 5) {
+                    console.log('[Benchmark] '.blue + `[${name}]`.yellow + ' %d ms'.white, (diff[0] + (diff[1] / 1000000)).toFixed(4));
+                }
+            }
+        }
+    };
+
+    module.exports.debug = function (message, level) {
+        if (!level) {
+            level = 1;
+        }
+
+        if (settings.logging.level && settings.logging.level === 'debug' && usersDebugLevel >= level) {
             console.log(message.blue);
         }
     };

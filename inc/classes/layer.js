@@ -657,7 +657,9 @@
                     }
 
                     let bringUp = function () {
+                        brain.logger.benchmark.start('Remove Container');
                         self.container.remove(function () {
+                            brain.logger.benchmark.stop('Remove Container');
                             brain.docker.createContainer(self.dockerOptions, function (err, container) {
                                 if (err) {
                                     return reject(err);

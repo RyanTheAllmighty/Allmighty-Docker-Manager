@@ -569,9 +569,11 @@
          * @returns {Promise}
          */
         up(options) {
-            let self = this;
-
             return new Promise(function (resolve, reject) {
+                let self = this;
+
+                brain.logger.benchmark.start('Application Up');
+
                 if (fs.existsSync(this.utilFile)) {
                     let utils = require(this.utilFile);
 
@@ -588,7 +590,15 @@
                     self.getOrderOfLayers(options).then(function (layersOrder) {
                         async.eachSeries(layersOrder, function (layer, next) {
                             layer.up(options).then(() => next()).catch(next);
-                        }, (err) => err ? reject(err) : resolve());
+                        }, function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            brain.logger.benchmark.stop('Application Up');
+
+                            resolve();
+                        });
                     }).catch(reject);
                 }
             }.bind(this));
