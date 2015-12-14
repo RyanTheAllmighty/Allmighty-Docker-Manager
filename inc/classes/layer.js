@@ -64,7 +64,7 @@
             this[objectSymbol].ports = [];
             if (originalObject.ports) {
                 _.forEach(originalObject.ports, function (port) {
-                    this[objectSymbol].ports.push(new Port(port));
+                    this[objectSymbol].ports.push(new Port(this, port));
                 }, this);
             }
 

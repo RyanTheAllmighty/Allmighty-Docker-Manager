@@ -19,6 +19,8 @@
 (function () {
     'use strict';
 
+    let brain = require('../brain');
+
     // Symbol for storing the objects properties
     let objectSymbol = Symbol();
 
@@ -26,10 +28,13 @@
         /**
          * Constructor to create a new Port.
          *
+         * @param {Layer} layer - the layer than this port object belongs to
          * @param {Object} originalObject - the object passed in which represents this application. Parsed from json
          */
-        constructor(originalObject) {
+        constructor(layer, originalObject) {
             this[objectSymbol] = {};
+
+            this[objectSymbol]._layer = layer;
 
             // Copy over the original objects properties to this objects private Symbol
             for (let propName in originalObject) {
@@ -63,7 +68,16 @@
          * @returns {String|null}
          */
         get ip() {
-            return this[objectSymbol].ip;
+            return brain.parseVariables(this.layer.application, this[objectSymbol].ip);
+        }
+
+        /**
+         * Gets the layer of this port.
+         *
+         * @returns {Layer}
+         */
+        get layer() {
+            return this[objectSymbol]._layer;
         }
 
         /**

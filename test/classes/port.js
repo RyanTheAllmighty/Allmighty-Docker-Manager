@@ -24,12 +24,12 @@
     let Port = require('../../inc/classes/port');
 
     describe('Port', function () {
-        let port = new Port({
+        let port = new Port({}, {
             host: 80,
             container: 8888
         });
 
-        let portUDP = new Port({
+        let portUDP = new Port({}, {
             host: 80,
             container: 8888,
             tcp: false,
