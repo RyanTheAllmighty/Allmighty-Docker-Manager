@@ -58,6 +58,15 @@
         }
 
         /**
+         * Gets the IP to use on the host to bind to for this port (if any).
+         *
+         * @returns {String|null}
+         */
+        get ip() {
+            return this[objectSymbol].ip;
+        }
+
+        /**
          * Gets if this port should open up the TCP ports.
          *
          * @returns {Boolean}

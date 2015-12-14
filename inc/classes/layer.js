@@ -253,14 +253,20 @@
                 dockerOptions.HostConfig.PortBindings = {};
 
                 this.ports.forEach(function (port) {
+                    let portBinding = {HostPort: port.host.toString()};
+
+                    if (port.ip) {
+                        portBinding.HostIP = port.ip;
+                    }
+
                     if (port.tcp) {
                         dockerOptions.ExposedPorts[sprintf('%d/tcp', port.container)] = {};
-                        dockerOptions.HostConfig.PortBindings[sprintf('%d/tcp', port.container)] = [{HostPort: port.host.toString()}];
+                        dockerOptions.HostConfig.PortBindings[sprintf('%d/tcp', port.container)] = [portBinding];
                     }
 
                     if (port.udp) {
                         dockerOptions.ExposedPorts[sprintf('%d/udp', port.container)] = {};
-                        dockerOptions.HostConfig.PortBindings[sprintf('%d/udp', port.container)] = [{HostPort: port.host.toString()}];
+                        dockerOptions.HostConfig.PortBindings[sprintf('%d/udp', port.container)] = [portBinding];
                     }
                 });
             }

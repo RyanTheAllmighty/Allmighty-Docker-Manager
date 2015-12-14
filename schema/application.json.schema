@@ -98,6 +98,9 @@
                             "items": {
                                 "type": "object",
                                 "properties": {
+                                    "ip": {
+                                        "type": "string"
+                                    },
                                     "container": {
                                         "type": "integer",
                                         "minimum": 1,
