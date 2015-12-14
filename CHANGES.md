@@ -7,11 +7,12 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add in the `logging.debugLevel` setting to allow setting the level of debug to log ([more information](https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager/wiki/developers#debug-logging)).
 - Add in the ability to specify ip addresses when defining ports for a layer.
 - Add in the ability to specify the exposed ports for a layer with the `exposedPorts` syntax which takes the same structure as the `ports` section.
+- Add in cron stuff so crons can be specified for applications and run with the `cron` command.
 #### Changes
 - Massively speed up the `up` command.
 #### Fixes
 - Fix issue with the `up` command still attempting to bring an application up when it's all up already.
-- Fix the `run`` command not erroring out when attempting to run a non run layer.
+- Fix the `run` command not erroring out when attempting to run a non run layer.
 #### Removed
 - Removed the monitor command since that's not within the scope of the application.
 

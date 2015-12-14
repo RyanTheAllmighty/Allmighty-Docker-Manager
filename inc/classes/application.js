@@ -21,6 +21,7 @@
 
     let brain = require('../brain');
 
+    let Cron = require('./cron');
     let Layer = require('./layer');
     let RunLayer = require('./runLayer');
     let DataLayer = require('./dataLayer');
@@ -54,6 +55,14 @@
                 if (originalObject.hasOwnProperty(propName)) {
                     this[objectSymbol][propName] = originalObject[propName];
                 }
+            }
+
+            // Turn the crons in the object into Cron objects
+            this[objectSymbol].cron = {};
+            if (originalObject.cron) {
+                _.forEach(originalObject.cron, function (cron, key) {
+                    this[objectSymbol].cron[key] = new Cron(this, key, cron);
+                }, this);
             }
 
             // Turn the directories in the object into Directory objects
@@ -101,6 +110,15 @@
          */
         get applicationName() {
             return this[objectSymbol].applicationName;
+        }
+
+        /**
+         * Gets the cron jobs of this application.
+         *
+         * @returns {Cron[]}
+         */
+        get crons() {
+            return this[objectSymbol].cron || {};
         }
 
         /**
@@ -282,6 +300,28 @@
                             async.eachSeries(layersOrder, _asyncEachCallback, (err) => err ? reject(err) : resolve());
                         }
                     }).catch(reject);
+                }
+            }.bind(this));
+        }
+
+        /**
+         * This executes the crons for this application.
+         *
+         * @param {Object} options - options passed in from the user
+         * @returns {Promise}
+         */
+        executeCron(options) {
+            return new Promise(function (resolve, reject) {
+                let _asyncEachCallback = function (cron, next) {
+                    cron.execute(options).then(() => next()).catch(next);
+                };
+
+                let crons = _.reject(this.crons, 'shouldExecute', false);
+
+                if (options.async) {
+                    async.each(crons, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                } else {
+                    async.eachSeries(crons, _asyncEachCallback, (err) => err ? reject(err) : resolve());
                 }
             }.bind(this));
         }

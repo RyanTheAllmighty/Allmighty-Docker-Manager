@@ -77,6 +77,11 @@
             process.exit(0);
         }).catch(function (err) {
             brain.logger.error(err);
+
+            if (err instanceof Error) {
+                brain.logger.debug(err.stack);
+            }
+
             return process.exit(1);
         });
     };

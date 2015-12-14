@@ -27,6 +27,7 @@
         "bytes": "^2.1.0",
         "cli-table2": "^0.1.9",
         "colors": "^1.1.2",
+        "cron-parser": "^1.0.2",
         "dockerode": "^2.2.2",
         "fstream": "^1.0.7",
         "jsonschema": "^1.0.2",
