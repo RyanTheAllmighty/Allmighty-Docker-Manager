@@ -275,6 +275,8 @@
         down(options) {
             let self = this;
 
+            brain.logger.benchmark.start('Application Down');
+
             return new Promise(function (resolve, reject) {
                 if (fs.existsSync(this.utilFile)) {
                     let utils = require(this.utilFile);
@@ -288,6 +290,16 @@
                     bringDown();
                 }
 
+                function allDown(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    brain.logger.benchmark.stop('Application Down');
+
+                    resolve();
+                }
+
                 function bringDown() {
                     self.getOrderOfLayers(options).then(function (layersOrder) {
                         let _asyncEachCallback = function (layer, next) {
@@ -295,9 +307,9 @@
                         };
 
                         if (options.async) {
-                            async.each(layersOrder, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                            async.each(layersOrder, _asyncEachCallback, allDown);
                         } else {
-                            async.eachSeries(layersOrder, _asyncEachCallback, (err) => err ? reject(err) : resolve());
+                            async.eachSeries(layersOrder, _asyncEachCallback, allDown);
                         }
                     }).catch(reject);
                 }
@@ -566,11 +578,21 @@
          * @returns {Promise}
          */
         restart(options) {
+            brain.logger.benchmark.start('Application Restart');
+
             return new Promise(function (resolve, reject) {
                 this.getOrderOfLayers(options).then(function (layersOrder) {
                     async.eachSeries(layersOrder, function (layer, next) {
                         layer.restart(options).then(() => next()).catch(next);
-                    }, (err) => err ? reject(err) : resolve());
+                    }, function (err) {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        brain.logger.benchmark.stop('Application Restart');
+
+                        resolve();
+                    });
                 }).catch(reject);
             }.bind(this));
         }

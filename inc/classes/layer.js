@@ -535,7 +535,9 @@
             return new Promise(function (resolve, reject) {
                 let self = this;
 
+                brain.logger.benchmark.start('Checking If Up');
                 this.isUp().then(function (isUp) {
+                    brain.logger.benchmark.stop('Checking If Up');
                     if (!isUp) {
                         return resolve();
                     }
@@ -548,7 +550,9 @@
                             resolve();
                         }
                     } else {
+                        brain.logger.benchmark.start('Stop Container');
                         self.container.stop(function (err) {
+                            brain.logger.benchmark.stop('Stop Container');
                             if (err) {
                                 return reject(err);
                             }
@@ -613,7 +617,9 @@
 
                 let self = this;
 
+                brain.logger.benchmark.start('Pull Image');
                 brain.docker.pull(this.image, pullOpts, function (err, stream) {
+                    brain.logger.benchmark.stop('Pull Image');
                     if (err || stream === null) {
                         brain.logger.error('Error pulling ' + self.name + ' (' + self.image + ')');
                         return reject(err);
@@ -641,7 +647,9 @@
             return new Promise(function (resolve, reject) {
                 let self = this;
 
+                brain.logger.benchmark.start('Checking If Up');
                 this.isUp().then(function (isUp) {
+                    brain.logger.benchmark.stop('Checking If Up');
                     if (!isUp) {
                         return self.up(options).then(resolve).catch(reject);
                     }
@@ -652,7 +660,9 @@
                         brain.logger.info(`${self.containerName} is being restarted!`);
                     }
 
+                    brain.logger.benchmark.start('Remove Container');
                     self.container.remove({force: true}, function (err) {
+                        brain.logger.benchmark.stop('Remove Container');
                         if (err) {
                             return reject(err);
                         }
@@ -689,7 +699,9 @@
                     }
                 }
 
+                brain.logger.benchmark.start('Checking If Up');
                 this.isUp().then(function (isUp) {
+                    brain.logger.benchmark.stop('Checking If Up');
                     if (isUp) {
                         brain.logger.info(`${self.containerName} is already up!`);
                         // This layer is already up, so there is no need to bring it up again
@@ -700,7 +712,10 @@
                         brain.logger.benchmark.start('Remove Container');
                         self.container.remove(function () {
                             brain.logger.benchmark.stop('Remove Container');
+
+                            brain.logger.benchmark.start('Create Container');
                             brain.docker.createContainer(self.dockerOptions, function (err, container) {
+                                brain.logger.benchmark.stop('Create Container');
                                 if (err) {
                                     return reject(err);
                                 }
@@ -714,7 +729,9 @@
                                     return resolve();
                                 }
 
+                                brain.logger.benchmark.start('Start Container');
                                 container.start(function (err) {
+                                    brain.logger.benchmark.stop('Start Container');
                                     if (err) {
                                         return reject(err);
                                     }
@@ -730,12 +747,19 @@
                     };
 
                     let pullAndUp = function () {
-                        self.pull(options).then(bringUp).catch(reject);
+                        brain.logger.benchmark.start('Pull Image');
+                        self.pull(options).then(function () {
+                            brain.logger.benchmark.stop('Pull Image');
+
+                            bringUp();
+                        }).catch(reject);
                     };
 
                     // Pull the layers image so we make sure we're up to date
                     if (!options.pull) {
+                        brain.logger.benchmark.start('Inspect Image');
                         brain.docker.getImage(self.image).inspect(function (err) {
+                            brain.logger.benchmark.stop('Inspect Image');
                             if (err) {
                                 pullAndUp();
                             } else {
