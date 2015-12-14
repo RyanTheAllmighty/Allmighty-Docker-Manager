@@ -290,7 +290,7 @@
          * Gets the layer object for the given layer name of this application.
          *
          * @param {String} name - the name of the layer to get
-         * @returns {Layer|undefined} - the layer with the given name or undefined if it doesn't exist
+         * @returns {Layer|DataLayer|RunLayer|undefined} - the layer with the given name or undefined if it doesn't exist
          */
         getLayer(name) {
             return _.find(this.layers, 'name', name);
