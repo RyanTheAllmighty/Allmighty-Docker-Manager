@@ -68,7 +68,7 @@
          * @returns {String|null}
          */
         get ip() {
-            return brain.parseVariables(this.layer.application, this[objectSymbol].ip);
+            return (typeof this[objectSymbol].ip !== 'undefined' ? brain.parseVariables(this.layer.application, this[objectSymbol].ip) : null);
         }
 
         /**
