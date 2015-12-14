@@ -76,7 +76,7 @@
 
                     theLayer = application.getLayer(layerName);
 
-                    if (!layerName.runOnly) {
+                    if (!theLayer.runOnly) {
                         return reject(new Error('The layer ' + layerName + ' for application ' + applicationName + ' is not a runnable layer!'));
                     }
 
