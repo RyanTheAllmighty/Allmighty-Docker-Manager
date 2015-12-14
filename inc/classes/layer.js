@@ -27,6 +27,7 @@
     let Volume = require('./volume');
     let VolumeFrom = require('./volumeFrom');
     let Environment = require('./environment');
+    let ExposedPort = require('./exposedPort');
 
     let fs = require('fs');
     let _ = require('lodash');
@@ -58,6 +59,14 @@
                 if (originalObject.hasOwnProperty(propName)) {
                     this[objectSymbol][propName] = originalObject[propName];
                 }
+            }
+
+            // Turn the exposedPorts in the object into ExposedPort objects
+            this[objectSymbol].exposedPorts = [];
+            if (originalObject.exposedPorts) {
+                _.forEach(originalObject.exposedPorts, function (port) {
+                    this[objectSymbol].exposedPorts.push(new ExposedPort(this, port));
+                }, this);
             }
 
             // Turn the ports in the object into Port objects
@@ -271,6 +280,22 @@
                 });
             }
 
+            if (this.exposedPorts && this.exposedPorts.length > 0) {
+                if (!dockerOptions.ExposedPorts) {
+                    dockerOptions.ExposedPorts = {};
+                }
+
+                this.exposedPorts.forEach(function (port) {
+                    if (port.tcp) {
+                        dockerOptions.ExposedPorts[sprintf('%d/tcp', port.container)] = {};
+                    }
+
+                    if (port.udp) {
+                        dockerOptions.ExposedPorts[sprintf('%d/udp', port.container)] = {};
+                    }
+                });
+            }
+
             if ((this.environment && this.environment.length > 0) || (brain.environment && brain.environment.length > 0)) {
                 dockerOptions.Env = [];
 
@@ -353,6 +378,15 @@
          */
         get environment() {
             return this[objectSymbol].environment || [];
+        }
+
+        /**
+         * Gets the exposed ports for this layer.
+         *
+         * @returns {ExposedPort[]}
+         */
+        get exposedPorts() {
+            return this[objectSymbol].exposedPorts || [];
         }
 
         /**

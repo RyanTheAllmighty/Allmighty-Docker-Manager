@@ -6,6 +6,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 #### Additions
 - Add in the `logging.debugLevel` setting to allow setting the level of debug to log ([more information](https://github.com/RyanTheAllmighty/Allmighty-Docker-Manager/wiki/developers#debug-logging)).
 - Add in the ability to specify ip addresses when defining ports for a layer.
+- Add in the ability to specify the exposed ports for a layer with the `exposedPorts` syntax which takes the same structure as the `ports` section.
 #### Changes
 - Massively speed up the `up` command.
 #### Fixes
