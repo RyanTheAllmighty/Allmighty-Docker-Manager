@@ -38,7 +38,7 @@
                 delete benchmarkValues[name];
 
                 if (settings.logging.level && settings.logging.level === 'debug' && usersDebugLevel === 5) {
-                    console.log('[Benchmark] '.blue + `[${name}]`.yellow + ' %d ms'.white, (diff[0] + (diff[1] / 1000000)).toFixed(4));
+                    console.log('[Benchmark] '.blue + `[${name}]`.yellow + ' %d ms'.white, ((diff[0] * 1000) + (diff[1] / 1000000)).toFixed(4));
                 }
             }
         }
