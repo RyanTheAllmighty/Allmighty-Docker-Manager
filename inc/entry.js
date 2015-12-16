@@ -72,8 +72,18 @@
         // This is the command we want to run
         let command = require(commandFile);
 
+        brain.logger.benchmark.start('Command Init');
+
         // First we need to initialize it with the arguments passed in to do some sanity checks and processing
-        command.init(passedArgs).then(command.run).then(function () {
+        command.init(passedArgs).then(function () {
+            brain.logger.benchmark.stop('Command Init');
+
+            brain.logger.benchmark.start('Command Run');
+
+            return command.run();
+        }).then(function () {
+            brain.logger.benchmark.stop('Command Run');
+
             process.exit(0);
         }).catch(function (err) {
             brain.logger.error(err);
