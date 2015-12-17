@@ -10,6 +10,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add in cron stuff so crons can be specified for applications and run with the `cron` command.
 #### Changes
 - Massively speed up the `up` command.
+- The `up` command will reuse created containers if available unless the `--rm` option is passed to the `up` or `down` commands to remove the containers.
 #### Fixes
 - Fix issue with the `up` command still attempting to bring an application up when it's all up already.
 - Fix the `run` command not erroring out when attempting to run a non run layer.

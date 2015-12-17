@@ -702,47 +702,74 @@
                 brain.logger.benchmark.start('Checking If Up');
                 this.isUp().then(function (isUp) {
                     brain.logger.benchmark.stop('Checking If Up');
+
                     if (isUp) {
                         brain.logger.info(`${self.containerName} is already up!`);
                         // This layer is already up, so there is no need to bring it up again
                         return resolve();
                     }
 
-                    let bringUp = function () {
-                        brain.logger.benchmark.start('Remove Container');
-                        self.container.remove(function () {
-                            brain.logger.benchmark.stop('Remove Container');
+                    let bringUp = function (containerId) {
+                        let container = brain.docker.getContainer(containerId);
 
-                            brain.logger.benchmark.start('Create Container');
-                            brain.docker.createContainer(self.dockerOptions, function (err, container) {
-                                brain.logger.benchmark.stop('Create Container');
-                                if (err) {
-                                    return reject(err);
-                                }
+                        // This is a data only container, so we don't need to run it
+                        if (self.dataOnly) {
+                            if (!options.quiet) {
+                                brain.logger.info(`${self.containerName} data container has been created!`);
+                            }
 
-                                // This is a data only container, so we don't need to run it
-                                if (self.dataOnly) {
-                                    if (!options.quiet) {
-                                        brain.logger.info(`${self.containerName} data container has been created!`);
-                                    }
+                            return resolve();
+                        }
 
-                                    return resolve();
-                                }
+                        brain.logger.benchmark.start('Start Container');
+                        container.start(function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
 
-                                brain.logger.benchmark.start('Start Container');
-                                container.start(function (err) {
-                                    brain.logger.benchmark.stop('Start Container');
+                            brain.logger.benchmark.stop('Start Container');
+
+                            if (!options.quiet) {
+                                brain.logger.info(`${self.containerName} is now up!`);
+                            }
+
+                            resolve();
+                        });
+                    };
+
+                    let createAndUp = function () {
+                        brain.logger.benchmark.start('Create Container');
+
+                        brain.docker.createContainer(self.dockerOptions, function (err, container) {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            brain.logger.benchmark.stop('Create Container');
+
+                            bringUp(container.id);
+                        });
+                    };
+
+                    let checkRM = function () {
+                        self.container.inspect(function (err, data) {
+                            if (err) {
+                                return createAndUp();
+                            }
+
+                            if (options.rm) {
+                                brain.logger.benchmark.start('Remove Container');
+                                self.container.remove(function (err) {
                                     if (err) {
                                         return reject(err);
                                     }
 
-                                    if (!options.quiet) {
-                                        brain.logger.info(`${self.containerName} is now up!`);
-                                    }
-
-                                    resolve();
+                                    brain.logger.benchmark.stop('Remove Container');
+                                    createAndUp();
                                 });
-                            });
+                            } else {
+                                bringUp(data.Id);
+                            }
                         });
                     };
 
@@ -751,7 +778,7 @@
                         self.pull(options).then(function () {
                             brain.logger.benchmark.stop('Pull Image');
 
-                            bringUp();
+                            checkRM();
                         }).catch(reject);
                     };
 
@@ -763,7 +790,7 @@
                             if (err) {
                                 pullAndUp();
                             } else {
-                                bringUp();
+                                checkRM();
                             }
                         });
                     } else {

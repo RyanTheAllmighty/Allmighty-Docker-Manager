@@ -44,13 +44,15 @@
      * quiet: If there should be no output from the command (default: false)
      * async: If we should run all the builds we're doing asynchronously (default: false)
      * pull: If we should attempt to pull the latest image for each given layer (default: false)
+     * rm: If the container should be removed after being taken down (default: false)
      *
-     * @type {{quiet: boolean, async: boolean, pull: boolean}}
+     * @type {{quiet: boolean, async: boolean, pull: boolean, rm: boolean}}
      */
     module.exports.options = {
         quiet: false,
         async: false,
-        pull: false
+        pull: false,
+        rm: false
     };
 
     /**
