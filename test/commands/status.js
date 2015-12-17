@@ -26,15 +26,71 @@
 
     let Command = require('../../inc/commands/status');
 
-    let defaultOptions = {_raw: ['status']};
+    let defaultOptions = global.parseArgs();
 
-    describe('adm status', function () {
-        it('should initialize without issue', function () {
-            return expect(Command.init(defaultOptions)).to.eventually.be.resolved;
+    describe('Status', function () {
+        let write, log, output = '';
+
+        beforeEach(function () {
+            output = '';
+            write = process.stdout.write;
+            log = console.log;
+
+            // our stub will concatenate any output to a string
+            process.stdout.write = console.log = function (s) {
+                output += s;
+            };
         });
 
-        it('should cause an issue when a non existing application is passed in', function () {
-            return expect(Command.init({_raw: ['status', 'hello'], _: ['hello']})).to.eventually.be.rejectedWith('Error: No application exists called "hello"!');
+        afterEach(function () {
+            process.stdout.write = write;
+            console.log = log;
+        });
+
+        describe('#init', function () {
+            it('should initialize without issue with no applications passed in', function () {
+                return Command.init(defaultOptions);
+            });
+
+            it('should initialize without issue with an application name passed', function () {
+                return Command.init(global.parseArgs('application'));
+            });
+
+            it('should cause an issue when a non existing application is passed in', function () {
+                return expect(Command.init(global.parseArgs('noexist'))).to.eventually.be.rejectedWith('Error: No application exists called "noexist"!');
+            });
+        });
+
+        describe('#run', function () {
+            it('should run without issue', function () {
+                return Command.init(defaultOptions).then(Command.run).then(function () {
+                    expect(output).to.contain('\u001b[36mhello\u001b[39m');
+                    expect(output).to.contain('\u001b[36mapplication\u001b[39m');
+                    expect(output).to.contain('test: \u001b[31mOffline\u001b[39m');
+                    expect(output).to.contain('component: \u001b[31mOffline\u001b[39m');
+                    expect(output).to.contain('repoComponent: \u001b[31mOffline\u001b[39m');
+                });
+            });
+
+            it('should run without issue when an application is passed in', function () {
+                return Command.init(global.parseArgs('application')).then(Command.run).then(function () {
+                    expect(output).to.contain('\u001b[36mapplication\u001b[39m');
+                    expect(output).to.contain('test: \u001b[31mOffline\u001b[39m');
+                    expect(output).to.contain('component: \u001b[31mOffline\u001b[39m');
+                    expect(output).to.contain('repoComponent: \u001b[31mOffline\u001b[39m');
+                });
+            });
+
+            describe('--up', function () {
+                it('should only show the up layers of the application', function () {
+                    return Command.init(global.parseArgs('application --up')).then(Command.run).then(function () {
+                        expect(output).to.not.contain('\u001b[36mapplication\u001b[39m');
+                        expect(output).to.not.contain('test: \u001b[31mOffline\u001b[39m');
+                        expect(output).to.not.contain('component: \u001b[31mOffline\u001b[39m');
+                        expect(output).to.not.contain('repoComponent: \u001b[31mOffline\u001b[39m');
+                    });
+                });
+            });
         });
     });
 })();
