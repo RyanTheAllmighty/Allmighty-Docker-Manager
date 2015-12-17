@@ -1,0 +1,140 @@
+{
+    "name": "application",
+    "description": "This is a sample application which shows some basic setup.",
+    "directories": {
+        "test": {
+            "path": "/example/test",
+            "description": "Some test data. The shared boolean shows if ONLY this application uses that directory or if other applications also use it."
+        },
+        "read_only": {
+            "path": "/example/readOnly",
+            "description": "Some more test data. This one is shared by other containers. Also note this is not an absolute path, it's appended to the directories.storage value in the settings.json."
+        }
+    },
+    "variables": {
+        "testVaraible": "hello"
+    },
+    "data": {
+        "data": {
+            "image": "ubuntu:14.04",
+            "volumes": [
+                {
+                    "host": "${d:test}",
+                    "container": "/mounted/test",
+                    "readOnly": false
+                },
+                {
+                    "host": "${d:test_global}",
+                    "container": "/mounted/test_global",
+                    "readOnly": false
+                },
+                {
+                    "host": "${d:read_only}",
+                    "container": "/mounted/RO",
+                    "readOnly": true
+                },
+                {
+                    "host": "${d:read_only}/file.txt",
+                    "container": "/mounted/RO/file.txt",
+                    "readOnly": true,
+                    "directory": false
+                }
+            ]
+        }
+    },
+    "run": {
+        "setup": {
+            "image": "ubuntu:14.04",
+            "runAfter": [
+                {
+                    "layer": "composer",
+                    "command": ["--no-scripts", "install"]
+                }
+            ],
+            "command": "sh setup.sh",
+            "workingDirectory": "/mounted/test",
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        },
+        "composer": {
+            "image": "composer/composer",
+            "command": "composer --ansi",
+            "workingDirectory": "/mounted/test",
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        }
+    },
+    "layers": {
+        "test": {
+            "image": "ubuntu:14.04",
+            "restart": true,
+            "cpuShares": 512,
+            "command": "sleep 365d",
+            "labels": [
+                {
+                    "name": "test",
+                    "value": "test"
+                }
+            ],
+            "ports": [
+                {
+                    "host": 7777,
+                    "container": 6984
+                }
+            ],
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        },
+        "component": {
+            "image": "component",
+            "restart": true,
+            "cpuShares": 512,
+            "ports": [
+                {
+                    "host": 7777,
+                    "container": 6984
+                }
+            ],
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ]
+        },
+        "repoComponent": {
+            "image": "${v:repositoryURL}/component",
+            "restart": true,
+            "cpuShares": 512,
+            "ports": [
+                {
+                    "host": 7777,
+                    "container": 6984
+                }
+            ],
+            "volumesFrom": [
+                {
+                    "container": "data"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "FROM_VARIABLE",
+                    "value": "${v:testVaraible}"
+                },
+                {
+                    "name": "FROM_HOST_ENVIRONMENT_VARIABLE",
+                    "value": "${e:VARIABLE_ON_HOST}"
+                }
+            ]
+        }
+    }
+}

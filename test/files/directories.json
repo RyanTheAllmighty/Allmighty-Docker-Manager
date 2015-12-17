@@ -1,0 +1,6 @@
+{
+    "test_global": {
+        "path": "/test",
+        "description": "A globally available directory for your application json files."
+    }
+}

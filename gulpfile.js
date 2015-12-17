@@ -26,7 +26,7 @@
     let jshint = require('gulp-jshint');
     let passedArgs = require('minimist')(process.argv.splice(2));
 
-    global.storagePath = passedArgs.storagePath || path.join(process.cwd(), 'sample');
+    global.storagePath = passedArgs.storagePath || path.join(process.cwd(), 'test', 'files');
 
     gulp.task('jshint', function () {
         return gulp.src(['app.js', 'inc/**/*.js', 'test/**/*.js'])
@@ -43,7 +43,7 @@
     });
 
     gulp.task('test', function () {
-        return gulp.src('test/**/*.js')
+        return gulp.src(['test/classes/*.js', 'test/commands/*.js'])
             .pipe(mocha({
                 reporter: 'min',
                 clearRequireCache: true,
@@ -52,7 +52,7 @@
     });
 
     gulp.task('watch', function () {
-        gulp.watch(['app.js', 'inc/**/*.js', 'test/**/*.js'], ['jshint', 'jscs', 'test']);
+        gulp.watch(['app.js', 'inc/**/*.js', 'test/**/*'], ['jshint', 'jscs', 'test']);
         gulp.start('default');
     });
 

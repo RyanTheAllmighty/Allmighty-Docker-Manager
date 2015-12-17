@@ -48,7 +48,7 @@
             directories: {
                 test: {
                     path: '/test/variable',
-                    description: 'Testing vartiable replacements!',
+                    description: 'Testing variable replacements!',
                     shared: false
                 }
             }
@@ -62,7 +62,7 @@
             directories: {
                 test: {
                     path: '/test/variable',
-                    description: 'Testing vartiable replacements!',
+                    description: 'Testing variable replacements!',
                     shared: false
                 }
             }
@@ -109,7 +109,7 @@
             });
 
             it('should return the path to the volume on the host with ADM specific variables', function () {
-                expect(admVariableVolume.host.indexOf('sample/applications/test/hello') > -1).to.equal(true);
+                expect(admVariableVolume.host.indexOf('applications/test/hello') > -1).to.equal(true);
             });
         });
 
