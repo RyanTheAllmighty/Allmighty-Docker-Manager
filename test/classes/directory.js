@@ -41,7 +41,7 @@
 
         describe('#path', function () {
             it('should return the directories path', function () {
-                expect(directory.path).to.equal('/var/lib/adm/test');
+                expect(directory.path).to.equal('/tmp/adm/test');
             });
         });
     });
