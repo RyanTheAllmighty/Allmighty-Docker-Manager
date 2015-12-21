@@ -74,9 +74,7 @@
 
             if (module.exports.options.tag) {
                 if (module.exports.options.tag instanceof Array) {
-                    module.exports.options.tags = module.exports.options.tag.map(function (val) {
-                        return val + '';
-                    });
+                    module.exports.options.tags = module.exports.options.tag;
                 } else {
                     module.exports.options.tags.push(module.exports.options.tag + '');
                 }

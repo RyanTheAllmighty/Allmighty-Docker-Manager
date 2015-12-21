@@ -27,7 +27,7 @@
 
     module.exports = function (args) {
         // Parse the arguments passed in
-        let passedArgs = require('minimist')(args);
+        let passedArgs = require('minimist')(args, {string: ['tag']});
         passedArgs._raw = args;
 
         global.storagePath = process.env.ADM_STORAGE_PATH || process.cwd();
