@@ -15,6 +15,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Fix issue with the `up` command still attempting to bring an application up when it's all up already.
 - Fix the `run` command not erroring out when attempting to run a non run layer.
 - Fix issue with the `build` command not parsing the `--tag` options as strings which caused issues.
+- Fix issue with run containers not getting auto mounted data layers added to them.
 #### Removed
 - Removed the monitor command since that's not within the scope of the application.
 

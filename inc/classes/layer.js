@@ -188,6 +188,13 @@
         get dependentLayers() {
             let layers = [];
 
+            if (!this.dataOnly && this.application.autoMounts.length > 0) {
+                // There is one or more auto mounting layers, so we need to figure out what we need to startup before this layer
+                _.forEach(this.application.autoMounts, function (layer) {
+                    layers.push(layer.name);
+                });
+            }
+
             if (this.links.length > 0) {
                 // There is one or more links, so we need to figure out what we need to startup before this layer
                 _.forEach(this.links, function (link) {
@@ -199,13 +206,6 @@
                 // There is one or more volumesFrom, so we need to figure out what we need to startup before this layer
                 _.forEach(this.volumesFrom, function (volumeFrom) {
                     layers.push(volumeFrom.container);
-                });
-            }
-
-            if (!this.dataOnly && this.application.autoMounts.length > 0) {
-                // There is one or more auto mounting layers, so we need to figure out what we need to startup before this layer
-                _.forEach(this.application.autoMounts, function (layer) {
-                    layers.push(layer.name);
                 });
             }
 
