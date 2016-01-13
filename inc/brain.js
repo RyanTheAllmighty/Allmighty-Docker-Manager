@@ -173,6 +173,10 @@
     };
 
     module.exports.loadComponents = function () {
+        if (!fs.existsSync(this.getComponentsDirectory())) {
+            return {};
+        }
+
         let componentNames = fs.readdirSync(this.getComponentsDirectory()).filter(function (file) {
             return fs.statSync(path.join(this.getComponentsDirectory(), file)).isDirectory();
         }, this);
