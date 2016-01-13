@@ -239,6 +239,10 @@
                 }
             };
 
+            if (this.privileged) {
+                dockerOptions.HostConfig.Privileged = true;
+            }
+
             if (this.shouldRestart) {
                 dockerOptions.HostConfig.RestartPolicy = {Name: 'always'};
             }
@@ -454,6 +458,15 @@
          */
         get ports() {
             return this[objectSymbol].ports;
+        }
+
+        /**
+         * Gets if this layer is privileged or not.
+         *
+         * @returns {Boolean}
+         */
+        get privileged() {
+            return this[objectSymbol].privileged;
         }
 
         /**

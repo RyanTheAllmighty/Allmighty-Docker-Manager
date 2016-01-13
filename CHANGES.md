@@ -8,6 +8,7 @@ This file marks the changes in each version of ADM starting with 0.2.0.
 - Add in the ability to specify ip addresses when defining ports for a layer.
 - Add in the ability to specify the exposed ports for a layer with the `exposedPorts` syntax which takes the same structure as the `ports` section.
 - Add in cron stuff so crons can be specified for applications and run with the `cron` command.
+- Add in the ability to specify that a layer is 'Privileged' which passes the 'Privileged' flag over to Docker when running.
 #### Changes
 - Massively speed up the `up` command.
 - The `up` command will reuse created containers if available unless the `--rm` option is passed to the `up` or `down` commands to remove the containers.
