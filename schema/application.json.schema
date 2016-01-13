@@ -309,6 +309,30 @@
                 }
             }
         },
+        "cron": {
+            "type": "object",
+            "patternProperties": {
+                "^(.*?)$": {
+                    "type": "object",
+                    "properties": {
+                        "run": {
+                            "type": "string"
+                        },
+                        "command": {
+                            "type": "array"
+                        },
+                        "at": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "run",
+                        "at"
+                    ]
+                }
+            }
+        },
         "layers": {
             "type": "object",
             "patternProperties": {
@@ -319,6 +343,9 @@
                             "type": "string"
                         },
                         "restart": {
+                            "type": "boolean"
+                        },
+                        "privileged": {
                             "type": "boolean"
                         },
                         "command": {
@@ -345,6 +372,33 @@
                                     }
                                 }
                             ]
+                        },
+                        "exposedPorts": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "container": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 65535
+                                    },
+                                    "host": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 65535
+                                    },
+                                    "tcp": {
+                                        "type": "boolean"
+                                    },
+                                    "udp": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "container"
+                                ]
+                            }
                         },
                         "links": {
                             "type": "array",
@@ -440,7 +494,14 @@
     "additionalProperties": false,
     "required": [
         "name",
-        "description",
-        "layers"
+        "description"
+    ],
+    "anyOf": [
+        {
+            "required": ["run"]
+        },
+        {
+            "required": ["layers"]
+        }
     ]
 }
