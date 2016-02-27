@@ -2,6 +2,10 @@
 This file marks the changes in each version of ADM starting with 0.2.0.
 
 ## 1.2
+### 1.2.2
+#### Fixes
+- Fix wrong main in package.json.
+
 ### 1.2.1
 #### Fixes
 - Fix things failing when there is no components directory.
