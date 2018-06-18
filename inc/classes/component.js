@@ -26,7 +26,7 @@
     let _ = require('lodash');
     let path = require('path');
     let async = require('async');
-    let Table = require('cli-table2');
+    let Table = require('cli-table3');
     let spawn = require('child_process').spawn;
     let sprintf = require('sprintf-js').sprintf;
 

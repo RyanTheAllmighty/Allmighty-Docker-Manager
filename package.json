@@ -25,7 +25,7 @@
     "dependencies": {
         "async": "^1.4.2",
         "bytes": "^2.1.0",
-        "cli-table2": "^0.1.9",
+        "cli-table3": "^0.5.0",
         "colors": "^1.1.2",
         "cron-parser": "^1.0.2",
         "dockerode": "^2.2.2",
